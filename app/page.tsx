@@ -15,10 +15,23 @@ async function getHomepageData() {
 
   if (!session) return null
 
-  const billSelect = `
+  // Controversial bills get full detail for the expanded card
+  const controversialBillSelect = `
+    id, bill_number, title, description, plain_summary,
+    chamber, is_controversial, controversy_reason,
+    completed, last_action, last_action_date, state_url, subjects,
+    bill_sponsors(
+      sponsor_order, sponsor_type,
+      legislators(name, party, role, district, chamber)
+    ),
+    roll_calls(yea_count, nay_count, passed, vote_margin, is_party_line)
+  `
+
+  // Compact cards for "All Bills" tab
+  const recentBillSelect = `
     id, bill_number, title, chamber,
     is_controversial, controversy_reason,
-    completed, last_action, last_action_date,
+    completed, last_action,
     bill_sponsors(sponsor_order, legislators(name, party, district)),
     roll_calls(yea_count, nay_count, passed)
   `
@@ -46,14 +59,14 @@ async function getHomepageData() {
       .eq('is_controversial', true),
     supabase
       .from('bills')
-      .select(billSelect)
+      .select(controversialBillSelect)
       .eq('session_id', session.id)
       .eq('is_controversial', true)
       .order('last_action_date', { ascending: false })
-      .limit(8),
+      .limit(6),
     supabase
       .from('bills')
-      .select(billSelect)
+      .select(recentBillSelect)
       .eq('session_id', session.id)
       .order('last_action_date', { ascending: false })
       .limit(8),

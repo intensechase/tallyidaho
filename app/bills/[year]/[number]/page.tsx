@@ -23,7 +23,11 @@ async function getBill(year: string, number: string) {
       roll_calls(
         id, date, chamber, yea_count, nay_count, absent_count,
         nv_count, total_count, passed, vote_margin, is_party_line,
-        description
+        description,
+        legislator_votes(
+          vote_value,
+          legislators(id, name, party, role, district)
+        )
       )
     `)
     .eq('bill_number', number.toUpperCase())
@@ -171,42 +175,136 @@ export default async function BillPage({ params }: Props) {
             </section>
           )}
 
-          {/* Roll calls / votes */}
+          {/* Roll calls + full voting record */}
           {rollCalls.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">ROLL CALL VOTES</h2>
-              <div className="space-y-3">
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">HOW THEY VOTED</h2>
+              <div className="space-y-6">
                 {rollCalls.map((rc: any) => {
                   const total = rc.yea_count + rc.nay_count
                   const yeaPct = total > 0 ? Math.round(rc.yea_count / total * 100) : 0
+                  const margin = rc.vote_margin ?? Math.abs(rc.yea_count - rc.nay_count)
+
+                  const votes: any[] = rc.legislator_votes || []
+                  const yeas = votes
+                    .filter((v: any) => v.vote_value === 'yea')
+                    .sort((a: any, b: any) => a.legislators?.name?.localeCompare(b.legislators?.name))
+                  const nays = votes
+                    .filter((v: any) => v.vote_value === 'nay')
+                    .sort((a: any, b: any) => a.legislators?.name?.localeCompare(b.legislators?.name))
+                  const abstains = votes.filter((v: any) => v.vote_value !== 'yea' && v.vote_value !== 'nay')
+
                   return (
-                    <div key={rc.id} className="rounded-xl border border-slate-100 bg-slate-50 p-4">
-                      <div className="flex items-center justify-between mb-2">
+                    <div key={rc.id} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
+                      {/* Roll call header */}
+                      <div className="bg-slate-50 px-4 py-3 flex items-center justify-between border-b border-slate-200">
                         <div>
-                          <span className="text-xs font-semibold text-slate-500 capitalize">{rc.chamber} Chamber</span>
-                          {rc.date && <span className="text-xs text-slate-400 ml-2">· {new Date(rc.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}</span>}
+                          <span className="text-sm font-bold text-slate-700 capitalize">{rc.chamber} Chamber</span>
+                          {rc.date && (
+                            <span className="text-xs text-slate-400 ml-2">
+                              · {new Date(rc.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                            </span>
+                          )}
+                          {rc.description && (
+                            <p className="text-xs text-slate-500 mt-0.5">{rc.description}</p>
+                          )}
                         </div>
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${rc.passed ? 'bg-emerald-50 text-emerald-600' : 'bg-red-50 text-red-600'}`}>
-                          {rc.passed ? '✓ Passed' : '✗ Failed'}
-                        </span>
+                        <div className="flex items-center gap-2 shrink-0">
+                          {(rc.is_party_line || rc.vote_margin < 10) && (
+                            <span className="text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
+                              ⚡ {rc.is_party_line ? 'Party-line' : 'Close vote'}
+                            </span>
+                          )}
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${rc.passed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {rc.passed ? '✓ Passed' : '✗ Failed'}
+                          </span>
+                        </div>
                       </div>
-                      {rc.description && (
-                        <p className="text-xs text-slate-500 mb-2">{rc.description}</p>
+
+                      {/* Vote bar */}
+                      <div className="px-4 py-3 border-b border-slate-100">
+                        <div className="flex items-center gap-2 mb-1">
+                          <span className="text-sm font-bold text-emerald-600 w-14 text-right tabular-nums">{rc.yea_count} Yea</span>
+                          <div className="flex-1 h-3 rounded-full bg-slate-100 overflow-hidden">
+                            <div
+                              className="vote-bar-fill h-full bg-emerald-500 rounded-full"
+                              style={{ '--bar-pct': `${yeaPct}%` } as React.CSSProperties}
+                            />
+                          </div>
+                          <span className="text-sm font-bold text-red-500 w-14 tabular-nums">{rc.nay_count} Nay</span>
+                        </div>
+                        <div className="flex justify-between text-xs text-slate-400">
+                          <span>{rc.absent_count > 0 ? `${rc.absent_count} absent` : ''}</span>
+                          <span>{margin > 0 ? `${rc.passed ? 'Passed' : 'Failed'} by ${margin} vote${margin !== 1 ? 's' : ''}` : ''}</span>
+                        </div>
+                      </div>
+
+                      {/* Legislator votes grid */}
+                      {votes.length > 0 && (
+                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
+                          {/* Yea column */}
+                          <div>
+                            <p className="text-xs font-bold tracking-widest text-emerald-600 mb-2">YEA ({yeas.length})</p>
+                            <div className="space-y-1">
+                              {yeas.map((v: any, i: number) => {
+                                const leg = v.legislators
+                                if (!leg) return null
+                                const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                                return (
+                                  <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
+                                    <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
+                                    <span className="text-xs text-slate-700 group-hover:text-amber-700 transition-colors truncate">
+                                      {leg.name}
+                                    </span>
+                                    <span className="text-xs text-slate-400 shrink-0 ml-auto">{leg.district}</span>
+                                  </a>
+                                )
+                              })}
+                            </div>
+                          </div>
+
+                          {/* Nay column */}
+                          <div>
+                            <p className="text-xs font-bold tracking-widest text-red-500 mb-2">NAY ({nays.length})</p>
+                            <div className="space-y-1">
+                              {nays.map((v: any, i: number) => {
+                                const leg = v.legislators
+                                if (!leg) return null
+                                const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                                return (
+                                  <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
+                                    <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
+                                    <span className="text-xs text-slate-700 group-hover:text-amber-700 transition-colors truncate">
+                                      {leg.name}
+                                    </span>
+                                    <span className="text-xs text-slate-400 shrink-0 ml-auto">{leg.district}</span>
+                                  </a>
+                                )
+                              })}
+                            </div>
+                          </div>
+                        </div>
                       )}
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className="text-sm font-bold text-emerald-600 w-12 text-right">{rc.yea_count} Yea</span>
-                        <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
-                          <div
-                            className="vote-bar-fill h-full bg-emerald-500 rounded-full"
-                            style={{ '--bar-pct': `${yeaPct}%` } as React.CSSProperties}
-                          />
+
+                      {/* Absent/NV */}
+                      {abstains.length > 0 && (
+                        <div className="px-4 pb-4 border-t border-slate-100 pt-3">
+                          <p className="text-xs font-bold tracking-widest text-slate-400 mb-2">ABSENT / NOT VOTING ({abstains.length})</p>
+                          <div className="flex flex-wrap gap-2">
+                            {abstains.map((v: any, i: number) => {
+                              const leg = v.legislators
+                              if (!leg) return null
+                              const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                              return (
+                                <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-700">
+                                  <span className={`party-badge party-${leg.party?.toLowerCase()}`}>{leg.party}</span>
+                                  {leg.name}
+                                </a>
+                              )
+                            })}
+                          </div>
                         </div>
-                        <span className="text-sm font-bold text-red-500 w-12">{rc.nay_count} Nay</span>
-                      </div>
-                      <div className="flex justify-between text-xs text-slate-400 mt-1">
-                        <span>{rc.absent_count > 0 ? `${rc.absent_count} absent` : ''}</span>
-                        <span>{rc.is_party_line ? '⚡ Party-line vote' : rc.vote_margin < 10 ? '⚡ Close vote' : ''}</span>
-                      </div>
+                      )}
                     </div>
                   )
                 })}
