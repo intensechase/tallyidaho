@@ -25,11 +25,11 @@ export default function SiteNav() {
   }
 
   return (
-    <header className="bg-[#0f172a] sticky top-0 z-50 border-b border-slate-800">
+    <header className="bg-[#0f172a] header-texture sticky top-0 z-50 border-b border-slate-800/80">
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
 
         {/* Logo */}
-        <Link href="/" className="font-playfair text-2xl font-black text-white shrink-0 tracking-tight">
+        <Link href="/" className="logo-hover font-playfair text-[1.6rem] font-black text-white shrink-0 tracking-tight leading-none">
           TALLY IDAHO
         </Link>
 

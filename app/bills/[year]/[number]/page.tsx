@@ -195,8 +195,11 @@ export default async function BillPage({ params }: Props) {
                       )}
                       <div className="flex items-center gap-2 mb-1">
                         <span className="text-sm font-bold text-emerald-600 w-12 text-right">{rc.yea_count} Yea</span>
-                        <div className="flex-1 h-2.5 rounded-full bg-slate-200 overflow-hidden">
-                          <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${yeaPct}%` }} />
+                        <div className="flex-1 h-2.5 rounded-full bg-slate-100 overflow-hidden">
+                          <div
+                            className="vote-bar-fill h-full bg-emerald-500 rounded-full"
+                            style={{ '--bar-pct': `${yeaPct}%` } as React.CSSProperties}
+                          />
                         </div>
                         <span className="text-sm font-bold text-red-500 w-12">{rc.nay_count} Nay</span>
                       </div>

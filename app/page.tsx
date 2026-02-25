@@ -87,25 +87,26 @@ export default async function HomePage() {
   return (
     <>
       {/* Session stats bar */}
-      <div className="bg-[#1e293b] border-b border-slate-700">
-        <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-6 md:gap-10 text-sm">
-          <div className="flex items-center gap-2">
-            <span className="font-outfit text-2xl font-bold text-white">{stats.billsCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs leading-tight">bills<br />introduced</span>
+      <div className="bg-[#1e293b] header-texture border-b border-slate-700/60">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-6 md:gap-12">
+          <div className="stat-enter flex items-baseline gap-2">
+            <span className="font-playfair text-3xl font-black text-white tabular-nums">{stats.billsCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest">Bills</span>
           </div>
-          <div className="h-6 w-px bg-slate-700" />
-          <div className="flex items-center gap-2">
-            <span className="font-outfit text-2xl font-bold text-emerald-400">{stats.passedCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs leading-tight">signed<br />into law</span>
+          <div className="h-7 w-px bg-slate-700" />
+          <div className="stat-enter flex items-baseline gap-2">
+            <span className="font-playfair text-3xl font-black text-emerald-400 tabular-nums">{stats.passedCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest">Signed</span>
           </div>
-          <div className="h-6 w-px bg-slate-700" />
-          <div className="flex items-center gap-2">
-            <span className="font-outfit text-2xl font-bold text-amber-400">{stats.controversialCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs leading-tight">controversial<br />votes</span>
+          <div className="h-7 w-px bg-slate-700" />
+          <div className="stat-enter flex items-baseline gap-2">
+            <span className="font-playfair text-3xl font-black text-amber-400 tabular-nums">{stats.controversialCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest">Controversial</span>
           </div>
-          <span className="ml-auto text-xs text-slate-500 hidden md:block">
-            {session.name}
-          </span>
+          <div className="ml-auto hidden md:flex flex-col items-end">
+            <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">{session.name}</span>
+            <span className="text-xs text-slate-600 mt-0.5">Updated daily</span>
+          </div>
         </div>
       </div>
 

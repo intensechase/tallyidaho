@@ -34,9 +34,14 @@ function BillCard({ bill, year }: { bill: Bill; year: number }) {
   const total = yea + nay
   const yeaPct = total > 0 ? Math.round((yea / total) * 100) : 0
 
+  const accentClass =
+    bill.controversy_reason === 'party_line' ? 'bill-card-party-line' :
+    bill.controversy_reason === 'close_vote'  ? 'bill-card-close-vote' :
+    'bill-card-default'
+
   return (
     <Link href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}>
-      <div className="rounded-xl bg-slate-50 border border-slate-100 p-4 hover:border-amber-300 hover:shadow-sm transition-all cursor-pointer">
+      <div className={`card-enter bill-card rounded-xl bg-white border border-slate-200 p-4 cursor-pointer ${accentClass}`}>
         <div className="flex items-start justify-between gap-3 mb-2">
           <div className="flex items-center gap-2 flex-wrap">
             <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full">
@@ -69,8 +74,11 @@ function BillCard({ bill, year }: { bill: Bill; year: number }) {
         {latestRc && (
           <div className="flex items-center gap-2 mb-2">
             <span className="text-xs font-bold text-emerald-600 w-12 text-right">{yea} Yea</span>
-            <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
-              <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${yeaPct}%` }} />
+            <div className="flex-1 h-2 rounded-full bg-slate-100 overflow-hidden">
+              <div
+                className="vote-bar-fill h-full bg-emerald-500 rounded-full"
+                style={{ '--bar-pct': `${yeaPct}%` } as React.CSSProperties}
+              />
             </div>
             <span className="text-xs font-bold text-red-500 w-10">{nay} Nay</span>
           </div>
@@ -100,7 +108,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year }: 
       <div className="flex items-center gap-6 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl">
         <button
           onClick={() => setTab('controversial')}
-          className={`text-xs font-extrabold tracking-widest py-2.5 transition-colors border-b-2 -mb-px ${
+          className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px ${
             tab === 'controversial'
               ? 'text-amber-400 border-amber-400'
               : 'text-slate-500 border-transparent hover:text-slate-300'
@@ -110,7 +118,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year }: 
         </button>
         <button
           onClick={() => setTab('recent')}
-          className={`text-xs font-semibold tracking-wide py-2.5 transition-colors border-b-2 -mb-px ${
+          className={`text-xs font-semibold tracking-wide py-3 transition-colors border-b-2 -mb-px ${
             tab === 'recent'
               ? 'text-amber-400 border-amber-400'
               : 'text-slate-500 border-transparent hover:text-slate-300'
@@ -120,13 +128,13 @@ export default function HomepageTabs({ controversialBills, recentBills, year }: 
         </button>
         <Link
           href={tab === 'controversial' ? `/bills?controversial=true&year=${year}` : `/bills?year=${year}`}
-          className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors py-2.5"
+          className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors py-3"
         >
           View all →
         </Link>
       </div>
 
-      {/* Bill cards */}
+      {/* Bill cards — staggered entrance */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
         {bills.map(bill => (
           <BillCard key={bill.id} bill={bill} year={year} />
