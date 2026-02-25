@@ -124,3 +124,15 @@
     @apply bg-background text-foreground;
   }
 }
+
+/* Tally Idaho font utilities */
+.font-playfair { font-family: var(--font-playfair), Georgia, serif; }
+.font-outfit { font-family: var(--font-outfit), system-ui, sans-serif; }
+
+/* Party badge utilities */
+.party-badge {
+  @apply inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white;
+}
+.party-r { background-color: #dc2626; }
+.party-d { background-color: #2563eb; }
+.party-i { background-color: #6b7280; }
