@@ -7,6 +7,6 @@ export default function robots(): MetadataRoute.Robots {
       allow: '/',
       disallow: ['/api/'],
     },
-    sitemap: 'https://tallyidaho.com/sitemap.xml',
+    sitemap: 'https://www.tallyidaho.com/sitemap.xml',
   }
 }
