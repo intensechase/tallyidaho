@@ -77,16 +77,6 @@ export default async function BillsPage({ searchParams }: Props) {
   const { data: bills, count } = await billsQuery
   const totalPages = Math.ceil((count || 0) / perPage)
 
-  // Build URL helper for filter links
-  function filterUrl(overrides: Record<string, string | undefined>) {
-    const next = { year: String(year), ...params, ...overrides, page: '1' }
-    const qs = Object.entries(next)
-      .filter(([, v]) => v && v !== '' && v !== 'false')
-      .map(([k, v]) => `${k}=${encodeURIComponent(v!)}`)
-      .join('&')
-    return `/bills${qs ? `?${qs}` : ''}`
-  }
-
   return (
     <main className="max-w-7xl mx-auto px-4 py-8">
 
@@ -111,7 +101,6 @@ export default async function BillsPage({ searchParams }: Props) {
         currentControversial={controversial}
         currentQuery={query}
         subjects={allSubjects}
-        filterUrl={filterUrl}
       />
 
       {/* Bills list */}

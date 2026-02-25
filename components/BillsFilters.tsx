@@ -12,7 +12,6 @@ interface Props {
   currentControversial: boolean
   currentQuery: string
   subjects: string[]
-  filterUrl: (overrides: Record<string, string | undefined>) => string
 }
 
 export default function BillsFilters({
@@ -22,8 +21,22 @@ export default function BillsFilters({
   currentControversial,
   currentQuery,
   subjects,
-  filterUrl,
 }: Props) {
+  function filterUrl(overrides: Record<string, string | undefined>) {
+    const current: Record<string, string> = {
+      year: String(currentYear),
+      ...(currentChamber && { chamber: currentChamber }),
+      ...(currentSubject && { subject: currentSubject }),
+      ...(currentControversial && { controversial: 'true' }),
+      ...(currentQuery && { q: currentQuery }),
+    }
+    const next = { ...current, ...overrides, page: '1' }
+    const qs = Object.entries(next)
+      .filter(([, v]) => v && v !== '' && v !== 'false')
+      .map(([k, v]) => `${k}=${encodeURIComponent(v!)}`)
+      .join('&')
+    return `/bills${qs ? `?${qs}` : ''}`
+  }
   const router = useRouter()
   const [, startTransition] = useTransition()
   const [query, setQuery] = useState(currentQuery)
