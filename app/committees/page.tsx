@@ -164,19 +164,19 @@ function CommitteeGrid({
         return (
           <Link key={c.id} href={`/committees/${c.code}?year=${year}`}>
             <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
-              <div className="flex items-start justify-between gap-2 mb-2">
-                <span className={`text-xs font-bold border px-2 py-0.5 rounded-full shrink-0 ${chamberColor}`}>
-                  {c.code}
-                </span>
-              </div>
               <h3 className="font-semibold text-slate-800 text-sm leading-snug mb-auto">
                 {c.short_name}
               </h3>
-              <div className="flex gap-3 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
-                <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
-                {bills > 0 && (
-                  <span className="text-amber-600 font-medium">{bills} bill{bills !== 1 ? 's' : ''}</span>
-                )}
+              <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
+                <div className="flex gap-3">
+                  <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
+                  {bills > 0 && (
+                    <span className="text-amber-600 font-medium">{bills} bill{bills !== 1 ? 's' : ''}</span>
+                  )}
+                </div>
+                <span className={`font-mono text-[10px] font-bold border px-1.5 py-0.5 rounded ${chamberColor}`}>
+                  {c.code}
+                </span>
               </div>
             </div>
           </Link>
