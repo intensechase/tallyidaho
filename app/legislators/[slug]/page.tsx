@@ -279,7 +279,7 @@ export default async function LegislatorPage({ params }: Props) {
               {/* Bio — legislature source preferred, fall back to Wikipedia */}
               {((leg as any).legislature_bio || leg.bio) && (
                 <div className="mt-3">
-                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">
+                  <p className="text-sm text-slate-600 leading-relaxed">
                     {(leg as any).legislature_bio || leg.bio}
                   </p>
                   <div className="flex items-center gap-3 mt-2">
