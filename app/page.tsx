@@ -38,7 +38,8 @@ async function getHomepageData() {
 
   const [
     { count: billsCount },
-    { count: passedCount },
+    { count: enactedCount },
+    { count: inCommitteeCount },
     { count: controversialCount },
     { data: controversialBills },
     { data: recentBills },
@@ -52,6 +53,12 @@ async function getHomepageData() {
       .select('*', { count: 'exact', head: true })
       .eq('session_id', session.id)
       .eq('completed', true),
+    supabase
+      .from('bills')
+      .select('*', { count: 'exact', head: true })
+      .eq('session_id', session.id)
+      .eq('status', '2')
+      .eq('completed', false),
     supabase
       .from('bills')
       .select('*', { count: 'exact', head: true })
@@ -76,7 +83,8 @@ async function getHomepageData() {
     session,
     stats: {
       billsCount: billsCount ?? 0,
-      passedCount: passedCount ?? 0,
+      enactedCount: enactedCount ?? 0,
+      inCommitteeCount: inCommitteeCount ?? 0,
       controversialCount: controversialCount ?? 0,
     },
     controversialBills: (controversialBills as any[]) || [],
@@ -101,19 +109,24 @@ export default async function HomePage() {
     <>
       {/* Session stats bar */}
       <div className="bg-[#1e293b] header-texture border-b border-slate-700/60">
-        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-6 md:gap-12">
+        <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4 md:gap-10 flex-wrap">
           <div className="stat-enter flex items-baseline gap-2">
             <span className="font-playfair text-3xl font-black text-white tabular-nums">{stats.billsCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest">Bills</span>
           </div>
           <div className="h-7 w-px bg-slate-700" />
           <div className="stat-enter flex items-baseline gap-2">
-            <span className="font-playfair text-3xl font-black text-emerald-400 tabular-nums">{stats.passedCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs uppercase tracking-widest">Signed</span>
+            <span className="font-playfair text-3xl font-black text-amber-400 tabular-nums">{stats.inCommitteeCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest">In Committee</span>
           </div>
           <div className="h-7 w-px bg-slate-700" />
           <div className="stat-enter flex items-baseline gap-2">
-            <span className="font-playfair text-3xl font-black text-amber-400 tabular-nums">{stats.controversialCount.toLocaleString()}</span>
+            <span className="font-playfair text-3xl font-black text-emerald-400 tabular-nums">{stats.enactedCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest">Enacted</span>
+          </div>
+          <div className="h-7 w-px bg-slate-700" />
+          <div className="stat-enter flex items-baseline gap-2">
+            <span className="font-playfair text-3xl font-black text-red-400 tabular-nums">{stats.controversialCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest">Controversial</span>
           </div>
           <div className="ml-auto hidden md:flex flex-col items-end">

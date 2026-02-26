@@ -76,7 +76,7 @@ async function getLegislator(slug: string) {
     .single()
 
   if (!session) {
-    return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], session: null, voteStats: null }
+    return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], session: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
   }
 
   // Bills sponsored this session
@@ -94,7 +94,7 @@ async function getLegislator(slug: string) {
   // Voting record this session (limit 200 for all votes)
   const { data: votes } = await supabase
     .from('legislator_votes')
-    .select('vote, roll_calls(id, date, chamber, passed, yea_count, nay_count, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
+    .select('vote, roll_calls(id, date, chamber, passed, yea_count, nay_count, is_party_line, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
     .eq('legislator_id', leg.id)
     .order('id', { ascending: false })
     .limit(200)
@@ -108,6 +108,18 @@ async function getLegislator(slug: string) {
   const nayCount = sessionVotes.filter((v: any) => v.vote === 'nay').length
   const absentCount = sessionVotes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay').length
   const totalVotes = sessionVotes.length
+
+  // Party-line vote stat: % they voted with the majority on is_party_line bills
+  const partyLineVotes = sessionVotes.filter((v: any) => v.roll_calls?.is_party_line)
+  const partyLineTotal = partyLineVotes.length
+  const partyLineWithMajority = partyLineVotes.filter((v: any) => {
+    const rc = v.roll_calls
+    const majorityVote = rc.yea_count > rc.nay_count ? 'yea' : 'nay'
+    return v.vote === majorityVote
+  }).length
+  const partyUnityPct = partyLineTotal > 0
+    ? Math.round((partyLineWithMajority / partyLineTotal) * 100)
+    : null
 
   // Committee memberships for this session
   const { data: committeeMemberships } = await supabase
@@ -135,6 +147,8 @@ async function getLegislator(slug: string) {
     session,
     voteStats: { yea: yeaCount, nay: nayCount, absent: absentCount, total: totalVotes },
     committees,
+    partyLineTotal,
+    partyUnityPct,
   }
 }
 
@@ -171,7 +185,7 @@ export default async function LegislatorPage({ params }: Props) {
 
   if (!data) notFound()
 
-  const { leg, termsServed, bills, votes, session, voteStats, committees } = data
+  const { leg, termsServed, bills, votes, session, voteStats, committees, partyLineTotal, partyUnityPct } = data
 
   const primaryBills = bills.filter((b: any) => b.sponsor_order === 1)
   const coBills = bills.filter((b: any) => b.sponsor_order > 1)
@@ -421,6 +435,22 @@ export default async function LegislatorPage({ params }: Props) {
                 <dt className="text-xs text-slate-500">Terms in office</dt>
                 <dd className="text-xl font-bold text-slate-800">{termsServed}</dd>
               </div>
+              {partyLineTotal > 0 && (
+                <>
+                  <div className="border-t border-slate-100 pt-3">
+                    <dt className="text-xs text-slate-500">Party-line votes</dt>
+                    <dd className="text-xl font-bold text-slate-800">{partyLineTotal}</dd>
+                  </div>
+                  {partyUnityPct !== null && (
+                    <div>
+                      <dt className="text-xs text-slate-500">With majority</dt>
+                      <dd className={`text-xl font-bold ${partyUnityPct >= 80 ? 'text-red-600' : partyUnityPct <= 40 ? 'text-blue-600' : 'text-slate-800'}`}>
+                        {partyUnityPct}%
+                      </dd>
+                    </div>
+                  )}
+                </>
+              )}
             </dl>
           </section>
 
