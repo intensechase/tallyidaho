@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Browse all Idaho state legislators by district. View senators and representatives, their party, voting records, and bills sponsored.',
 }
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 interface Props {
   searchParams: Promise<{ chamber?: string; party?: string; year?: string }>

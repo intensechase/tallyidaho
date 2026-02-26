@@ -152,7 +152,7 @@ export async function generateStaticParams() {
   return Array.from({ length: 35 }, (_, i) => ({ number: String(i + 1) }))
 }
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 function billStatusLabel(bill: any): string {
   if (bill.completed) return 'Enacted'

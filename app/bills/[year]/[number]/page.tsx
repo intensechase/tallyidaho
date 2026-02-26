@@ -89,8 +89,8 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   }
 }
 
-// Cache pages for 24 hours — bills don't change often
-export const revalidate = 86400
+// Revalidate hourly during active session
+export const revalidate = 3600
 
 export default async function BillPage({ params }: Props) {
   const { year, number } = await params

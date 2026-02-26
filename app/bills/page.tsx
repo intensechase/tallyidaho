@@ -74,7 +74,7 @@ export default async function BillsPage({ searchParams }: Props) {
 
   if (chamber) billsQuery = billsQuery.eq('chamber', chamber)
   if (controversial) billsQuery = billsQuery.eq('is_controversial', true)
-  if (query) billsQuery = billsQuery.ilike('title', `%${query}%`)
+  if (query) billsQuery = billsQuery.or(`title.ilike.%${query}%,bill_number.ilike.%${query}%`)
   if (subject) billsQuery = billsQuery.contains('subjects', [subject])
 
   const { data: bills, count } = await billsQuery

@@ -8,7 +8,7 @@ export const metadata: Metadata = {
   description: 'Browse all 35 Idaho legislative districts. See your senator and representatives, their party, and the area they represent.',
 }
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 // Geographic description per district — sourced from Idaho Legislature membership page
 const DISTRICT_AREAS: Record<number, string> = {
