@@ -56,7 +56,11 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
 
               {/* Brand */}
               <div className="col-span-2 md:col-span-1">
-                <p className="font-playfair text-xl font-black text-white mb-2">TALLY IDAHO</p>
+                <Link href="/" className="inline-flex flex-col leading-none mb-3">
+                  <span className="font-outfit font-light text-[0.55rem] text-amber-500 tracking-[0.55em] uppercase">Tally</span>
+                  <span className="font-playfair font-black text-[1.45rem] text-white tracking-tight leading-none -mt-0.5">IDAHO</span>
+                  <span className="font-outfit font-light text-[0.45rem] text-slate-600 tracking-[0.2em] uppercase mt-0.5">Legislative Tracker</span>
+                </Link>
                 <p className="text-xs text-slate-500 leading-relaxed">
                   Nonpartisan civic data for Idaho voters.<br />
                   Every vote counted. Every voice heard.
