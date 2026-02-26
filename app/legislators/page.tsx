@@ -36,7 +36,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   const all = (legSessions || [])
     .map((ls: any) => ls.legislators)
     .filter(Boolean)
-    .filter((l: any) => l.role === 'Senator' || l.role === 'Representative')
+    .filter((l: any) => (l.role === 'Sen' || l.role === 'Rep') && l.district)
 
   // Apply filters
   let filtered = all
@@ -50,7 +50,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   all.forEach((l: any) => {
     const n = parseInt(l.district?.replace(/\D/g, '') || '0')
     if (n < 1 || n > 35) return
-    if (l.role === 'Senator') byDistrict[n].senator = l
+    if (l.role === 'Sen') byDistrict[n].senator = l
     else byDistrict[n].reps.push(l)
   })
 
@@ -62,8 +62,8 @@ export default async function LegislatorsPage({ searchParams }: Props) {
     const da = parseInt(a.district?.replace(/\D/g, '') || '0')
     const db = parseInt(b.district?.replace(/\D/g, '') || '0')
     if (da !== db) return da - db
-    if (a.role === 'Senator') return -1
-    if (b.role === 'Senator') return 1
+    if (a.role === 'Sen') return -1
+    if (b.role === 'Sen') return 1
     return a.name.localeCompare(b.name)
   })
 
@@ -245,7 +245,7 @@ function LegCard({ leg }: { leg: any }) {
         </div>
         <p className="text-xs font-semibold text-slate-800 leading-snug">{leg.name}</p>
         <p className="text-xs text-slate-400 mt-0.5">
-          {leg.role === 'Senator' ? 'Sen.' : 'Rep.'} · Dist. {distNum}
+          {leg.role === 'Sen' ? 'Sen.' : 'Rep.'} · Dist. {distNum}
         </p>
       </div>
     </Link>

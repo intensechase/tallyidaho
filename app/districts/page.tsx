@@ -70,7 +70,7 @@ export default async function DistrictsPage() {
   ;(legSessions || []).forEach((ls: any) => {
     const leg = ls.legislators
     if (!leg) return
-    if (leg.role !== 'Senator' && leg.role !== 'Representative') return
+    if ((leg.role !== 'Sen' && leg.role !== 'Rep') || !leg.district) return
     const distNum = parseInt(leg.district?.replace(/\D/g, '') || '0')
     if (distNum >= 1 && distNum <= 35) byDistrict[distNum].push(leg)
   })
@@ -93,8 +93,8 @@ export default async function DistrictsPage() {
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
         {Array.from({ length: 35 }, (_, i) => i + 1).map(n => {
           const legs = byDistrict[n]
-          const senator = legs.find((l: any) => l.role === 'Senator')
-          const reps = legs.filter((l: any) => l.role === 'Representative')
+          const senator = legs.find((l: any) => l.role === 'Sen')
+          const reps = legs.filter((l: any) => l.role === 'Rep')
           const area = DISTRICT_AREAS[n] || ''
 
           return (

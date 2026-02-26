@@ -20,19 +20,21 @@ async function getDistrictData(districtNum: number) {
 
   if (!session) return null
 
-  // Get legislators for this district via legislator_sessions
+  // Get legislators for this district
+  // district string format: "SD-006" (senate), "HD-006A" / "HD-006B" (house)
+  const padded = String(districtNum).padStart(3, '0')
   const { data: legSessions } = await supabase
     .from('legislator_sessions')
     .select('legislators(id, name, party, role, district, chamber, photo_url)')
     .eq('session_id', session.id)
-    .eq('district_number', districtNum)
+    .or(`district.eq.SD-${padded},district.like.HD-${padded}%`)
 
   const legislators = (legSessions || [])
     .map((ls: any) => ls.legislators)
     .filter(Boolean)
     .sort((a: any, b: any) => {
-      if (a.role === 'Senator' && b.role !== 'Senator') return -1
-      if (b.role === 'Senator' && a.role !== 'Senator') return 1
+      if (a.role === 'Sen' && b.role !== 'Sen') return -1
+      if (b.role === 'Sen' && a.role !== 'Sen') return 1
       return a.name.localeCompare(b.name)
     })
 
@@ -113,8 +115,8 @@ export default async function DistrictPage({ params }: Props) {
 
   const { session, legislators, bills, controversialVotes } = data
 
-  const senator = legislators.find((l: any) => l.role === 'Senator')
-  const reps = legislators.filter((l: any) => l.role !== 'Senator')
+  const senator = legislators.find((l: any) => l.role === 'Sen')
+  const reps = legislators.filter((l: any) => l.role !== 'Sen')
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
