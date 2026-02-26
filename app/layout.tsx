@@ -3,7 +3,7 @@ import { Playfair_Display, Outfit, Oswald } from 'next/font/google'
 import './globals.css'
 import SiteNav from '@/components/SiteNav'
 import Link from 'next/link'
-import { GoogleAnalytics } from '@next/third-parties/google'
+import Script from 'next/script'
 
 const playfair = Playfair_Display({
   subsets: ['latin'],
@@ -131,7 +131,18 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
           </div>
         </footer>
-        <GoogleAnalytics gaId="G-7PX3W7S4Y8" />
+        <Script
+          src="https://www.googletagmanager.com/gtag/js?id=G-7PX3W7S4Y8"
+          strategy="afterInteractive"
+        />
+        <Script id="google-analytics" strategy="afterInteractive">
+          {`
+            window.dataLayer = window.dataLayer || [];
+            function gtag(){dataLayer.push(arguments);}
+            gtag('js', new Date());
+            gtag('config', 'G-7PX3W7S4Y8');
+          `}
+        </Script>
       </body>
     </html>
   )
