@@ -43,6 +43,8 @@ const footerLinks = [
   { href: '/legislators', label: 'Legislators' },
   { href: '/districts', label: 'Districts' },
   { href: '/sessions', label: 'Sessions' },
+  { href: '/faq', label: 'How Laws Are Made' },
+  { href: '/about', label: 'About' },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
