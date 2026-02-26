@@ -84,7 +84,7 @@ export default async function DistrictsPage() {
       </nav>
 
       <div className="mb-8">
-        <h1 className="font-playfair text-3xl font-black text-slate-900">Idaho Legislative Districts</h1>
+        <h1 className="font-playfair text-4xl font-black tracking-tight text-slate-900">Idaho Legislative Districts</h1>
         <p className="text-sm text-slate-500 mt-2">
           35 districts · each elects 1 senator and 2 representatives
         </p>
@@ -104,7 +104,7 @@ export default async function DistrictsPage() {
                 {/* District header */}
                 <div className="flex items-start justify-between mb-3">
                   <div>
-                    <span className="font-playfair text-2xl font-black text-slate-900 leading-none">
+                    <span className="font-playfair text-3xl font-black text-amber-500 leading-none">
                       {n}
                     </span>
                     <p className="text-xs text-slate-400 mt-0.5">{area}</p>
