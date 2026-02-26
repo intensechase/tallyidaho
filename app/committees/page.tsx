@@ -29,7 +29,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
   const { data: committees } = session
     ? await supabase
         .from('committees')
-        .select('id, code, name, short_name, chamber, committee_members(id)')
+        .select('id, code, name, short_name, chamber, committee_members(legislator_id)')
         .eq('session_id', session.id)
         .order('name')
     : { data: [] }
