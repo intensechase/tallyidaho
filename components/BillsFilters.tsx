@@ -135,6 +135,7 @@ export default function BillsFilters({
           <option value="2">In Committee</option>
           <option value="3">Floor Vote</option>
           <option value="4">Enacted</option>
+          <option value="failed">Failed vote</option>
         </select>
 
         {/* Sponsor */}

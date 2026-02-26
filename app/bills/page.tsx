@@ -114,6 +114,19 @@ export default async function BillsPage({ searchParams }: Props) {
   else if (status === '2') billsQuery = billsQuery.eq('status', 2).eq('completed', false)
   else if (status === '3') billsQuery = billsQuery.eq('status', 3).eq('completed', false)
   else if (status === '4') billsQuery = billsQuery.eq('completed', true)
+  else if (status === 'failed') {
+    // Two-step: get IDs of bills with at least one failed roll call
+    const { data: failedRcRows } = await supabase
+      .from('roll_calls')
+      .select('bills!inner(id)')
+      .eq('passed', false)
+      .eq('bills.session_id', session?.id || 0)
+      .eq('bills.completed', false)
+    const failedIds = [...new Set(((failedRcRows || []) as any[]).map(r => r.bills?.id).filter(Boolean))]
+    billsQuery = failedIds.length > 0
+      ? billsQuery.in('id', failedIds).eq('completed', false)
+      : billsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+  }
   if (sponsorBillIds !== null) {
     billsQuery = sponsorBillIds.length > 0
       ? billsQuery.in('id', sponsorBillIds)
