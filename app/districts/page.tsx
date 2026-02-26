@@ -97,19 +97,38 @@ export default async function DistrictsPage() {
           const reps = legs.filter((l: any) => l.role === 'Rep')
           const area = DISTRICT_AREAS[n] || ''
 
+          const rCount = legs.filter((l: any) => l.party === 'R').length
+          const dCount = legs.filter((l: any) => l.party === 'D').length
+          const iCount = legs.filter((l: any) => l.party !== 'R' && l.party !== 'D').length
+
           return (
             <Link key={n} href={`/districts/${n}`}>
               <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full">
 
                 {/* District header */}
                 <div className="mb-3">
-                  <div className="flex items-baseline gap-2">
-                    <span className="font-oswald text-xs font-semibold text-amber-500 tracking-widest uppercase leading-none">
-                      District
-                    </span>
-                    <span className="font-oswald text-3xl font-bold text-slate-900 leading-none tracking-tight">
-                      {n}
-                    </span>
+                  <div className="flex items-center justify-between gap-2">
+                    <div className="flex items-baseline gap-2">
+                      <span className="font-oswald text-xs font-semibold text-amber-500 tracking-widest uppercase leading-none">
+                        District
+                      </span>
+                      <span className="font-oswald text-3xl font-bold text-slate-900 leading-none tracking-tight">
+                        {n}
+                      </span>
+                    </div>
+                    {legs.length > 0 && (
+                      <div className="flex items-center gap-1 shrink-0">
+                        {[senator, ...reps].filter(Boolean).map((leg: any, i: number) => (
+                          <span key={i} className={`w-2.5 h-2.5 rounded-full ${
+                            leg.party === 'R' ? 'bg-red-400' :
+                            leg.party === 'D' ? 'bg-blue-500' : 'bg-slate-300'
+                          }`} />
+                        ))}
+                        <span className="text-[10px] text-slate-400 ml-0.5 tabular-nums">
+                          {rCount > 0 && `${rCount}R`}{dCount > 0 && ` ${dCount}D`}{iCount > 0 && ` ${iCount}I`}
+                        </span>
+                      </div>
+                    )}
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">{area}</p>
                 </div>

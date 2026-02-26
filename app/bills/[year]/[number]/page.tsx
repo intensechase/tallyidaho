@@ -161,9 +161,9 @@ export default async function BillPage({ params }: Props) {
       {/* Status pipeline */}
       <div className="mb-6">
         <BillStepperFull stage={getBillStage(bill.status, bill.completed)} />
-        {bill.committee_name && getBillStage(bill.status, bill.completed) === 2 && (
+        {bill.committee_name && getBillStage(bill.status, bill.completed) <= 3 && (
           <p className="text-center text-xs text-slate-500 mt-2">
-            Committee:{' '}
+            {getBillStage(bill.status, bill.completed) === 2 ? 'Committee:' : 'Via committee:'}{' '}
             {bill.committee_code
               ? <a href={`/committees/${bill.committee_code}?year=${year}`} className="font-semibold text-amber-700 hover:underline">{bill.committee_name}</a>
               : <span className="font-semibold text-slate-700">{bill.committee_name}</span>
