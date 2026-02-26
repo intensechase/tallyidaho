@@ -109,6 +109,24 @@ async function getLegislator(slug: string) {
   const absentCount = sessionVotes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay').length
   const totalVotes = sessionVotes.length
 
+  // Committee memberships for this session
+  const { data: committeeMemberships } = await supabase
+    .from('committee_members')
+    .select('member_role, committees!inner(id, code, short_name, chamber, session_id)')
+    .eq('legislator_id', leg.id)
+    .eq('committees.session_id', session.id)
+
+  // Sort: Chair first, then Vice Chair, then rest alphabetically
+  const roleOrder: Record<string, number> = { Chair: 0, 'Co-Chair': 0, 'Vice Chair': 1 }
+  const committees = (committeeMemberships || [])
+    .filter((m: any) => m.committees)
+    .sort((a: any, b: any) => {
+      const ra = roleOrder[a.member_role] ?? 2
+      const rb = roleOrder[b.member_role] ?? 2
+      if (ra !== rb) return ra - rb
+      return (a.committees?.short_name || '').localeCompare(b.committees?.short_name || '')
+    })
+
   return {
     leg,
     termsServed: termsServed ?? 0,
@@ -116,6 +134,7 @@ async function getLegislator(slug: string) {
     votes: sessionVotes,
     session,
     voteStats: { yea: yeaCount, nay: nayCount, absent: absentCount, total: totalVotes },
+    committees,
   }
 }
 
@@ -152,7 +171,7 @@ export default async function LegislatorPage({ params }: Props) {
 
   if (!data) notFound()
 
-  const { leg, termsServed, bills, votes, session, voteStats } = data
+  const { leg, termsServed, bills, votes, session, voteStats, committees } = data
 
   const primaryBills = bills.filter((b: any) => b.sponsor_order === 1)
   const coBills = bills.filter((b: any) => b.sponsor_order > 1)
@@ -345,6 +364,44 @@ export default async function LegislatorPage({ params }: Props) {
               <p className="text-xs text-slate-400 mt-3 pt-3 border-t border-slate-100">
                 {voteStats.total} total votes recorded
               </p>
+            </section>
+          )}
+
+          {/* Committees */}
+          {committees && committees.length > 0 && (
+            <section className="bg-white border border-slate-200 rounded-xl p-4">
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">
+                COMMITTEES ({session?.year_start || 2026})
+              </h2>
+              <div className="space-y-1.5">
+                {committees.map((m: any, i: number) => {
+                  const c = m.committees
+                  const isChair = m.member_role === 'Chair' || m.member_role === 'Co-Chair'
+                  const isVice = m.member_role === 'Vice Chair'
+                  const chamberBadge = c.chamber === 'senate'
+                    ? 'bg-blue-50 text-blue-600 border-blue-200'
+                    : 'bg-amber-50 text-amber-600 border-amber-200'
+                  return (
+                    <Link
+                      key={i}
+                      href={`/committees/${c.code}?year=${session?.year_start || 2026}`}
+                      className="flex items-start gap-2 group"
+                    >
+                      <span className={`text-[9px] font-bold border px-1 py-0.5 rounded mt-0.5 shrink-0 ${chamberBadge}`}>
+                        {c.chamber === 'senate' ? 'SEN' : 'HSE'}
+                      </span>
+                      <span className="text-sm text-slate-700 group-hover:text-amber-700 transition-colors leading-snug flex-1">
+                        {c.short_name}
+                        {(isChair || isVice) && (
+                          <span className={`ml-1.5 text-[10px] font-bold ${isChair ? 'text-amber-600' : 'text-slate-400'}`}>
+                            · {m.member_role}
+                          </span>
+                        )}
+                      </span>
+                    </Link>
+                  )
+                })}
+              </div>
             </section>
           )}
 
