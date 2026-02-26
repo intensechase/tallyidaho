@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
+import VoteNamesToggle from '@/components/VoteNamesToggle'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -315,71 +316,28 @@ export default async function BillPage({ params }: Props) {
                         </div>
                       )}
 
-                      {/* Legislator votes grid */}
+                      {/* Voter names — collapsible */}
                       {votes.length > 0 && (
-                        <div className="p-4 grid grid-cols-1 sm:grid-cols-2 gap-4">
-                          {/* Yea column */}
-                          <div>
-                            <p className="text-xs font-bold tracking-widest text-emerald-600 mb-2">YEA ({yeas.length})</p>
-                            <div className="space-y-1">
-                              {yeas.map((v: any, i: number) => {
-                                const leg = v.legislators
-                                if (!leg) return null
-                                const slug = legislatorSlug(leg.name)
-                                return (
-                                  <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
-                                    <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
-                                    <span className="text-xs text-slate-700 group-hover:text-amber-700 transition-colors truncate">
-                                      {leg.name}
-                                    </span>
-                                    <span className="text-xs text-slate-400 shrink-0 ml-auto">{leg.district}</span>
-                                  </a>
-                                )
-                              })}
-                            </div>
-                          </div>
-
-                          {/* Nay column */}
-                          <div>
-                            <p className="text-xs font-bold tracking-widest text-red-500 mb-2">NAY ({nays.length})</p>
-                            <div className="space-y-1">
-                              {nays.map((v: any, i: number) => {
-                                const leg = v.legislators
-                                if (!leg) return null
-                                const slug = legislatorSlug(leg.name)
-                                return (
-                                  <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
-                                    <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
-                                    <span className="text-xs text-slate-700 group-hover:text-amber-700 transition-colors truncate">
-                                      {leg.name}
-                                    </span>
-                                    <span className="text-xs text-slate-400 shrink-0 ml-auto">{leg.district}</span>
-                                  </a>
-                                )
-                              })}
-                            </div>
-                          </div>
-                        </div>
-                      )}
-
-                      {/* Absent/NV */}
-                      {abstains.length > 0 && (
-                        <div className="px-4 pb-4 border-t border-slate-100 pt-3">
-                          <p className="text-xs font-bold tracking-widest text-slate-400 mb-2">ABSENT / NOT VOTING ({abstains.length})</p>
-                          <div className="flex flex-wrap gap-2">
-                            {abstains.map((v: any, i: number) => {
-                              const leg = v.legislators
-                              if (!leg) return null
-                              const slug = legislatorSlug(leg.name)
-                              return (
-                                <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-700">
-                                  <span className={`party-badge party-${leg.party?.toLowerCase()}`}>{leg.party}</span>
-                                  {leg.name}
-                                </a>
-                              )
-                            })}
-                          </div>
-                        </div>
+                        <VoteNamesToggle
+                          yeas={yeas.map((v: any) => ({
+                            name: v.legislators?.name,
+                            party: v.legislators?.party,
+                            district: v.legislators?.district,
+                            slug: legislatorSlug(v.legislators?.name || ''),
+                          })).filter((v: any) => v.name)}
+                          nays={nays.map((v: any) => ({
+                            name: v.legislators?.name,
+                            party: v.legislators?.party,
+                            district: v.legislators?.district,
+                            slug: legislatorSlug(v.legislators?.name || ''),
+                          })).filter((v: any) => v.name)}
+                          abstains={abstains.map((v: any) => ({
+                            name: v.legislators?.name,
+                            party: v.legislators?.party,
+                            district: v.legislators?.district,
+                            slug: legislatorSlug(v.legislators?.name || ''),
+                          })).filter((v: any) => v.name)}
+                        />
                       )}
                     </div>
                   )
