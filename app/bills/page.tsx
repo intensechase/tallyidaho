@@ -2,6 +2,8 @@ import { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import BillsFilters from '@/components/BillsFilters'
+import { BillStepperCompact, getBillStage } from '@/components/BillStatusStepper'
+import { legislatorSlug } from '@/lib/slugify'
 
 export const metadata: Metadata = {
   title: 'Idaho Bills | Tally Idaho',
@@ -59,6 +61,7 @@ export default async function BillsPage({ searchParams }: Props) {
     .from('bills')
     .select(`
       id, bill_number, title, chamber,
+      status, committee_name,
       is_controversial, controversy_reason,
       completed, last_action, last_action_date,
       subjects,
@@ -156,13 +159,26 @@ export default async function BillsPage({ searchParams }: Props) {
                           ✓ {bill.last_action?.toLowerCase().includes('law') ? 'Signed' : 'Completed'}
                         </span>
                       )}
+                      {bill.committee_name && !bill.completed && (
+                        <span className="text-xs text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
+                          {bill.committee_name}
+                        </span>
+                      )}
                     </div>
                     <p className="text-sm font-semibold text-slate-800 leading-snug">{bill.title}</p>
                     {sponsor && (
                       <p className="text-xs text-slate-400 mt-1">
-                        {sponsor.name} · {sponsor.district}
+                        <Link
+                          href={`/legislators/${legislatorSlug(sponsor.name)}`}
+                          onClick={e => e.stopPropagation()}
+                          className="hover:text-amber-700 transition-colors"
+                        >
+                          {sponsor.name}
+                        </Link>
+                        {' · '}{sponsor.district}
                       </p>
                     )}
+                    <BillStepperCompact stage={getBillStage(bill.status, bill.completed)} />
                   </div>
 
                   {latestRc && (

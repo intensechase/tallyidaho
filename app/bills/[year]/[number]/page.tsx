@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
+import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -155,6 +156,11 @@ export default async function BillPage({ params }: Props) {
             ))}
           </div>
         )}
+      </div>
+
+      {/* Status pipeline */}
+      <div className="mb-6">
+        <BillStepperFull stage={getBillStage(bill.status, bill.completed)} />
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">

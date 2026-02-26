@@ -222,7 +222,13 @@ function extractBios(html: string): Map<string, string> {
       .replace(/\s+/g, ' ')
       .trim()
 
-    if (text.length > 30) bios.set(topicId, text)
+    // Truncate if the next legislator's header bled in (e.g. "Christy Zito (R) CZito@senate.idaho.gov...")
+    // Pattern: Name (R|D|I) Email@...idaho.gov
+    // Truncate if the next legislator's entry bled in: "First Last (R) email@"
+    const nextLegMatch = text.search(/\s+[A-Z][a-z]+ [A-Z][a-z]+[-A-Za-z]* \([RDI]\) [A-Za-z0-9]+@/)
+    if (nextLegMatch > 5) text = text.slice(0, nextLegMatch).trim()
+
+    if (text.length > 5) bios.set(topicId, text)
   }
 
   return bios
