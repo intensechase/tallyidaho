@@ -29,8 +29,10 @@ export default function SiteNav() {
       <div className="max-w-7xl mx-auto px-4 py-3 flex items-center gap-4">
 
         {/* Logo */}
-        <Link href="/" className="logo-hover font-playfair text-[1.6rem] font-black text-white shrink-0 tracking-tight leading-none">
-          TALLY IDAHO
+        <Link href="/" className="logo-hover shrink-0 leading-none flex flex-col">
+          <span className="font-outfit font-light text-[0.55rem] text-amber-500 tracking-[0.55em] uppercase">Tally</span>
+          <span className="font-playfair font-black text-[1.45rem] text-white tracking-tight leading-none -mt-0.5">IDAHO</span>
+          <span className="font-outfit font-light text-[0.45rem] text-slate-600 tracking-[0.2em] uppercase mt-0.5">Legislative Tracker</span>
         </Link>
 
         {/* Desktop nav */}

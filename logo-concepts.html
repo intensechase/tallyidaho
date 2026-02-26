@@ -1,0 +1,593 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>Tally Idaho — Logo Concepts</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Playfair+Display:ital,wght@0,400;0,700;0,900;1,400;1,700;1,900&family=Outfit:wght@200;300;400;500;600;700;900&family=DM+Serif+Display:ital@0;1&family=Libre+Baskerville:ital,wght@0,400;0,700;1,400&family=Space+Grotesk:wght@300;400;500;600;700&family=Josefin+Sans:wght@100;200;300;400;600;700&family=Cormorant+Garamond:ital,wght@0,300;0,400;0,600;1,300;1,400;1,600&display=swap" rel="stylesheet">
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    body {
+      background: #0a0f1a;
+      color: white;
+      font-family: 'Outfit', sans-serif;
+      min-height: 100vh;
+      padding: 40px 20px 80px;
+    }
+
+    h1 {
+      text-align: center;
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      font-size: 13px;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      color: #64748b;
+      margin-bottom: 60px;
+    }
+
+    .grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(420px, 1fr));
+      gap: 2px;
+      max-width: 1300px;
+      margin: 0 auto;
+    }
+
+    .card {
+      background: #0f172a;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 56px 40px 40px;
+      position: relative;
+      min-height: 220px;
+      cursor: default;
+      transition: background 0.2s;
+    }
+    .card:hover { background: #131f33; }
+
+    .label {
+      position: absolute;
+      top: 16px;
+      left: 20px;
+      font-size: 10px;
+      font-weight: 600;
+      letter-spacing: 0.25em;
+      text-transform: uppercase;
+      color: #334155;
+    }
+
+    .note {
+      position: absolute;
+      bottom: 14px;
+      font-size: 11px;
+      color: #334155;
+      letter-spacing: 0.05em;
+      font-family: 'Outfit', sans-serif;
+    }
+
+    /* ── CONCEPT 1: Current (baseline) ── */
+    .c1 .logo {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.6rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    /* ── CONCEPT 2: Tally lowercase + Idaho caps ── */
+    .c2 .tally {
+      font-family: 'Playfair Display', serif;
+      font-weight: 400;
+      font-size: 2.8rem;
+      color: white;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+    .c2 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.8rem;
+      color: #d97706;
+      letter-spacing: -0.01em;
+      line-height: 1;
+    }
+
+    /* ── CONCEPT 3: Tally in Outfit, Idaho in Playfair ── */
+    .c3 .tally {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 700;
+      font-size: 1.1rem;
+      color: #94a3b8;
+      letter-spacing: 0.35em;
+      text-transform: uppercase;
+    }
+    .c3 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 3.2rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-top: -4px;
+    }
+
+    /* ── CONCEPT 4: Stacked with tally mark accent ── */
+    .c4 .wrap {
+      display: flex;
+      align-items: center;
+      gap: 14px;
+    }
+    .c4 .marks {
+      display: flex;
+      gap: 3px;
+      align-items: flex-end;
+      padding-bottom: 4px;
+    }
+    .c4 .mark {
+      width: 3px;
+      background: #d97706;
+      border-radius: 2px;
+    }
+    .c4 .mark:nth-child(1) { height: 20px; }
+    .c4 .mark:nth-child(2) { height: 26px; }
+    .c4 .mark:nth-child(3) { height: 20px; }
+    .c4 .mark:nth-child(4) { height: 26px; }
+    .c4 .mark:nth-child(5) { height: 22px; transform: rotate(20deg); margin-left: -1px; background: #b45309; }
+    .c4 .text {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.4rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    /* ── CONCEPT 5: Italic Tally + small IDAHO ── */
+    .c5 .tally {
+      font-family: 'Playfair Display', serif;
+      font-style: italic;
+      font-weight: 900;
+      font-size: 3rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .c5 .idaho {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      font-size: 0.85rem;
+      color: #d97706;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      text-align: right;
+    }
+
+    /* ── CONCEPT 6: Space Grotesk Tally, Playfair Idaho ── */
+    .c6 .tally {
+      font-family: 'Space Grotesk', sans-serif;
+      font-weight: 700;
+      font-size: 2rem;
+      color: white;
+      letter-spacing: -0.03em;
+      line-height: 1;
+    }
+    .c6 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2rem;
+      color: #d97706;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .c6 .divider {
+      width: 2px;
+      height: 36px;
+      background: #1e293b;
+      margin: 0 12px;
+    }
+    .c6 .wrap { display: flex; align-items: center; }
+
+    /* ── CONCEPT 7: Wide-tracked Josefin ── */
+    .c7 .tally {
+      font-family: 'Josefin Sans', sans-serif;
+      font-weight: 100;
+      font-size: 1.4rem;
+      color: white;
+      letter-spacing: 0.6em;
+      text-transform: uppercase;
+    }
+    .c7 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 3rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+      margin-top: -6px;
+    }
+    .c7 .bar {
+      width: 100%;
+      height: 2px;
+      background: #d97706;
+      margin-top: 6px;
+    }
+
+    /* ── CONCEPT 8: Cormorant italic ── */
+    .c8 .tally {
+      font-family: 'Cormorant Garamond', serif;
+      font-style: italic;
+      font-weight: 300;
+      font-size: 3.6rem;
+      color: white;
+      letter-spacing: 0.02em;
+      line-height: 1;
+    }
+    .c8 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 1.2rem;
+      color: #d97706;
+      letter-spacing: 0.3em;
+      text-transform: uppercase;
+      margin-top: 2px;
+      text-align: center;
+    }
+
+    /* ── CONCEPT 9: Amber Tally, white Idaho ── */
+    .c9 .tally {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.6rem;
+      color: #d97706;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .c9 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 2.6rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+
+    /* ── CONCEPT 10: Stacked, Outfit Tally small above Idaho ── */
+    .c10 .tally {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 900;
+      font-size: 0.7rem;
+      color: #d97706;
+      letter-spacing: 0.5em;
+      text-transform: uppercase;
+      margin-bottom: 1px;
+    }
+    .c10 .idaho {
+      font-family: 'Playfair Display', serif;
+      font-weight: 900;
+      font-size: 3.4rem;
+      color: white;
+      letter-spacing: -0.02em;
+      line-height: 1;
+    }
+    .c10 .sub {
+      font-family: 'Outfit', sans-serif;
+      font-weight: 300;
+      font-size: 0.65rem;
+      color: #475569;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+      margin-top: 4px;
+    }
+
+    /* Dark variant previews */
+    .variants {
+      max-width: 1300px;
+      margin: 60px auto 0;
+    }
+    .variants h2 {
+      font-size: 11px;
+      letter-spacing: 0.3em;
+      color: #334155;
+      text-transform: uppercase;
+      margin-bottom: 24px;
+      text-align: center;
+    }
+    .nav-preview {
+      background: #0f172a;
+      border: 1px solid #1e293b;
+      padding: 14px 24px;
+      display: flex;
+      align-items: center;
+      gap: 32px;
+      margin-bottom: 2px;
+    }
+    .nav-links {
+      display: flex;
+      gap: 20px;
+      margin-left: 24px;
+    }
+    .nav-link {
+      font-family: 'Outfit', sans-serif;
+      font-size: 13px;
+      color: #64748b;
+      text-decoration: none;
+    }
+    .nav-link.active { color: #d97706; }
+
+    /* Show on light bg */
+    .light-section {
+      max-width: 1300px;
+      margin: 2px auto 0;
+    }
+    .light-card {
+      background: #f8fafc;
+      padding: 40px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      gap: 60px;
+      flex-wrap: wrap;
+    }
+    .light-card .logo-item {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 12px;
+    }
+    .light-card .lbl {
+      font-size: 10px;
+      color: #94a3b8;
+      letter-spacing: 0.2em;
+      text-transform: uppercase;
+    }
+
+    /* Light versions */
+    .on-light .tally, .on-light .c1, .on-light .c4-t { color: #0f172a !important; }
+    .on-light .idaho { color: #d97706 !important; }
+  </style>
+</head>
+<body>
+
+  <h1>Tally Idaho — Logo Concepts &nbsp;·&nbsp; Internal Review</h1>
+
+  <div class="grid">
+
+    <!-- 1 -->
+    <div class="card c1">
+      <span class="label">01 — Current</span>
+      <div class="logo">TALLY IDAHO</div>
+      <span class="note">Playfair Display Black · baseline</span>
+    </div>
+
+    <!-- 2 -->
+    <div class="card c2">
+      <span class="label">02 — Tally light / Idaho amber</span>
+      <div style="display:flex;align-items:baseline;gap:12px">
+        <span class="tally">Tally</span>
+        <span class="idaho">IDAHO</span>
+      </div>
+      <span class="note">Mixed weight — editorial contrast</span>
+    </div>
+
+    <!-- 3 -->
+    <div class="card c3">
+      <span class="label">03 — Tally as eyebrow</span>
+      <div style="text-align:center">
+        <div class="tally">Tally</div>
+        <div class="idaho">IDAHO</div>
+      </div>
+      <span class="note">Outfit label above Playfair wordmark</span>
+    </div>
+
+    <!-- 4 -->
+    <div class="card c4">
+      <span class="label">04 — Tally mark icon</span>
+      <div class="wrap">
+        <div class="marks">
+          <div class="mark"></div>
+          <div class="mark"></div>
+          <div class="mark"></div>
+          <div class="mark"></div>
+          <div class="mark"></div>
+        </div>
+        <div class="text">TALLY IDAHO</div>
+      </div>
+      <span class="note">Literal tally mark glyph as prefix</span>
+    </div>
+
+    <!-- 5 -->
+    <div class="card c5">
+      <span class="label">05 — Italic Tally</span>
+      <div style="text-align:right">
+        <div class="tally">Tally</div>
+        <div class="idaho">IDAHO</div>
+      </div>
+      <span class="note">Playfair italic — journalistic energy</span>
+    </div>
+
+    <!-- 6 -->
+    <div class="card c6">
+      <span class="label">06 — Split with divider</span>
+      <div class="wrap">
+        <span class="tally">TALLY</span>
+        <div class="divider"></div>
+        <span class="idaho">IDAHO</span>
+      </div>
+      <span class="note">Space Grotesk + Playfair — tech meets tradition</span>
+    </div>
+
+    <!-- 7 -->
+    <div class="card c7">
+      <span class="label">07 — Wide tracked Tally</span>
+      <div style="text-align:center">
+        <div class="tally">T A L L Y</div>
+        <div class="idaho">IDAHO</div>
+        <div class="bar"></div>
+      </div>
+      <span class="note">Josefin ultralight spaced + amber underline</span>
+    </div>
+
+    <!-- 8 -->
+    <div class="card c8">
+      <span class="label">08 — Cormorant italic</span>
+      <div style="text-align:center">
+        <div class="tally">Tally</div>
+        <div class="idaho">IDAHO</div>
+      </div>
+      <span class="note">Cormorant italic — refined, almost masthead</span>
+    </div>
+
+    <!-- 9 -->
+    <div class="card c9">
+      <span class="label">09 — Amber Tally</span>
+      <div style="display:flex;align-items:baseline;gap:0">
+        <span class="tally">TALLY&nbsp;</span>
+        <span class="idaho">IDAHO</span>
+      </div>
+      <span class="note">Amber on white — flipped color assignment</span>
+    </div>
+
+    <!-- 10 -->
+    <div class="card c10">
+      <span class="label">10 — IDAHO large, Tally micro</span>
+      <div style="text-align:center">
+        <div class="tally">TALLY</div>
+        <div class="idaho">IDAHO</div>
+        <div class="sub">Legislative Tracker</div>
+      </div>
+      <span class="note">Idaho as hero word — geographic-first identity</span>
+    </div>
+
+  </div>
+
+  <!-- In-nav previews -->
+  <div class="variants">
+    <h2>Favourites in context — nav bar</h2>
+
+    <div class="nav-preview">
+      <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;color:white;letter-spacing:-0.02em">TALLY IDAHO</div>
+      <div class="nav-links">
+        <a class="nav-link active" href="#">Bills</a>
+        <a class="nav-link" href="#">Legislators</a>
+        <a class="nav-link" href="#">Districts</a>
+        <a class="nav-link" href="#">Sessions</a>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#334155;letter-spacing:0.15em">01 · CURRENT</span>
+    </div>
+
+    <div class="nav-preview">
+      <div style="display:flex;align-items:baseline;gap:10px">
+        <span style="font-family:'Playfair Display',serif;font-style:italic;font-weight:900;font-size:1.5rem;color:white">Tally</span>
+        <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;color:#d97706">IDAHO</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" href="#">Bills</a>
+        <a class="nav-link" href="#">Legislators</a>
+        <a class="nav-link" href="#">Districts</a>
+        <a class="nav-link" href="#">Sessions</a>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#334155;letter-spacing:0.15em">05 · ITALIC</span>
+    </div>
+
+    <div class="nav-preview">
+      <div style="display:flex;flex-direction:column;line-height:1">
+        <span style="font-family:'Outfit',sans-serif;font-weight:900;font-size:0.55rem;color:#d97706;letter-spacing:0.5em;text-transform:uppercase">TALLY</span>
+        <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;color:white;letter-spacing:-0.02em;margin-top:-2px">IDAHO</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" href="#">Bills</a>
+        <a class="nav-link" href="#">Legislators</a>
+        <a class="nav-link" href="#">Districts</a>
+        <a class="nav-link" href="#">Sessions</a>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#334155;letter-spacing:0.15em">10 · IDAHO HERO</span>
+    </div>
+
+    <div class="nav-preview">
+      <div style="display:flex;align-items:center;gap:12px">
+        <div style="display:flex;gap:3px;align-items:flex-end">
+          <div style="width:2.5px;height:14px;background:#d97706;border-radius:2px"></div>
+          <div style="width:2.5px;height:18px;background:#d97706;border-radius:2px"></div>
+          <div style="width:2.5px;height:14px;background:#d97706;border-radius:2px"></div>
+          <div style="width:2.5px;height:18px;background:#d97706;border-radius:2px"></div>
+          <div style="width:2.5px;height:16px;background:#92400e;border-radius:2px;transform:rotate(20deg);margin-left:-1px"></div>
+        </div>
+        <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.5rem;color:white;letter-spacing:-0.02em">TALLY IDAHO</span>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" href="#">Bills</a>
+        <a class="nav-link" href="#">Legislators</a>
+        <a class="nav-link" href="#">Districts</a>
+        <a class="nav-link" href="#">Sessions</a>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#334155;letter-spacing:0.15em">04 · TALLY MARK</span>
+    </div>
+
+    <div class="nav-preview">
+      <div style="text-align:center">
+        <div style="font-family:'Outfit',sans-serif;font-size:0.6rem;font-weight:700;color:#d97706;letter-spacing:0.4em;text-transform:uppercase">T A L L Y</div>
+        <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.4rem;color:white;letter-spacing:-0.02em;line-height:1;margin-top:-3px">IDAHO</div>
+      </div>
+      <div class="nav-links">
+        <a class="nav-link active" href="#">Bills</a>
+        <a class="nav-link" href="#">Legislators</a>
+        <a class="nav-link" href="#">Districts</a>
+        <a class="nav-link" href="#">Sessions</a>
+      </div>
+      <span style="margin-left:auto;font-size:11px;color:#334155;letter-spacing:0.15em">07 · TRACKED</span>
+    </div>
+
+  </div>
+
+  <!-- Light background test -->
+  <div class="light-section">
+    <div class="light-card" style="background:#f1f5f9;margin-top:2px">
+      <div style="font-size:10px;color:#94a3b8;letter-spacing:0.2em;text-transform:uppercase;width:100%;margin-bottom:8px;text-align:center">On light background</div>
+
+      <div class="logo-item">
+        <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:#0f172a;letter-spacing:-0.02em">TALLY IDAHO</div>
+        <span class="lbl">01</span>
+      </div>
+
+      <div class="logo-item">
+        <div style="display:flex;align-items:baseline;gap:8px">
+          <span style="font-family:'Playfair Display',serif;font-style:italic;font-weight:900;font-size:1.8rem;color:#0f172a">Tally</span>
+          <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:#d97706">IDAHO</span>
+        </div>
+        <span class="lbl">05</span>
+      </div>
+
+      <div class="logo-item">
+        <div style="text-align:center">
+          <div style="font-family:'Outfit',sans-serif;font-weight:900;font-size:0.55rem;color:#d97706;letter-spacing:0.5em;text-transform:uppercase">TALLY</div>
+          <div style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:#0f172a;line-height:1;margin-top:-2px">IDAHO</div>
+        </div>
+        <span class="lbl">10</span>
+      </div>
+
+      <div class="logo-item">
+        <div style="display:flex;align-items:center;gap:10px">
+          <div style="display:flex;gap:2px;align-items:flex-end">
+            <div style="width:2px;height:12px;background:#d97706;border-radius:2px"></div>
+            <div style="width:2px;height:16px;background:#d97706;border-radius:2px"></div>
+            <div style="width:2px;height:12px;background:#d97706;border-radius:2px"></div>
+            <div style="width:2px;height:16px;background:#d97706;border-radius:2px"></div>
+            <div style="width:2px;height:14px;background:#b45309;border-radius:2px;transform:rotate(20deg);margin-left:-1px"></div>
+          </div>
+          <span style="font-family:'Playfair Display',serif;font-weight:900;font-size:1.8rem;color:#0f172a;letter-spacing:-0.02em">TALLY IDAHO</span>
+        </div>
+        <span class="lbl">04</span>
+      </div>
+
+    </div>
+  </div>
+
+</body>
+</html>

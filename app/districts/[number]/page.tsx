@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
+import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
 
 interface Props {
@@ -249,7 +250,7 @@ export default async function DistrictPage({ params }: Props) {
 }
 
 function LegCard({ leg }: { leg: any }) {
-  const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+  const slug = legislatorSlug(leg.name)
   return (
     <Link href={`/legislators/${slug}`}>
       <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 transition-colors">

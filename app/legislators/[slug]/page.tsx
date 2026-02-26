@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
+import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
 
 interface Props {
@@ -18,9 +19,7 @@ async function getLegislator(slug: string) {
 
   if (!legislators) return null
 
-  const leg = legislators.find(
-    l => l.name.toLowerCase().replace(/\s+/g, '-') === slug
-  )
+  const leg = legislators.find(l => legislatorSlug(l.name) === slug)
 
   if (!leg) return null
 

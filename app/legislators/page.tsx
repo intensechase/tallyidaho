@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
+import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
 
 export const metadata: Metadata = {
@@ -39,6 +40,8 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   let legislators = (legSessions || [])
     .map((ls: any) => ls.legislators)
     .filter(Boolean)
+    // Remove committee entries — real legislators have a role of Senator or Representative
+    .filter((l: any) => l.role === 'Senator' || l.role === 'Representative')
 
   // Filter client-side (Supabase nested filter can be complex)
   if (chamber) legislators = legislators.filter((l: any) => l.chamber === chamber)
@@ -152,8 +155,8 @@ export default async function LegislatorsPage({ searchParams }: Props) {
 }
 
 function LegislatorCard({ leg }: { leg: any }) {
-  const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
-  const distNum = leg.district?.replace(/\D/g, '') || ''
+  const slug = legislatorSlug(leg.name)
+  const distNum = parseInt(leg.district?.replace(/\D/g, '') || '0') || ''
 
   return (
     <Link href={`/legislators/${slug}`}>

@@ -1,5 +1,6 @@
 import { MetadataRoute } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
+import { legislatorSlug } from '@/lib/slugify'
 
 const BASE = 'https://www.tallyidaho.com'
 
@@ -32,7 +33,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const legislatorPages: MetadataRoute.Sitemap = (legislators || [])
     .filter((l: any) => l.name)
     .map((l: any) => ({
-      url: `${BASE}/legislators/${l.name.toLowerCase().replace(/\s+/g, '-')}`,
+      url: `${BASE}/legislators/${legislatorSlug(l.name)}`,
       lastModified: new Date(),
       changeFrequency: 'weekly' as const,
       priority: 0.7,

@@ -1,6 +1,7 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
+import { legislatorSlug } from '@/lib/slugify'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -249,7 +250,7 @@ export default async function BillPage({ params }: Props) {
                               {yeas.map((v: any, i: number) => {
                                 const leg = v.legislators
                                 if (!leg) return null
-                                const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                                const slug = legislatorSlug(leg.name)
                                 return (
                                   <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
                                     <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
@@ -270,7 +271,7 @@ export default async function BillPage({ params }: Props) {
                               {nays.map((v: any, i: number) => {
                                 const leg = v.legislators
                                 if (!leg) return null
-                                const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                                const slug = legislatorSlug(leg.name)
                                 return (
                                   <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-2 group">
                                     <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
@@ -294,7 +295,7 @@ export default async function BillPage({ params }: Props) {
                             {abstains.map((v: any, i: number) => {
                               const leg = v.legislators
                               if (!leg) return null
-                              const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+                              const slug = legislatorSlug(leg.name)
                               return (
                                 <a key={i} href={`/legislators/${slug}`} className="flex items-center gap-1.5 text-xs text-slate-500 hover:text-amber-700">
                                   <span className={`party-badge party-${leg.party?.toLowerCase()}`}>{leg.party}</span>
@@ -341,7 +342,7 @@ export default async function BillPage({ params }: Props) {
                       {s.legislators.party}
                     </span>
                     <div>
-                      <a href={`/legislators/${s.legislators.name.toLowerCase().replace(/\s+/g, '-')}`} className="text-sm font-semibold text-slate-800 hover:text-amber-700">
+                      <a href={`/legislators/${legislatorSlug(s.legislators.name)}`} className="text-sm font-semibold text-slate-800 hover:text-amber-700">
                         {s.legislators.name}
                       </a>
                       <p className="text-xs text-slate-400">{s.legislators.role} · {s.legislators.district}</p>

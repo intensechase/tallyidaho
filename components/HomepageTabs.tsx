@@ -2,6 +2,7 @@
 
 import { useState } from 'react'
 import Link from 'next/link'
+import { legislatorSlug } from '@/lib/slugify'
 
 type Legislator = {
   name: string
@@ -155,7 +156,7 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
           <div className="space-y-2">
             {sponsors.map((s, i) => {
               const leg = s.legislators!
-              const slug = leg.name.toLowerCase().replace(/\s+/g, '-')
+              const slug = legislatorSlug(leg.name)
               return (
                 <Link key={i} href={`/legislators/${slug}`} className="flex items-center gap-2.5 group">
                   <span className={`party-badge party-${leg.party?.toLowerCase()} shrink-0`}>{leg.party}</span>
