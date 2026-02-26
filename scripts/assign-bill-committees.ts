@@ -50,8 +50,8 @@ function normalize(s: string): string {
   return s
     .trim()
     .toLowerCase()
+    .replace(/\s*[&,]\s*/g, ' ')
     .replace(/\s+/g, ' ')
-    .replace(/[&]/g, 'and')
     .replace(/[^a-z0-9\s]/g, '')
 }
 
