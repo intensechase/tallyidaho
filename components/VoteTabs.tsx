@@ -4,7 +4,7 @@ import Link from 'next/link'
 import { useState } from 'react'
 
 interface Vote {
-  vote_value: string
+  vote: string
   roll_calls: {
     id: number
     date: string
@@ -79,13 +79,13 @@ export default function VoteTabs({ allVotes, keyVotes, year }: Props) {
                 <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all group">
                   {/* Vote badge */}
                   <span className={`text-xs font-bold px-2 py-1 rounded-lg shrink-0 min-w-[44px] text-center ${
-                    v.vote_value === 'yea'
+                    v.vote === 'yea'
                       ? 'bg-emerald-50 text-emerald-700 border border-emerald-200'
-                      : v.vote_value === 'nay'
+                      : v.vote === 'nay'
                       ? 'bg-red-50 text-red-700 border border-red-200'
                       : 'bg-slate-100 text-slate-500'
                   }`}>
-                    {v.vote_value?.toUpperCase()}
+                    {v.vote?.toUpperCase()}
                   </span>
 
                   {/* Bill info */}

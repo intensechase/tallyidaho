@@ -57,7 +57,7 @@ async function getDistrictData(districtNum: number) {
   // Controversial votes involving district legislators
   const { data: controversialVotes } = await supabase
     .from('legislator_votes')
-    .select('vote_value, legislator_id, legislators(name, party), roll_calls(id, date, passed, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
+    .select('vote, legislator_id, legislators(name, party), roll_calls(id, date, passed, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
     .in('legislator_id', legIds)
     .order('id', { ascending: false })
     .limit(100)
@@ -73,7 +73,7 @@ async function getDistrictData(districtNum: number) {
     controversialRollCalls.get(bill.bill_number).votes.push({
       name: (v.legislators as any)?.name,
       party: (v.legislators as any)?.party,
-      vote_value: v.vote_value,
+      vote: v.vote,
     })
   }
 
@@ -166,8 +166,8 @@ export default async function DistrictPage({ params }: Props) {
                         <div key={j} className="flex items-center gap-1.5 text-xs">
                           <span className={`party-badge party-${v.party?.toLowerCase()} text-xs`}>{v.party}</span>
                           <span className="text-slate-600">{v.name}</span>
-                          <span className={`font-bold ${v.vote_value === 'yea' ? 'text-emerald-600' : v.vote_value === 'nay' ? 'text-red-500' : 'text-slate-400'}`}>
-                            {v.vote_value?.toUpperCase()}
+                          <span className={`font-bold ${v.vote === 'yea' ? 'text-emerald-600' : v.vote === 'nay' ? 'text-red-500' : 'text-slate-400'}`}>
+                            {v.vote?.toUpperCase()}
                           </span>
                         </div>
                       ))}

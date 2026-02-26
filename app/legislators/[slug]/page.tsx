@@ -93,7 +93,7 @@ async function getLegislator(slug: string) {
   // Voting record this session (limit 200 for all votes)
   const { data: votes } = await supabase
     .from('legislator_votes')
-    .select('vote_value, roll_calls(id, date, chamber, passed, yea_count, nay_count, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
+    .select('vote, roll_calls(id, date, chamber, passed, yea_count, nay_count, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
     .eq('legislator_id', leg.id)
     .order('id', { ascending: false })
     .limit(200)
@@ -103,9 +103,9 @@ async function getLegislator(slug: string) {
   )
 
   // Vote breakdown stats
-  const yeaCount = sessionVotes.filter((v: any) => v.vote_value === 'yea').length
-  const nayCount = sessionVotes.filter((v: any) => v.vote_value === 'nay').length
-  const absentCount = sessionVotes.filter((v: any) => v.vote_value !== 'yea' && v.vote_value !== 'nay').length
+  const yeaCount = sessionVotes.filter((v: any) => v.vote === 'yea').length
+  const nayCount = sessionVotes.filter((v: any) => v.vote === 'nay').length
+  const absentCount = sessionVotes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay').length
   const totalVotes = sessionVotes.length
 
   return {

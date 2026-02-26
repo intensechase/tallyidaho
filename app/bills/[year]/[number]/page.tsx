@@ -26,7 +26,7 @@ async function getBill(year: string, number: string) {
         nv_count, total_count, passed, vote_margin, is_party_line,
         description,
         legislator_votes(
-          vote_value,
+          vote,
           legislators(id, name, party, role, district)
         )
       )
@@ -188,12 +188,12 @@ export default async function BillPage({ params }: Props) {
 
                   const votes: any[] = rc.legislator_votes || []
                   const yeas = votes
-                    .filter((v: any) => v.vote_value === 'yea')
+                    .filter((v: any) => v.vote === 'yea')
                     .sort((a: any, b: any) => a.legislators?.name?.localeCompare(b.legislators?.name))
                   const nays = votes
-                    .filter((v: any) => v.vote_value === 'nay')
+                    .filter((v: any) => v.vote === 'nay')
                     .sort((a: any, b: any) => a.legislators?.name?.localeCompare(b.legislators?.name))
-                  const abstains = votes.filter((v: any) => v.vote_value !== 'yea' && v.vote_value !== 'nay')
+                  const abstains = votes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay')
 
                   return (
                     <div key={rc.id} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
