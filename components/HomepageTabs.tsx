@@ -304,23 +304,63 @@ function DailyBillCard({ bill, year }: { bill: DailyBill; year: number }) {
   )
 }
 
+// ── Failed vote card ───────────────────────────────────────────────────
+function FailedBillCard({ bill, year }: { bill: any; year: number }) {
+  const yea = bill.roll_call?.yea_count ?? 0
+  const nay = bill.roll_call?.nay_count ?? 0
+  const total = yea + nay
+  const nayPct = total > 0 ? Math.round((nay / total) * 100) : 0
+
+  return (
+    <Link href={`/bills/${year}/${bill.bill_number?.toLowerCase()}`} className="block">
+      <div className="card-enter bg-white border border-slate-200 rounded-xl p-4 hover:border-red-200 hover:shadow-sm transition-all border-l-4 border-l-red-300">
+        <div className="flex items-start gap-3">
+          <div className="flex-1 min-w-0">
+            <div className="flex items-center gap-2 flex-wrap mb-1.5">
+              <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                {bill.bill_number}
+              </span>
+              <span className="text-xs text-slate-400 capitalize">{bill.chamber}</span>
+              {bill.roll_call?.is_party_line && (
+                <span className="text-xs font-bold text-red-600 bg-red-50 px-2 py-0.5 rounded-full">PARTY LINE</span>
+              )}
+            </div>
+            <p className="text-sm font-semibold text-slate-800 leading-snug line-clamp-2">{bill.title}</p>
+          </div>
+          {total > 0 && (
+            <div className="shrink-0 text-right">
+              <p className="text-xs font-bold text-emerald-600 tabular-nums">{yea} yea</p>
+              <p className="text-xs font-bold text-red-500 tabular-nums">{nay} nay</p>
+              <div className="w-16 h-1.5 bg-slate-100 rounded-full overflow-hidden mt-1">
+                <div className="h-full bg-red-400 rounded-full" style={{ width: `${nayPct}%` }} />
+              </div>
+            </div>
+          )}
+        </div>
+      </div>
+    </Link>
+  )
+}
+
 // ── Main tab component ────────────────────────────────────────────────
 interface Props {
   controversialBills: Bill[]
   recentBills: any[]
+  failedBills: any[]
   year: number
   dailyIntroductions: DailyIntroductions
 }
 
-export default function HomepageTabs({ controversialBills, recentBills, year, dailyIntroductions }: Props) {
+export default function HomepageTabs({ controversialBills, recentBills, failedBills, year, dailyIntroductions }: Props) {
   const hasToday = dailyIntroductions.senate.length > 0 || dailyIntroductions.house.length > 0
-  const [tab, setTab] = useState<'today' | 'controversial' | 'recent'>(hasToday ? 'today' : 'controversial')
+  const [tab, setTab] = useState<'today' | 'controversial' | 'failed' | 'recent'>(hasToday ? 'today' : 'controversial')
 
   const todayCount = dailyIntroductions.senate.length + dailyIntroductions.house.length
 
   const viewAllHref =
     tab === 'today' ? `/bills?year=${year}` :
     tab === 'controversial' ? `/bills?controversial=true&year=${year}` :
+    tab === 'failed' ? `/bills?year=${year}` :
     `/bills?year=${year}`
 
   return (
@@ -350,6 +390,16 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
         >
           ⚡ CONTROVERSIAL
         </button>
+        {failedBills.length > 0 && (
+          <button
+            onClick={() => setTab('failed')}
+            className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
+              tab === 'failed' ? 'text-red-400 border-red-400' : 'text-slate-500 border-transparent hover:text-slate-300'
+            }`}
+          >
+            ✕ FAILED
+          </button>
+        )}
         <button
           onClick={() => setTab('recent')}
           className={`text-xs font-semibold tracking-wide py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
@@ -421,6 +471,18 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
           ))}
           {controversialBills.length === 0 && (
             <p className="text-center text-slate-400 py-8 text-sm">No controversial bills found.</p>
+          )}
+        </div>
+      )}
+
+      {/* Failed votes */}
+      {tab === 'failed' && (
+        <div className="space-y-2">
+          {failedBills.map((bill: any) => (
+            <FailedBillCard key={bill.id} bill={bill} year={year} />
+          ))}
+          {failedBills.length === 0 && (
+            <p className="text-center text-slate-400 py-8 text-sm">No failed votes found.</p>
           )}
         </div>
       )}

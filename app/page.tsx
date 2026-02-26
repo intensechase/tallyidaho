@@ -44,6 +44,7 @@ async function getHomepageData() {
     { count: controversialCount },
     { data: controversialBills },
     { data: recentBills },
+    { data: failedRollCalls },
   ] = await Promise.all([
     supabase
       .from('bills')
@@ -78,7 +79,28 @@ async function getHomepageData() {
       .eq('session_id', session.id)
       .order('last_action_date', { ascending: false })
       .limit(8),
+    // Failed floor votes: query roll_calls where passed=false, join to bills in this session
+    supabase
+      .from('roll_calls')
+      .select('yea_count, nay_count, passed, is_party_line, date, bills!inner(id, bill_number, title, chamber, completed, last_action, last_action_date, is_controversial, controversy_reason, session_id)')
+      .eq('passed', false)
+      .eq('bills.session_id', session.id)
+      .eq('bills.completed', false)
+      .order('date', { ascending: false })
+      .limit(40),
   ])
+
+  // Deduplicate failed bills — one entry per bill (most recent failed vote)
+  const seenIds = new Set<string>()
+  const failedBills = ((failedRollCalls as any[]) || [])
+    .filter(rc => {
+      const bill = rc.bills
+      if (!bill?.id || seenIds.has(bill.id)) return false
+      seenIds.add(bill.id)
+      return true
+    })
+    .slice(0, 8)
+    .map(rc => ({ ...rc.bills, roll_call: { yea_count: rc.yea_count, nay_count: rc.nay_count, is_party_line: rc.is_party_line } }))
 
   return {
     session,
@@ -90,6 +112,7 @@ async function getHomepageData() {
     },
     controversialBills: (controversialBills as any[]) || [],
     recentBills: (recentBills as any[]) || [],
+    failedBills,
   }
 }
 
@@ -144,6 +167,7 @@ export default async function HomePage() {
       <HomepageTabs
         controversialBills={controversialBills}
         recentBills={recentBills}
+        failedBills={failedBills}
         year={session.year_start}
         dailyIntroductions={dailyIntroductions}
       />
