@@ -104,11 +104,11 @@ export default async function DistrictsPage() {
                 {/* District header */}
                 <div className="mb-3">
                   <div className="flex items-baseline gap-2">
-                    <span className="font-oswald text-3xl font-bold text-slate-900 leading-none tracking-tight">
-                      {n}
-                    </span>
                     <span className="font-oswald text-xs font-semibold text-amber-500 tracking-widest uppercase leading-none">
                       District
+                    </span>
+                    <span className="font-oswald text-3xl font-bold text-slate-900 leading-none tracking-tight">
+                      {n}
                     </span>
                   </div>
                   <p className="text-xs text-slate-400 mt-0.5">{area}</p>
