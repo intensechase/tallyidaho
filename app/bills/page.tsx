@@ -19,6 +19,7 @@ interface Props {
     chamber?: string
     controversial?: string
     status?: string
+    sponsor?: string
     q?: string
     page?: string
   }>
@@ -33,6 +34,7 @@ export default async function BillsPage({ searchParams }: Props) {
   const subject = params.subject || ''
   const controversial = params.controversial === 'true'
   const status = params.status || ''
+  const sponsorId = params.sponsor || ''
   const query = params.q || ''
   const page = parseInt(params.page || '1')
   const perPage = 25
@@ -44,19 +46,41 @@ export default async function BillsPage({ searchParams }: Props) {
     .eq('year_start', year)
     .single()
 
-  // Get all available subjects for this session (for filter dropdown)
-  const { data: subjectRows } = await supabase
-    .from('bills')
-    .select('subjects')
-    .eq('session_id', session?.id || 0)
-    .not('subjects', 'is', null)
-    .limit(500)
+  // Parallel: subjects for filter dropdown + legislators for sponsor dropdown
+  const [{ data: subjectRows }, { data: legSessions }] = await Promise.all([
+    supabase
+      .from('bills')
+      .select('subjects')
+      .eq('session_id', session?.id || 0)
+      .not('subjects', 'is', null)
+      .limit(500),
+    supabase
+      .from('legislator_sessions')
+      .select('legislators(id, name, role, party)')
+      .eq('session_id', session?.id || 0),
+  ])
 
   const allSubjects = Array.from(
     new Set(
       (subjectRows || []).flatMap((r: any) => r.subjects || [])
     )
   ).sort() as string[]
+
+  const legislators = (legSessions || [])
+    .map((ls: any) => ls.legislators)
+    .filter((l: any) => l?.id && (l.role === 'Sen' || l.role === 'Rep'))
+    .sort((a: any, b: any) => a.name.localeCompare(b.name))
+
+  // If sponsor filter active, resolve to bill IDs (two-step)
+  let sponsorBillIds: string[] | null = null
+  if (sponsorId) {
+    const { data: sponsorRows } = await supabase
+      .from('bill_sponsors')
+      .select('bills(id)')
+      .eq('legislator_id', sponsorId)
+      .eq('sponsor_order', 1)
+    sponsorBillIds = (sponsorRows || []).map((s: any) => s.bills?.id).filter(Boolean)
+  }
 
   // Build query
   let billsQuery = supabase
@@ -82,6 +106,11 @@ export default async function BillsPage({ searchParams }: Props) {
   else if (status === '2') billsQuery = billsQuery.eq('status', 2).eq('completed', false)
   else if (status === '3') billsQuery = billsQuery.eq('status', 3).eq('completed', false)
   else if (status === '4') billsQuery = billsQuery.eq('completed', true)
+  if (sponsorBillIds !== null) {
+    billsQuery = sponsorBillIds.length > 0
+      ? billsQuery.in('id', sponsorBillIds)
+      : billsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
+  }
 
   const { data: bills, count } = await billsQuery
   const totalPages = Math.ceil((count || 0) / perPage)
@@ -119,8 +148,10 @@ export default async function BillsPage({ searchParams }: Props) {
         currentSubject={subject}
         currentControversial={controversial}
         currentStatus={status}
+        currentSponsor={sponsorId}
         currentQuery={query}
         subjects={allSubjects}
+        legislators={legislators}
       />
 
       {/* Bills list */}
