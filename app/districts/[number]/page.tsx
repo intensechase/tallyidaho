@@ -8,10 +8,47 @@ interface Props {
   params: Promise<{ number: string }>
 }
 
+const DISTRICT_AREAS: Record<number, string> = {
+  1:  'Boundary & Bonner Counties',
+  2:  'Coeur d\'Alene · Kootenai Co.',
+  3:  'Coeur d\'Alene · Kootenai Co.',
+  4:  'Post Falls · Kootenai Co.',
+  5:  'Hayden · Kootenai Co.',
+  6:  'Moscow · Latah & Benewah',
+  7:  'Moscow · Latah Co.',
+  8:  'Lewiston · Nez Perce Co.',
+  9:  'Grangeville · Idaho & Adams Co.',
+  10: 'Lewiston · Nez Perce & Latah',
+  11: 'Twin Falls',
+  12: 'Twin Falls & Cassia Co.',
+  13: 'Sun Valley · Blaine & Camas',
+  14: 'Twin Falls East',
+  15: 'Gooding · Lincoln & Minidoka',
+  16: 'Burley · Cassia & Minidoka',
+  17: 'Pocatello · Bannock Co.',
+  18: 'Pocatello · Bannock Co.',
+  19: 'Soda Springs · SE Idaho',
+  20: 'Idaho Falls · Bonneville Co.',
+  21: 'Idaho Falls · Bonneville Co.',
+  22: 'Idaho Falls · Bonneville Co.',
+  23: 'Rigby · Jefferson & Clark Co.',
+  24: 'Rexburg · Madison Co.',
+  25: 'Blackfoot · Bingham Co.',
+  26: 'Nampa · Canyon Co.',
+  27: 'Caldwell · Canyon Co.',
+  28: 'Nampa & Meridian · Canyon Co.',
+  29: 'West Boise · Ada Co.',
+  30: 'North Boise · Ada Co.',
+  31: 'Boise · Ada Co.',
+  32: 'East Boise · Ada Co.',
+  33: 'SE Boise · Ada Co.',
+  34: 'Meridian & Eagle · Ada Co.',
+  35: 'Mountain Home · Elmore & Ada',
+}
+
 async function getDistrictData(districtNum: number) {
   const supabase = createServerClient()
 
-  // Get 2026 session
   const { data: session } = await supabase
     .from('sessions')
     .select('id, name, year_start')
@@ -20,12 +57,10 @@ async function getDistrictData(districtNum: number) {
 
   if (!session) return null
 
-  // Get legislators for this district
-  // district string format: "SD-006" (senate), "HD-006A" / "HD-006B" (house)
   const padded = String(districtNum).padStart(3, '0')
   const { data: legSessions } = await supabase
     .from('legislator_sessions')
-    .select('legislators(id, name, party, role, district, chamber, photo_url)')
+    .select('legislators(id, name, party, role, district, chamber, photo_url, bio)')
     .eq('session_id', session.id)
     .or(`district.eq.SD-${padded},district.like.HD-${padded}%`)
 
@@ -42,15 +77,30 @@ async function getDistrictData(districtNum: number) {
 
   const legIds = legislators.map((l: any) => l.id)
 
+  // Vote stats per legislator
+  const { data: allVotes } = await supabase
+    .from('legislator_votes')
+    .select('legislator_id, vote')
+    .in('legislator_id', legIds)
+
+  const voteStats: Record<string, { yea: number; nay: number; absent: number }> = {}
+  for (const v of (allVotes || [])) {
+    if (!voteStats[v.legislator_id]) voteStats[v.legislator_id] = { yea: 0, nay: 0, absent: 0 }
+    const vt = (v.vote as string)?.toLowerCase()
+    if (vt === 'yea') voteStats[v.legislator_id].yea++
+    else if (vt === 'nay') voteStats[v.legislator_id].nay++
+    else voteStats[v.legislator_id].absent++
+  }
+
   // Bills sponsored by district legislators this session
   const { data: sponsorships } = await supabase
     .from('bill_sponsors')
-    .select('sponsor_order, legislators(name), bills(id, bill_number, title, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
+    .select('legislator_id, legislators(name), bills(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
     .in('legislator_id', legIds)
-    .eq('sponsor_order', 1) // primary sponsors only
+    .eq('sponsor_order', 1)
 
   const bills = (sponsorships || [])
-    .map((s: any) => ({ ...s.bills, sponsor_name: s.legislators?.name }))
+    .map((s: any) => ({ ...s.bills, sponsor_name: s.legislators?.name, legislator_id: s.legislator_id }))
     .filter((b: any) => b?.session_id === session.id)
     .sort((a: any, b: any) => (a.bill_number || '').localeCompare(b.bill_number || ''))
 
@@ -60,7 +110,7 @@ async function getDistrictData(districtNum: number) {
     .select('vote, legislator_id, legislators(name, party), roll_calls(id, date, passed, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
     .in('legislator_id', legIds)
     .order('id', { ascending: false })
-    .limit(100)
+    .limit(150)
 
   const controversialRollCalls = new Map<string, any>()
   for (const v of (controversialVotes || [])) {
@@ -82,19 +132,18 @@ async function getDistrictData(districtNum: number) {
     legislators,
     bills,
     controversialVotes: Array.from(controversialRollCalls.values()).slice(0, 10),
+    voteStats,
   }
 }
 
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { number } = await params
   const n = parseInt(number)
-
+  const area = DISTRICT_AREAS[n] || ''
   return {
-    title: `Idaho District ${n} — Legislators & Bills | Tally Idaho`,
-    description: `Idaho Legislative District ${n}: 1 senator and 2 representatives. See their bills, voting records, and controversial votes on Tally Idaho.`,
-    alternates: {
-      canonical: `https://tallyidaho.com/districts/${n}`,
-    },
+    title: `Idaho District ${n}${area ? ` — ${area}` : ''} | Tally Idaho`,
+    description: `Idaho Legislative District ${n}: 1 senator and 2 representatives. See their bills, voting records, and controversial votes.`,
+    alternates: { canonical: `https://tallyidaho.com/districts/${n}` },
   }
 }
 
@@ -103,6 +152,22 @@ export async function generateStaticParams() {
 }
 
 export const revalidate = 86400
+
+function billStatusLabel(bill: any): string {
+  if (bill.completed) return 'Enacted'
+  const s = Number(bill.status)
+  if (s === 4) return 'Enacted'
+  if (s === 3) return 'Passed'
+  if (s === 2) return 'In Committee'
+  return 'Introduced'
+}
+
+function billStatusColor(label: string): string {
+  if (label === 'Enacted') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
+  if (label === 'Passed') return 'bg-blue-50 text-blue-700 border-blue-200'
+  if (label === 'In Committee') return 'bg-amber-50 text-amber-700 border-amber-200'
+  return 'bg-slate-50 text-slate-500 border-slate-200'
+}
 
 export default async function DistrictPage({ params }: Props) {
   const { number } = await params
@@ -113,58 +178,162 @@ export default async function DistrictPage({ params }: Props) {
   const data = await getDistrictData(n)
   if (!data) notFound()
 
-  const { session, legislators, bills, controversialVotes } = data
+  const { session, legislators, bills, controversialVotes, voteStats } = data
 
   const senator = legislators.find((l: any) => l.role === 'Sen')
   const reps = legislators.filter((l: any) => l.role !== 'Sen')
+  const area = DISTRICT_AREAS[n] || ''
+
+  const partyCount = legislators.reduce((acc: Record<string, number>, l: any) => {
+    acc[l.party] = (acc[l.party] || 0) + 1
+    return acc
+  }, {} as Record<string, number>)
+
+  const enactedCount = bills.filter((b: any) => billStatusLabel(b) === 'Enacted').length
+  const passedCount  = bills.filter((b: any) => billStatusLabel(b) === 'Passed').length
 
   return (
-    <main className="max-w-4xl mx-auto px-4 py-8">
+    <main className="max-w-5xl mx-auto px-4 py-8">
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">
-        <a href="/" className="hover:text-amber-600">Home</a>
+        <Link href="/" className="hover:text-amber-600">Home</Link>
         <span className="mx-2">›</span>
-        <a href="/districts" className="hover:text-amber-600">Districts</a>
+        <Link href="/districts" className="hover:text-amber-600">Districts</Link>
         <span className="mx-2">›</span>
         <span className="text-slate-600">District {n}</span>
       </nav>
 
-      {/* Header */}
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-1">District {n}</h1>
-        <p className="text-sm text-slate-500">{session.name} · {legislators.length} legislators</p>
+      {/* Hero */}
+      <div className="bg-[#0f172a] rounded-2xl px-8 py-7 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
+        <div>
+          <div className="flex items-baseline gap-3 mb-1">
+            <span className="font-oswald text-6xl font-bold text-amber-400 leading-none">{n}</span>
+            <span className="font-oswald text-lg font-semibold text-amber-400/60 tracking-widest uppercase">District</span>
+          </div>
+          {area && <p className="text-slate-300 text-sm mt-1">{area}</p>}
+          <p className="text-slate-500 text-xs mt-1">{session.name}</p>
+        </div>
+        <div className="flex flex-wrap gap-2 sm:text-right">
+          {Object.entries(partyCount).sort().map(([party, count]) => (
+            <span key={party} className={`text-xs font-bold px-3 py-1 rounded-full ${
+              party === 'R' ? 'bg-red-500/20 text-red-300' :
+              party === 'D' ? 'bg-blue-500/20 text-blue-300' :
+              'bg-slate-500/20 text-slate-300'
+            }`}>
+              {count} {party === 'R' ? 'Republican' : party === 'D' ? 'Democrat' : 'Independent'}{count > 1 ? 's' : ''}
+            </span>
+          ))}
+          <span className="text-xs font-bold px-3 py-1 rounded-full bg-white/5 text-slate-300">
+            {bills.length} bill{bills.length !== 1 ? 's' : ''} sponsored
+          </span>
+          {(enactedCount + passedCount) > 0 && (
+            <span className="text-xs font-bold px-3 py-1 rounded-full bg-emerald-500/20 text-emerald-300">
+              {enactedCount + passedCount} passed
+            </span>
+          )}
+        </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-        <div className="md:col-span-2 space-y-8">
+      {/* Legislator cards */}
+      <section className="mb-10">
+        <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">Your Legislators</h2>
+        <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
+          {legislators.map((leg: any) => {
+            const stats = voteStats[leg.id] || { yea: 0, nay: 0, absent: 0 }
+            const total = stats.yea + stats.nay + stats.absent
+            const yeaPct = total ? Math.round((stats.yea / total) * 100) : 0
+            const legBills = bills.filter((b: any) => b.legislator_id === leg.id)
+            const partyColor = leg.party === 'R' ? 'bg-red-500' : leg.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'
+            return (
+              <Link key={leg.id} href={`/legislators/${legislatorSlug(leg.name)}`}>
+                <div className="bg-white border border-slate-200 rounded-xl overflow-hidden hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
+                  {/* Party accent bar */}
+                  <div className={`h-1 w-full ${partyColor}`} />
+                  <div className="p-4 flex flex-col flex-1">
+                    {/* Photo + name */}
+                    <div className="flex items-start gap-3 mb-3">
+                      <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                        {leg.photo_url
+                          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover" />
+                          : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
+                              <span className="text-white font-bold text-lg">{leg.name[0]}</span>
+                            </div>
+                        }
+                      </div>
+                      <div className="min-w-0">
+                        <p className="font-semibold text-slate-900 text-sm leading-tight">{leg.name}</p>
+                        <p className="text-xs text-slate-400 mt-0.5">
+                          {leg.role === 'Sen' ? 'Senator' : 'Representative'} · {leg.party === 'R' ? 'Republican' : leg.party === 'D' ? 'Democrat' : leg.party}
+                        </p>
+                        <p className="text-xs text-slate-400">{leg.district}</p>
+                      </div>
+                    </div>
+
+                    {/* Bio */}
+                    {leg.bio && (
+                      <p className="text-xs text-slate-500 leading-relaxed mb-3 line-clamp-3">{leg.bio}</p>
+                    )}
+
+                    {/* Stats */}
+                    <div className="mt-auto pt-3 border-t border-slate-100 flex gap-4 text-xs text-slate-500">
+                      {total > 0 && (
+                        <div>
+                          <span className="text-emerald-600 font-bold">{yeaPct}%</span> yea rate
+                        </div>
+                      )}
+                      {legBills.length > 0 && (
+                        <div>
+                          <span className="text-amber-600 font-bold">{legBills.length}</span> bill{legBills.length !== 1 ? 's' : ''}
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                </div>
+              </Link>
+            )
+          })}
+        </div>
+      </section>
+
+      <div className="grid grid-cols-1 md:grid-cols-5 gap-8">
+        <div className="md:col-span-3 space-y-8">
 
           {/* Controversial votes */}
           {controversialVotes.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">HOW DISTRICT {n} VOTED — CONTROVERSIAL BILLS</h2>
+              <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">
+                Key Votes — District {n}
+              </h2>
               <div className="space-y-3">
                 {controversialVotes.map((item: any, i: number) => (
                   <div key={i} className="bg-white border border-slate-200 rounded-xl p-4">
                     <div className="flex items-start justify-between gap-2 mb-3">
-                      <div>
-                        <Link href={`/bills/${session.year_start}/${item.bill.bill_number?.toLowerCase()}`}>
-                          <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full hover:bg-amber-100 transition-colors">
-                            {item.bill.bill_number}
+                      <div className="min-w-0">
+                        <div className="flex items-center gap-2 mb-1 flex-wrap">
+                          <Link href={`/bills/${session.year_start}/${item.bill.bill_number?.toLowerCase()}`}>
+                            <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full hover:bg-amber-100 transition-colors">
+                              {item.bill.bill_number}
+                            </span>
+                          </Link>
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full ${
+                            item.bill.controversy_reason === 'party_line'
+                              ? 'bg-red-50 text-red-600'
+                              : 'bg-orange-50 text-orange-600'
+                          }`}>
+                            {item.bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE VOTE'}
                           </span>
-                        </Link>
-                        <p className="text-sm font-semibold text-slate-800 mt-1 leading-snug">{item.bill.title}</p>
+                          <span className={`text-xs font-semibold ${item.passed ? 'text-emerald-600' : 'text-red-500'}`}>
+                            {item.passed ? '✓ Passed' : '✗ Failed'}
+                          </span>
+                        </div>
+                        <p className="text-sm font-semibold text-slate-800 leading-snug">{item.bill.title}</p>
                       </div>
-                      <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                        item.bill.controversy_reason === 'party_line' ? 'bg-red-50 text-red-600' : 'bg-orange-50 text-orange-600'
-                      }`}>
-                        {item.bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE VOTE'}
-                      </span>
                     </div>
-                    <div className="flex gap-3 flex-wrap">
+                    <div className="flex gap-4 flex-wrap">
                       {item.votes.map((v: any, j: number) => (
                         <div key={j} className="flex items-center gap-1.5 text-xs">
-                          <span className={`party-badge party-${v.party?.toLowerCase()} text-xs`}>{v.party}</span>
+                          <span className={`party-badge party-${v.party?.toLowerCase()}`}>{v.party}</span>
                           <span className="text-slate-600">{v.name}</span>
                           <span className={`font-bold ${v.vote === 'yea' ? 'text-emerald-600' : v.vote === 'nay' ? 'text-red-500' : 'text-slate-400'}`}>
                             {v.vote?.toUpperCase()}
@@ -172,43 +341,41 @@ export default async function DistrictPage({ params }: Props) {
                         </div>
                       ))}
                     </div>
-                    <p className={`text-xs font-semibold mt-2 ${item.passed ? 'text-emerald-600' : 'text-red-500'}`}>
-                      {item.passed ? '✓ Bill passed' : '✗ Bill failed'}
-                    </p>
                   </div>
                 ))}
               </div>
             </section>
           )}
+        </div>
 
-          {/* Bills from district */}
+        {/* Bills sidebar */}
+        <div className="md:col-span-2">
           {bills.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">BILLS FROM DISTRICT {n} ({bills.length})</h2>
+              <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">
+                Bills Sponsored ({bills.length})
+              </h2>
               <div className="space-y-2">
                 {bills.map((bill: any) => {
-                  const latestRc = bill.roll_calls?.[bill.roll_calls.length - 1]
-                  const yea = latestRc?.yea_count ?? 0
-                  const nay = latestRc?.nay_count ?? 0
+                  const statusLabel = billStatusLabel(bill)
+                  const statusColor = billStatusColor(statusLabel)
                   return (
                     <Link key={bill.id} href={`/bills/${session.year_start}/${bill.bill_number?.toLowerCase()}`} className="block">
-                      <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all">
-                        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
-                          {bill.bill_number}
-                        </span>
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm text-slate-700 truncate">{bill.title}</p>
-                          {bill.sponsor_name && (
-                            <p className="text-xs text-slate-400">{bill.sponsor_name}</p>
-                          )}
-                        </div>
-                        {latestRc && (
-                          <span className="text-xs text-slate-500 shrink-0">
-                            <span className="text-emerald-600 font-bold">{yea}</span>–<span className="text-red-500 font-bold">{nay}</span>
+                      <div className="bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                            {bill.bill_number}
                           </span>
+                          <span className={`text-[10px] font-bold border px-1.5 py-0.5 rounded-full shrink-0 ${statusColor}`}>
+                            {statusLabel}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-700 leading-snug">{bill.title}</p>
+                        {bill.sponsor_name && (
+                          <p className="text-[10px] text-slate-400 mt-1">{bill.sponsor_name}</p>
                         )}
-                        {bill.completed && (
-                          <span className="text-xs text-emerald-600 font-semibold">✓</span>
+                        {bill.last_action && (
+                          <p className="text-[10px] text-slate-400 mt-0.5 truncate">{bill.last_action}</p>
                         )}
                       </div>
                     </Link>
@@ -218,56 +385,7 @@ export default async function DistrictPage({ params }: Props) {
             </section>
           )}
         </div>
-
-        {/* Legislators sidebar */}
-        <div className="space-y-4">
-          <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">LEGISLATORS</h2>
-
-            {senator && (
-              <div className="mb-4">
-                <p className="text-xs text-slate-400 mb-2">SENATOR</p>
-                <LegCard leg={senator} />
-              </div>
-            )}
-
-            {reps.length > 0 && (
-              <div>
-                <p className="text-xs text-slate-400 mb-2">REPRESENTATIVES</p>
-                <div className="space-y-2">
-                  {reps.map((leg: any) => <LegCard key={leg.id} leg={leg} />)}
-                </div>
-              </div>
-            )}
-          </section>
-
-          <div className="text-xs text-slate-400 bg-slate-50 border border-slate-200 rounded-xl p-3">
-            <p className="font-semibold text-slate-500 mb-1">District map coming soon</p>
-            <p>Geographic boundary visualization will be added in a future update.</p>
-          </div>
-        </div>
       </div>
     </main>
-  )
-}
-
-function LegCard({ leg }: { leg: any }) {
-  const slug = legislatorSlug(leg.name)
-  return (
-    <Link href={`/legislators/${slug}`}>
-      <div className="flex items-center gap-2 p-2 rounded-lg hover:bg-slate-50 transition-colors">
-        <div className="w-8 h-8 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
-          {leg.photo_url
-            ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover" />
-            : <span className={`party-badge party-${leg.party?.toLowerCase()} w-6 h-6 text-xs`}>{leg.party}</span>
-          }
-        </div>
-        <div>
-          <p className="text-sm font-semibold text-slate-800">{leg.name}</p>
-          <p className="text-xs text-slate-400">{leg.role}</p>
-        </div>
-        <span className="ml-auto text-xs text-slate-400">→</span>
-      </div>
-    </Link>
   )
 }
