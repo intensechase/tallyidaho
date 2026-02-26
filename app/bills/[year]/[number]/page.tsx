@@ -20,7 +20,7 @@ async function getBill(year: string, number: string) {
       bill_sponsors(
         sponsor_type,
         sponsor_order,
-        legislators(name, party, role, district, chamber)
+        legislators(id, name, party, role, district, chamber)
       ),
       roll_calls(
         id, date, chamber, yea_count, nay_count, absent_count,
@@ -103,6 +103,39 @@ export default async function BillPage({ params }: Props) {
     .filter((s: any) => s.legislators?.name && !s.legislators.name.includes('Committee'))
 
   const rollCalls = bill.roll_calls || []
+
+  // Fetch related bills — by committee and by primary sponsor
+  const supabase = createServerClient()
+  const primarySponsorLegId = sponsors[0]?.legislators?.id
+  const sessionId = (bill as any).session_id
+
+  const [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }] = await Promise.all([
+    bill.committee_name
+      ? supabase
+          .from('bills')
+          .select('id, bill_number, title, completed, status')
+          .eq('session_id', sessionId)
+          .eq('committee_name', bill.committee_name)
+          .neq('id', bill.id)
+          .order('last_action_date', { ascending: false })
+          .limit(5)
+      : Promise.resolve({ data: [] as any[] }),
+    primarySponsorLegId
+      ? supabase
+          .from('bill_sponsors')
+          .select('bills!inner(id, bill_number, title, completed, status, session_id)')
+          .eq('legislator_id', primarySponsorLegId)
+          .eq('sponsor_order', 1)
+          .eq('bills.session_id', sessionId)
+          .limit(10)
+      : Promise.resolve({ data: [] as any[] }),
+  ])
+
+  const relatedByCommittee = (relatedCommitteeRows || []).slice(0, 4)
+  const relatedBySponsor = (relatedSponsorRows || [])
+    .map((r: any) => r.bills)
+    .filter((b: any) => b && b.id !== bill.id)
+    .slice(0, 4)
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
@@ -436,6 +469,45 @@ export default async function BillPage({ params }: Props) {
               )}
             </dl>
           </section>
+
+          {/* Related bills */}
+          {(relatedByCommittee.length > 0 || relatedBySponsor.length > 0) && (
+            <section className="bg-white border border-slate-200 rounded-xl p-4">
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">RELATED BILLS</h2>
+
+              {relatedByCommittee.length > 0 && (
+                <div className={relatedBySponsor.length > 0 ? 'mb-4' : ''}>
+                  <p className="text-[10px] font-bold tracking-widest text-slate-400 mb-2 uppercase">
+                    {bill.committee_name}
+                  </p>
+                  <div className="space-y-2">
+                    {relatedByCommittee.map((b: any) => (
+                      <a key={b.id} href={`/bills/${year}/${b.bill_number.toLowerCase()}`} className="flex items-start gap-2 group">
+                        <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">{b.bill_number}</span>
+                        <span className="text-xs text-slate-600 group-hover:text-amber-700 transition-colors leading-tight line-clamp-2">{b.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {relatedBySponsor.length > 0 && (
+                <div className={relatedByCommittee.length > 0 ? 'pt-4 border-t border-slate-100' : ''}>
+                  <p className="text-[10px] font-bold tracking-widest text-slate-400 mb-2 uppercase">
+                    More by {sponsors[0]?.legislators?.name}
+                  </p>
+                  <div className="space-y-2">
+                    {relatedBySponsor.map((b: any) => (
+                      <a key={b.id} href={`/bills/${year}/${b.bill_number.toLowerCase()}`} className="flex items-start gap-2 group">
+                        <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">{b.bill_number}</span>
+                        <span className="text-xs text-slate-600 group-hover:text-amber-700 transition-colors leading-tight line-clamp-2">{b.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+            </section>
+          )}
 
           {/* Documents */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
