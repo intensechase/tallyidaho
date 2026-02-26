@@ -57,23 +57,33 @@ async function fetchPage(url: string): Promise<string> {
   return res.text()
 }
 
-/** Strip HTML tags and decode basic entities */
-function stripHtml(s: string): string {
+/** Decode HTML entities (including &nbsp;) */
+function decodeEntities(s: string): string {
   return s
-    .replace(/<[^>]+>/g, ' ')
+    .replace(/&nbsp;/g, ' ')
+    .replace(/&#160;/g, ' ')
+    .replace(/&#8220;/g, '"')
+    .replace(/&#8221;/g, '"')
+    .replace(/&#8217;/g, "'")
     .replace(/&amp;/g, '&')
     .replace(/&lt;/g, '<')
     .replace(/&gt;/g, '>')
-    .replace(/&nbsp;/g, ' ')
-    .replace(/&#\d+;/g, '')
+    .replace(/&#\d+;/g, ' ')
+    .replace(/&[a-z]+;/g, ' ')
     .replace(/\s+/g, ' ')
     .trim()
 }
 
+/** Strip HTML tags and decode entities */
+function stripHtml(s: string): string {
+  return decodeEntities(s.replace(/<[^>]+>/g, ' '))
+}
+
 /** Strip legislator title prefixes (Sen., Rep., Dr., etc.) and normalize */
 function normalizeLegName(name: string): string {
-  return name
+  return decodeEntities(name)
     .replace(/^(Sen\.|Rep\.|Dr\.|Mr\.|Ms\.|Mrs\.)\s*/i, '')
+    .replace(/["""]/g, '')
     .trim()
     .toLowerCase()
 }
@@ -143,95 +153,62 @@ async function scrapeCommitteeIndex(year: number): Promise<ParsedCommittee[]> {
 /**
  * Fetch a committee detail page and extract its members.
  *
- * The Idaho Legislature committee pages typically show a table of members
- * with name (linked to their profile), role/title, and district.
+ * Idaho Legislature committee pages use the same photo-block layout as
+ * the membership pages. Each member block starts with their directory photo
+ * and contains a link to their legislator profile with the role appended.
  *
- * Example HTML patterns:
- *   <td><a href="/senate/membership/...">Sen. John Smith</a></td>
- *   <td>Chair</td>
- *   <td>SD-001</td>
+ * Example structure (per member block):
+ *   <img src="...Nichols5380.jpg">
+ *   <a href="/legislators/membership/2026/id5380">Sen. Tammy Nichols</a>, Chair
+ *   District 10 | phone | email
  */
 async function scrapeCommitteeMembers(committeeUrl: string): Promise<ParsedMember[]> {
   const html = await fetchPage(committeeUrl)
   const members: ParsedMember[] = []
 
-  // Strategy 1: find legislator profile links with nearby role text
-  // Links to legislator profiles: /senate/membership/... or /house/membership/...
-  // Or /sessioninfo/{year}/committees/... for older page formats
-  const memberSections: Array<{ name: string; role: string }> = []
+  // Split into per-member blocks using directory photo as anchor
+  const photoRe = /src="[^"]*\/directory\/([^"\/]+?)(\d+)\.jpg"/gi
+  const splitPoints: Array<{ index: number; topicId: string }> = []
 
-  // Look for table rows — try to parse the member table
-  // Pattern: find <tr> blocks containing a legislator link
-  const trRe = /<tr[^>]*>([\s\S]*?)<\/tr>/gi
-  let trMatch: RegExpExecArray | null
-  while ((trMatch = trRe.exec(html)) !== null) {
-    const row = trMatch[1]
-
-    // Extract all <td> cell texts from this row
-    const cells: string[] = []
-    const tdRe = /<td[^>]*>([\s\S]*?)<\/td>/gi
-    let tdMatch: RegExpExecArray | null
-    while ((tdMatch = tdRe.exec(row)) !== null) {
-      cells.push(stripHtml(tdMatch[1]))
-    }
-
-    if (cells.length < 2) continue
-
-    // Look for a row where one cell looks like a person's name and another like a role
-    const roleKeywords = /^(chair|vice\s+chair|member|co-chair|ranking\s+member)$/i
-
-    let name = ''
-    let role = 'Member'
-
-    for (const cell of cells) {
-      if (roleKeywords.test(cell.trim())) {
-        // Normalize role
-        const lc = cell.trim().toLowerCase()
-        if (lc === 'chair') role = 'Chair'
-        else if (lc.includes('vice')) role = 'Vice Chair'
-        else if (lc.includes('co-chair')) role = 'Co-Chair'
-        else role = 'Member'
-      } else if (cell.length > 3 && cell.length < 50 && /[A-Z]/.test(cell)) {
-        // Likely a person's name — has mixed case, reasonable length
-        // Exclude cells that are clearly not names (district codes, numbers, etc.)
-        if (!/^(SD-|HD-|District|District\s+\d|^\d+$)/.test(cell)) {
-          name = cell
-        }
-      }
-    }
-
-    if (name && !members.some(m => m.fullName === name)) {
-      memberSections.push({ name, role })
-    }
+  let m: RegExpExecArray | null
+  while ((m = photoRe.exec(html)) !== null) {
+    splitPoints.push({ index: m.index, topicId: m[2] })
   }
 
-  // Strategy 2: find links to legislator pages if no table rows found
-  if (memberSections.length === 0) {
-    const legLinkRe = /href="([^"]*\/(senate|house)\/(?:membership|members?)\/[^"]+)">([^<]+)<\/a>/gi
-    let linkMatch: RegExpExecArray | null
-    while ((linkMatch = legLinkRe.exec(html)) !== null) {
-      const rawName = stripHtml(linkMatch[3])
-      if (rawName.length < 3) continue
-
-      // Try to find the role near this link (within 200 chars before/after)
-      const contextStart = Math.max(0, linkMatch.index - 200)
-      const context = html.slice(contextStart, linkMatch.index + 200)
-      let role = 'Member'
-      if (/Chair(?!\s+Vice)/i.test(context)) role = 'Chair'
-      else if (/Vice\s+Chair/i.test(context)) role = 'Vice Chair'
-
-      memberSections.push({ name: rawName, role })
-    }
-  }
-
-  // Deduplicate and build final list
   const seen = new Set<string>()
-  for (const { name, role } of memberSections) {
-    const norm = normalizeLegName(name)
-    if (!seen.has(norm)) {
-      seen.add(norm)
-      members.push({ fullName: name, normalizedName: norm, role })
+
+  for (let i = 0; i < splitPoints.length; i++) {
+    const start = splitPoints[i].index
+    const end = splitPoints[i + 1]?.index ?? html.length
+    const block = html.slice(start, end)
+
+    // Find the member profile link — href="/legislators/membership/{year}/id{N}"
+    // The link text contains the name (with "Sen." / "Rep." prefix)
+    const nameLinkRe = /href="[^"]*\/legislators\/membership\/[^"]*">([^<]+)<\/a>/i
+    const nameMatch = nameLinkRe.exec(block)
+    if (!nameMatch) continue
+
+    const rawName = decodeEntities(nameMatch[1])
+    const normalizedName = normalizeLegName(rawName)
+    if (normalizedName.length < 2 || seen.has(normalizedName)) continue
+    seen.add(normalizedName)
+
+    // Role: look for ", Chair" / ", Vice Chair" in text immediately after the link
+    const afterLink = stripHtml(block.slice(block.indexOf(nameMatch[0]) + nameMatch[0].length, block.indexOf(nameMatch[0]) + nameMatch[0].length + 150))
+    let role = 'Member'
+    if (/Vice\s*Chair/i.test(afterLink))           role = 'Vice Chair'
+    else if (/Co-?Chair/i.test(afterLink))          role = 'Co-Chair'
+    else if (/\bChair\b/i.test(afterLink))          role = 'Chair'
+
+    // Fallback: check broader block text (first 300 chars)
+    if (role === 'Member') {
+      const blockPlain = stripHtml(block.slice(0, 300))
+      if (/Vice\s*Chair/i.test(blockPlain))         role = 'Vice Chair'
+      else if (/Co-?Chair/i.test(blockPlain))        role = 'Co-Chair'
+      else if (/\bChair\b/i.test(blockPlain))        role = 'Chair'
     }
+
+    members.push({ fullName: rawName, normalizedName, role })
   }
 
   return members
