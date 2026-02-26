@@ -216,7 +216,6 @@ export default async function BillsPage({ searchParams }: Props) {
                       <p className="text-xs text-slate-400 mt-1">
                         <Link
                           href={`/legislators/${legislatorSlug(sponsor.name)}`}
-                          onClick={e => e.stopPropagation()}
                           className="hover:text-amber-700 transition-colors"
                         >
                           {sponsor.name}
