@@ -3,7 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { legislatorSlug } from '@/lib/slugify'
-import type { DailyBill, DailyIntroductions } from '@/lib/daily-introductions'
+import type { FloorBill, FloorCalendar } from '@/lib/floor-calendar'
 
 type Legislator = {
   name: string
@@ -257,51 +257,39 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
   )
 }
 
-// ── Daily introduction card ────────────────────────────────────────────
-function DailyBillCard({ bill, year }: { bill: DailyBill; year: number }) {
-  const isCommittee = /COMMITTEE$/i.test(bill.sponsor)
-  const sponsorDisplay = bill.sponsor
-    .split(' ')
-    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
-    .join(' ')
-    .replace(/\bAnd\b/g, 'and')
-
+// ── Floor calendar bill card ───────────────────────────────────────────
+function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
+  const isThird = bill.reading === 'third'
   const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
-  const href = bill.href || null
-  const isExternal = !bill.href
 
   const inner = (
-    <div className="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
-      <div className="flex items-center gap-2 mb-2">
+    <div className={`bg-white border rounded-xl p-3.5 hover:shadow-sm transition-all h-full flex flex-col ${
+      isThird ? 'border-red-200 hover:border-red-300' : 'border-slate-200 hover:border-amber-300'
+    }`}>
+      <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
           {bill.rawNumber}
         </span>
         {bill.topic && (
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate flex-1">
             {bill.topic}
           </span>
         )}
-        {isExternal && (
-          <span className="ml-auto text-[10px] text-slate-300 shrink-0">↗</span>
-        )}
+        {!bill.href && <span className="text-[10px] text-slate-300 shrink-0 ml-auto">↗</span>}
       </div>
       <p className="text-xs text-slate-700 leading-snug flex-1 line-clamp-3">
         {bill.description || '—'}
       </p>
-      <p className="text-[10px] text-slate-400 mt-2 truncate">
-        {isCommittee ? '📋' : '👤'} {sponsorDisplay}
-      </p>
+      {bill.floorSponsor && (
+        <p className="text-[10px] text-slate-400 mt-2 truncate">
+          👤 {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
+        </p>
+      )}
     </div>
   )
 
-  if (href) {
-    return <Link href={href} className="block h-full">{inner}</Link>
-  }
-  return (
-    <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block h-full">
-      {inner}
-    </a>
-  )
+  if (bill.href) return <Link href={bill.href} className="block h-full">{inner}</Link>
+  return <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block h-full">{inner}</a>
 }
 
 // ── Main tab component ────────────────────────────────────────────────
@@ -309,17 +297,18 @@ interface Props {
   controversialBills: Bill[]
   recentBills: any[]
   year: number
-  dailyIntroductions: DailyIntroductions
+  floorCalendar: FloorCalendar
 }
 
-export default function HomepageTabs({ controversialBills, recentBills, year, dailyIntroductions }: Props) {
-  const hasToday = dailyIntroductions.senate.length > 0 || dailyIntroductions.house.length > 0
-  const [tab, setTab] = useState<'today' | 'controversial' | 'recent'>(hasToday ? 'today' : 'controversial')
+export default function HomepageTabs({ controversialBills, recentBills, year, floorCalendar }: Props) {
+  const hasFloor = floorCalendar.senate.length > 0 || floorCalendar.house.length > 0
+  const [tab, setTab] = useState<'floor' | 'controversial' | 'recent'>(hasFloor ? 'floor' : 'controversial')
 
-  const todayCount = dailyIntroductions.senate.length + dailyIntroductions.house.length
+  const thirdCount = [...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'third').length
+  const totalCount = floorCalendar.senate.length + floorCalendar.house.length
 
   const viewAllHref =
-    tab === 'today' ? `/bills?year=${year}` :
+    tab === 'floor' ? `/bills?year=${year}` :
     tab === 'controversial' ? `/bills?controversial=true&year=${year}` :
     `/bills?year=${year}`
 
@@ -327,17 +316,17 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
     <section className="max-w-7xl mx-auto px-4 py-8">
       {/* Tab bar */}
       <div className="flex items-center gap-1 sm:gap-6 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl overflow-x-auto">
-        {hasToday && (
+        {hasFloor && (
           <button
-            onClick={() => setTab('today')}
+            onClick={() => setTab('floor')}
             className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
-              tab === 'today' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
+              tab === 'floor' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
             }`}
           >
-            📋 TODAY'S BILLS
-            {todayCount > 0 && (
-              <span className="ml-1.5 text-[10px] bg-amber-500 text-white rounded-full px-1.5 py-0.5 font-bold">
-                {todayCount}
+            🏛️ FLOOR TODAY
+            {thirdCount > 0 && (
+              <span className="ml-1.5 text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
+                {thirdCount} voting
               </span>
             )}
           </button>
@@ -366,49 +355,81 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
         </Link>
       </div>
 
-      {/* Today's Bills: senate + house side by side */}
-      {tab === 'today' && (
+      {/* Floor Today: third reading (voting) + second reading */}
+      {tab === 'floor' && (
         <div>
-          {dailyIntroductions.date && (
+          {floorCalendar.date && (
             <p className="text-xs text-slate-400 mb-4">
-              {dailyIntroductions.date}
-              {dailyIntroductions.legislativeDay && (
-                <span className="ml-2 text-slate-500">· Day {dailyIntroductions.legislativeDay}</span>
+              {floorCalendar.date}
+              {floorCalendar.legislativeDay && (
+                <span className="ml-2 text-slate-500">· Day {floorCalendar.legislativeDay}</span>
               )}
             </p>
           )}
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-            {/* Senate */}
-            {dailyIntroductions.senate.length > 0 && (
-              <div>
-                <h3 className="text-[10px] font-bold tracking-widest text-blue-600 mb-3 uppercase">
-                  Senate · {dailyIntroductions.senate.length} bill{dailyIntroductions.senate.length !== 1 ? 's' : ''}
-                </h3>
-                <div className="space-y-2">
-                  {dailyIntroductions.senate.map(b => (
-                    <DailyBillCard key={b.billNumber} bill={b} year={year} />
-                  ))}
-                </div>
+
+          {/* Voting Today — third reading */}
+          {thirdCount > 0 && (
+            <div className="mb-6">
+              <h3 className="text-[10px] font-bold tracking-widest text-red-500 mb-3 uppercase flex items-center gap-2">
+                🗳️ Voting Today — Third Reading
+                <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{thirdCount}</span>
+              </h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {floorCalendar.senate.filter(b => b.reading === 'third').length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
+                    <div className="space-y-2">
+                      {floorCalendar.senate.filter(b => b.reading === 'third').map(b => (
+                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {floorCalendar.house.filter(b => b.reading === 'third').length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest text-amber-600 mb-2 uppercase">House</p>
+                    <div className="space-y-2">
+                      {floorCalendar.house.filter(b => b.reading === 'third').map(b => (
+                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-            {/* House */}
-            {dailyIntroductions.house.length > 0 && (
-              <div>
-                <h3 className="text-[10px] font-bold tracking-widest text-amber-600 mb-3 uppercase">
-                  House · {dailyIntroductions.house.length} bill{dailyIntroductions.house.length !== 1 ? 's' : ''}
-                </h3>
-                <div className="space-y-2">
-                  {dailyIntroductions.house.map(b => (
-                    <DailyBillCard key={b.billNumber} bill={b} year={year} />
-                  ))}
-                </div>
+            </div>
+          )}
+
+          {/* Second Reading */}
+          {[...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'second').length > 0 && (
+            <div>
+              <h3 className="text-[10px] font-bold tracking-widest text-slate-400 mb-3 uppercase">Second Reading — Cleared Committee</h3>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+                {floorCalendar.senate.filter(b => b.reading === 'second').length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
+                    <div className="space-y-2">
+                      {floorCalendar.senate.filter(b => b.reading === 'second').map(b => (
+                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                      ))}
+                    </div>
+                  </div>
+                )}
+                {floorCalendar.house.filter(b => b.reading === 'second').length > 0 && (
+                  <div>
+                    <p className="text-[10px] font-bold tracking-widest text-amber-600 mb-2 uppercase">House</p>
+                    <div className="space-y-2">
+                      {floorCalendar.house.filter(b => b.reading === 'second').map(b => (
+                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
-            )}
-          </div>
-          {!hasToday && (
-            <p className="text-center text-slate-400 py-8 text-sm">
-              No new bill introductions found for today.
-            </p>
+            </div>
+          )}
+
+          {!hasFloor && (
+            <p className="text-center text-slate-400 py-8 text-sm">No floor calendar found for today.</p>
           )}
         </div>
       )}
