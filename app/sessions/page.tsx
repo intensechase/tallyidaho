@@ -51,7 +51,7 @@ export default async function SessionsPage() {
           return (
             <Link
               key={s.id}
-              href={`/bills?year=${s.year_start}`}
+              href={`/sessions/${s.year_start}`}
               className="block"
             >
               <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all">
