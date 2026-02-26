@@ -138,9 +138,13 @@ export default async function BillPage({ params }: Props) {
           )}
         </div>
 
-        <h1 className="text-2xl font-bold text-slate-900 leading-snug mb-2">
+        <h1 className="font-oswald text-2xl font-bold text-slate-900 leading-snug mb-1 tracking-tight">
           {bill.title}
         </h1>
+
+        {bill.description && bill.description !== bill.title && (
+          <p className="text-sm text-slate-500 leading-relaxed mb-2">{bill.description}</p>
+        )}
 
         {bill.subjects?.length > 0 && (
           <div className="flex gap-2 flex-wrap">
@@ -165,14 +169,6 @@ export default async function BillPage({ params }: Props) {
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
               </div>
-            </section>
-          )}
-
-          {/* Official title if different */}
-          {bill.description && bill.description !== bill.title && (
-            <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">OFFICIAL TITLE</h2>
-              <p className="text-slate-600 text-sm leading-relaxed">{bill.description}</p>
             </section>
           )}
 

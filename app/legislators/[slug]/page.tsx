@@ -54,7 +54,7 @@ async function getLegislator(slug: string) {
   // Fetch all legislators and match by normalized name
   const { data: legislators } = await supabase
     .from('legislators')
-    .select('id, name, party, role, district, chamber, photo_url, bio')
+    .select('id, name, party, role, district, chamber, photo_url, bio, wiki_url')
 
   if (!legislators) return null
 
@@ -236,7 +236,19 @@ export default async function LegislatorPage({ params }: Props) {
               {leg.bio && (
                 <div className="mt-3">
                   <p className="text-sm text-slate-600 leading-relaxed">{leg.bio}</p>
-                  <p className="text-xs text-slate-400 mt-1">Source: Wikipedia</p>
+                  <div className="flex items-center gap-3 mt-2">
+                    <span className="text-xs text-slate-400">Source: Wikipedia</span>
+                    {leg.wiki_url && (
+                      <a
+                        href={leg.wiki_url}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs text-amber-600 hover:text-amber-700 hover:underline font-medium"
+                      >
+                        Read full article ↗
+                      </a>
+                    )}
+                  </div>
                 </div>
               )}
 
@@ -359,6 +371,17 @@ export default async function LegislatorPage({ params }: Props) {
                 <span>Official Legislature page</span>
                 <span className="text-slate-400">↗</span>
               </a>
+              {leg.wiki_url && (
+                <a
+                  href={leg.wiki_url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex items-center justify-between text-slate-700 hover:text-amber-700 transition-colors"
+                >
+                  <span>Wikipedia</span>
+                  <span className="text-slate-400">↗</span>
+                </a>
+              )}
             </div>
           </section>
 
