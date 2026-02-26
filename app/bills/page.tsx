@@ -46,8 +46,8 @@ export default async function BillsPage({ searchParams }: Props) {
     .eq('year_start', year)
     .single()
 
-  // Parallel: subjects for filter dropdown + legislators for sponsor dropdown
-  const [{ data: subjectRows }, { data: legSessions }] = await Promise.all([
+  // Parallel: subjects for filter dropdown + legislator IDs for sponsor dropdown
+  const [{ data: subjectRows }, { data: legSessionRows }] = await Promise.all([
     supabase
       .from('bills')
       .select('subjects')
@@ -56,7 +56,7 @@ export default async function BillsPage({ searchParams }: Props) {
       .limit(500),
     supabase
       .from('legislator_sessions')
-      .select('legislators(id, name, role, party)')
+      .select('legislator_id')
       .eq('session_id', session?.id || 0),
   ])
 
@@ -66,10 +66,18 @@ export default async function BillsPage({ searchParams }: Props) {
     )
   ).sort() as string[]
 
-  const legislators = (legSessions || [])
-    .map((ls: any) => ls.legislators)
-    .filter((l: any) => l?.id && (l.role === 'Sen' || l.role === 'Rep'))
-    .sort((a: any, b: any) => a.name.localeCompare(b.name))
+  const legIds = (legSessionRows || []).map((r: any) => r.legislator_id).filter(Boolean)
+
+  let legislators: any[] = []
+  if (legIds.length > 0) {
+    const { data: legRows } = await supabase
+      .from('legislators')
+      .select('id, name, role, party')
+      .in('id', legIds)
+      .in('role', ['Sen', 'Rep'])
+      .order('name')
+    legislators = legRows || []
+  }
 
   // If sponsor filter active, resolve to bill IDs (two-step)
   let sponsorBillIds: string[] | null = null
