@@ -54,7 +54,7 @@ async function getLegislator(slug: string) {
   // Fetch all legislators and match by normalized name
   const { data: legislators } = await supabase
     .from('legislators')
-    .select('id, name, party, role, district, chamber, photo_url')
+    .select('id, name, party, role, district, chamber, photo_url, bio')
 
   if (!legislators) return null
 
@@ -231,6 +231,14 @@ export default async function LegislatorPage({ params }: Props) {
                 {geoArea && <span>{geoArea} · </span>}
                 Idaho {leg.chamber === 'senate' ? 'Senate' : 'House'} · {termLabel}
               </p>
+
+              {/* Bio from Wikipedia */}
+              {leg.bio && (
+                <div className="mt-3">
+                  <p className="text-sm text-slate-600 leading-relaxed">{leg.bio}</p>
+                  <p className="text-xs text-slate-400 mt-1">Source: Wikipedia</p>
+                </div>
+              )}
 
             </div>
           </div>
