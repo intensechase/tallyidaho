@@ -11,6 +11,7 @@ interface Props {
   currentSubject: string
   currentControversial: boolean
   currentQuery: string
+  currentStatus: string
   subjects: string[]
 }
 
@@ -20,6 +21,7 @@ export default function BillsFilters({
   currentSubject,
   currentControversial,
   currentQuery,
+  currentStatus,
   subjects,
 }: Props) {
   function filterUrl(overrides: Record<string, string | undefined>) {
@@ -29,6 +31,7 @@ export default function BillsFilters({
       ...(currentSubject && { subject: currentSubject }),
       ...(currentControversial && { controversial: 'true' }),
       ...(currentQuery && { q: currentQuery }),
+      ...(currentStatus && { status: currentStatus }),
     }
     const next = { ...current, ...overrides, page: '1' }
     const qs = Object.entries(next)
@@ -109,6 +112,19 @@ export default function BillsFilters({
           ))}
         </div>
 
+        {/* Status */}
+        <select
+          value={currentStatus}
+          onChange={e => navigate(filterUrl({ status: e.target.value || undefined }))}
+          className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-500 bg-white"
+        >
+          <option value="">All stages</option>
+          <option value="1">Introduced</option>
+          <option value="2">In Committee</option>
+          <option value="3">Floor Vote</option>
+          <option value="4">Enacted</option>
+        </select>
+
         {/* Controversial toggle */}
         <button
           onClick={() => navigate(filterUrl({ controversial: currentControversial ? undefined : 'true' }))}
@@ -136,7 +152,7 @@ export default function BillsFilters({
         )}
 
         {/* Active filter count */}
-        {(currentChamber || currentControversial || currentSubject || currentQuery) && (
+        {(currentChamber || currentControversial || currentSubject || currentQuery || currentStatus) && (
           <a
             href="/bills"
             className="text-xs text-slate-400 hover:text-red-500 transition-colors ml-2"

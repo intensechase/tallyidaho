@@ -25,6 +25,19 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })),
   ]
 
+  // Session detail pages
+  const { data: sessions } = await supabase
+    .from('sessions')
+    .select('year_start, sine_die')
+    .order('year_start')
+
+  const sessionPages: MetadataRoute.Sitemap = (sessions || []).map((s: any) => ({
+    url: `${BASE}/sessions/${s.year_start}`,
+    lastModified: new Date(),
+    changeFrequency: s.sine_die ? 'yearly' : 'daily',
+    priority: s.year_start === 2026 ? 0.8 : 0.5,
+  }))
+
   // All legislators
   const { data: legislators } = await supabase
     .from('legislators')
@@ -89,5 +102,5 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     })
   }
 
-  return [...staticPages, ...legislatorPages, ...billPages, ...committeePages]
+  return [...staticPages, ...sessionPages, ...legislatorPages, ...billPages, ...committeePages]
 }

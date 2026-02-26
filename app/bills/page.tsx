@@ -18,6 +18,7 @@ interface Props {
     subject?: string
     chamber?: string
     controversial?: string
+    status?: string
     q?: string
     page?: string
   }>
@@ -31,6 +32,7 @@ export default async function BillsPage({ searchParams }: Props) {
   const chamber = params.chamber || ''
   const subject = params.subject || ''
   const controversial = params.controversial === 'true'
+  const status = params.status || ''
   const query = params.q || ''
   const page = parseInt(params.page || '1')
   const perPage = 25
@@ -76,6 +78,10 @@ export default async function BillsPage({ searchParams }: Props) {
   if (controversial) billsQuery = billsQuery.eq('is_controversial', true)
   if (query) billsQuery = billsQuery.or(`title.ilike.%${query}%,bill_number.ilike.%${query}%`)
   if (subject) billsQuery = billsQuery.contains('subjects', [subject])
+  if (status === '1') billsQuery = billsQuery.eq('status', 1).eq('completed', false)
+  else if (status === '2') billsQuery = billsQuery.eq('status', 2).eq('completed', false)
+  else if (status === '3') billsQuery = billsQuery.eq('status', 3).eq('completed', false)
+  else if (status === '4') billsQuery = billsQuery.eq('completed', true)
 
   const { data: bills, count } = await billsQuery
   const totalPages = Math.ceil((count || 0) / perPage)
@@ -112,6 +118,7 @@ export default async function BillsPage({ searchParams }: Props) {
         currentChamber={chamber}
         currentSubject={subject}
         currentControversial={controversial}
+        currentStatus={status}
         currentQuery={query}
         subjects={allSubjects}
       />
