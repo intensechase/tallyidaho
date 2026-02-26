@@ -256,7 +256,7 @@ export default async function DistrictPage({ params }: Props) {
                     <div className="flex items-start gap-3 mb-3">
                       <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden shrink-0">
                         {leg.photo_url
-                          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover" />
+                          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover object-top" />
                           : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
                               <span className="text-white font-bold text-lg">{leg.name[0]}</span>
                             </div>

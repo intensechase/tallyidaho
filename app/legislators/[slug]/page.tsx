@@ -55,7 +55,7 @@ async function getLegislator(slug: string) {
   // Fetch all legislators and match by normalized name
   const { data: legislators } = await supabase
     .from('legislators')
-    .select('id, name, party, role, district, chamber, photo_url, bio, wiki_url')
+    .select('id, name, party, role, district, chamber, photo_url, bio, wiki_url, email, phone, occupation, leadership_title, legislature_bio')
 
   if (!legislators) return null
 
@@ -220,6 +220,11 @@ export default async function LegislatorPage({ params }: Props) {
                 >
                   District {distNum}
                 </Link>
+                {(leg as any).leadership_title && (
+                  <span className="text-xs font-bold bg-[#0f172a] text-amber-400 border border-amber-700/40 px-2 py-0.5 rounded-full">
+                    {(leg as any).leadership_title}
+                  </span>
+                )}
               </div>
 
               {/* Name */}
@@ -233,13 +238,23 @@ export default async function LegislatorPage({ params }: Props) {
                 Idaho {leg.chamber === 'senate' ? 'Senate' : 'House'} · {termLabel}
               </p>
 
-              {/* Bio from Wikipedia */}
-              {leg.bio && (
+              {/* Occupation */}
+              {(leg as any).occupation && (
+                <p className="text-sm text-slate-500 mt-0.5">{(leg as any).occupation}</p>
+              )}
+
+              {/* Bio — legislature source preferred, fall back to Wikipedia */}
+              {((leg as any).legislature_bio || leg.bio) && (
                 <div className="mt-3">
-                  <p className="text-sm text-slate-600 leading-relaxed">{leg.bio}</p>
+                  <p className="text-sm text-slate-600 leading-relaxed line-clamp-4">
+                    {(leg as any).legislature_bio || leg.bio}
+                  </p>
                   <div className="flex items-center gap-3 mt-2">
-                    <span className="text-xs text-slate-400">Source: Wikipedia</span>
-                    {leg.wiki_url && (
+                    {(leg as any).legislature_bio
+                      ? <span className="text-xs text-slate-400">Source: Idaho Legislature</span>
+                      : <span className="text-xs text-slate-400">Source: Wikipedia</span>
+                    }
+                    {!(leg as any).legislature_bio && leg.wiki_url && (
                       <a
                         href={leg.wiki_url}
                         target="_blank"
@@ -351,6 +366,34 @@ export default async function LegislatorPage({ params }: Props) {
               </div>
             </dl>
           </section>
+
+          {/* Contact */}
+          {((leg as any).email || (leg as any).phone) && (
+            <section className="bg-white border border-slate-200 rounded-xl p-4">
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">CONTACT</h2>
+              <div className="space-y-2 text-sm">
+                {(leg as any).email && (
+                  <a
+                    href={`mailto:${(leg as any).email}`}
+                    className="flex items-center gap-2 text-slate-700 hover:text-amber-700 transition-colors min-w-0"
+                  >
+                    <span className="text-slate-400 shrink-0">✉</span>
+                    <span className="truncate">{(leg as any).email}</span>
+                  </a>
+                )}
+                {(leg as any).phone && (
+                  <a
+                    href={`tel:${(leg as any).phone.replace(/\D/g, '')}`}
+                    className="flex items-center gap-2 text-slate-700 hover:text-amber-700 transition-colors"
+                  >
+                    <span className="text-slate-400 shrink-0">☎</span>
+                    <span>{(leg as any).phone}</span>
+                    <span className="text-xs text-slate-400 ml-auto">Statehouse</span>
+                  </a>
+                )}
+              </div>
+            </section>
+          )}
 
           {/* Links */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">

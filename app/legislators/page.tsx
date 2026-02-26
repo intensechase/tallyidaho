@@ -199,7 +199,7 @@ function LegCell({ leg, role }: { leg: any; role: string }) {
       {/* Photo */}
       <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
         {leg.photo_url
-          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover" />
+          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover object-top" />
           : <span className={`text-[10px] font-bold text-white ${partyColor} w-full h-full flex items-center justify-center`}>{leg.party}</span>
         }
       </div>
@@ -239,7 +239,7 @@ function LegCard({ leg }: { leg: any }) {
       <div className="bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 hover:shadow-sm transition-all text-center">
         <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto mb-2 overflow-hidden flex items-center justify-center">
           {leg.photo_url
-            ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover" />
+            ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover object-top" />
             : <span className={`text-sm font-bold text-white ${partyColor} w-full h-full flex items-center justify-center`}>{leg.party}</span>
           }
         </div>
