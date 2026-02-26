@@ -258,13 +258,17 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
 }
 
 // ── Daily introduction card ────────────────────────────────────────────
-function DailyBillCard({ bill }: { bill: DailyBill }) {
+function DailyBillCard({ bill, year }: { bill: DailyBill; year: number }) {
   const isCommittee = /COMMITTEE$/i.test(bill.sponsor)
   const sponsorDisplay = bill.sponsor
     .split(' ')
     .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
     .join(' ')
     .replace(/\bAnd\b/g, 'and')
+
+  const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
+  const href = bill.href || null
+  const isExternal = !bill.href
 
   const inner = (
     <div className="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
@@ -277,6 +281,9 @@ function DailyBillCard({ bill }: { bill: DailyBill }) {
             {bill.topic}
           </span>
         )}
+        {isExternal && (
+          <span className="ml-auto text-[10px] text-slate-300 shrink-0">↗</span>
+        )}
       </div>
       <p className="text-xs text-slate-700 leading-snug flex-1 line-clamp-3">
         {bill.description || '—'}
@@ -287,9 +294,14 @@ function DailyBillCard({ bill }: { bill: DailyBill }) {
     </div>
   )
 
-  return bill.href
-    ? <Link href={bill.href} className="block h-full">{inner}</Link>
-    : <div className="h-full">{inner}</div>
+  if (href) {
+    return <Link href={href} className="block h-full">{inner}</Link>
+  }
+  return (
+    <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block h-full">
+      {inner}
+    </a>
+  )
 }
 
 // ── Main tab component ────────────────────────────────────────────────
@@ -374,7 +386,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
                 </h3>
                 <div className="space-y-2">
                   {dailyIntroductions.senate.map(b => (
-                    <DailyBillCard key={b.billNumber} bill={b} />
+                    <DailyBillCard key={b.billNumber} bill={b} year={year} />
                   ))}
                 </div>
               </div>
@@ -387,7 +399,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, da
                 </h3>
                 <div className="space-y-2">
                   {dailyIntroductions.house.map(b => (
-                    <DailyBillCard key={b.billNumber} bill={b} />
+                    <DailyBillCard key={b.billNumber} bill={b} year={year} />
                   ))}
                 </div>
               </div>
