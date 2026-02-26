@@ -315,7 +315,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
       {/* Tab bar */}
-      <div className="flex items-center gap-1 sm:gap-6 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl overflow-x-auto">
+      <div className="flex items-center gap-2 sm:gap-4 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl">
         {hasFloor && (
           <button
             onClick={() => setTab('floor')}
@@ -370,14 +370,14 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
           {/* Voting Today — third reading */}
           {thirdCount > 0 && (
             <div className="mb-6">
-              <h3 className="text-[10px] font-bold tracking-widest text-red-500 mb-3 uppercase flex items-center gap-2">
+              <h3 className="text-xl font-black text-red-500 mb-3 flex items-center gap-2">
                 🗳️ Voting Today — Third Reading
-                <span className="bg-red-500 text-white text-[9px] font-bold px-1.5 py-0.5 rounded-full">{thirdCount}</span>
+                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{thirdCount}</span>
               </h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {floorCalendar.senate.filter(b => b.reading === 'third').length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
+                    <p className="text-xs font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
                     <div className="space-y-2">
                       {floorCalendar.senate.filter(b => b.reading === 'third').map(b => (
                         <FloorBillCard key={b.billNumber} bill={b} year={year} />
@@ -402,11 +402,11 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
           {/* Second Reading */}
           {[...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'second').length > 0 && (
             <div>
-              <h3 className="text-[10px] font-bold tracking-widest text-slate-400 mb-3 uppercase">Second Reading — Cleared Committee</h3>
+              <h3 className="text-xl font-black text-slate-600 mb-3">Second Reading — Cleared Committee</h3>
               <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
                 {floorCalendar.senate.filter(b => b.reading === 'second').length > 0 && (
                   <div>
-                    <p className="text-[10px] font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
+                    <p className="text-xs font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
                     <div className="space-y-2">
                       {floorCalendar.senate.filter(b => b.reading === 'second').map(b => (
                         <FloorBillCard key={b.billNumber} bill={b} year={year} />

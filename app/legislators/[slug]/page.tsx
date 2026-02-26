@@ -249,9 +249,10 @@ export default async function LegislatorPage({ params }: Props) {
                 </span>
                 <Link
                   href={`/districts/${distNum}`}
-                  className="text-xs text-amber-700 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full hover:bg-amber-100 transition-colors"
+                  className="inline-flex items-baseline gap-1 bg-amber-50 border border-amber-200 px-2.5 py-0.5 rounded-full hover:bg-amber-100 transition-colors"
                 >
-                  District {distNum}
+                  <span className="text-[9px] font-bold tracking-widest text-amber-600 uppercase">Dist.</span>
+                  <span className="font-oswald text-base font-bold leading-none text-amber-700">{distNum}</span>
                 </Link>
                 {(leg as any).leadership_title && (
                   <span className="text-xs font-bold bg-[#0f172a] text-amber-400 border border-amber-700/40 px-2 py-0.5 rounded-full">
