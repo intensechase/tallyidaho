@@ -1,6 +1,6 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import Link from 'next/link'
 
 type Legislator = {
@@ -16,11 +16,26 @@ type LookupResult = {
   legislators: Legislator[]
 }
 
+const STORAGE_KEY = 'tally_my_district'
+
 export default function DistrictLookup() {
   const [address, setAddress] = useState('')
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<LookupResult | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+
+  useEffect(() => {
+    try {
+      const stored = localStorage.getItem(STORAGE_KEY)
+      if (stored) {
+        setResult(JSON.parse(stored))
+        setSaved(true)
+      }
+    } catch {
+      // ignore parse errors
+    }
+  }, [])
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault()
@@ -38,6 +53,8 @@ export default function DistrictLookup() {
         setError(data.error || 'Could not find your district. Try including your city and zip code.')
       } else {
         setResult(data)
+        setSaved(true)
+        try { localStorage.setItem(STORAGE_KEY, JSON.stringify(data)) } catch { /* ignore */ }
       }
     } catch {
       setError('Something went wrong. Please try again.')
@@ -46,16 +63,27 @@ export default function DistrictLookup() {
     }
   }
 
+  function clearSaved() {
+    try { localStorage.removeItem(STORAGE_KEY) } catch { /* ignore */ }
+    setResult(null)
+    setSaved(false)
+    setAddress('')
+  }
+
   return (
     <section className="bg-slate-50 border-t border-slate-200 py-12">
       <div className="max-w-7xl mx-auto px-4">
         <div className="max-w-xl">
-          <h2 className="text-xl font-bold text-slate-900 mb-1">Find your legislators</h2>
-          <p className="text-sm text-slate-500 mb-5">
-            Enter your Idaho address to see your senator and representatives.
-          </p>
+          <h2 className="text-xl font-bold text-slate-900 mb-1">
+            {result ? 'Your legislators' : 'Find your legislators'}
+          </h2>
+          {!result && (
+            <p className="text-sm text-slate-500 mb-5">
+              Enter your Idaho address to see your senator and representatives.
+            </p>
+          )}
 
-          <form onSubmit={handleSubmit} className="flex gap-2">
+          {!result && <form onSubmit={handleSubmit} className="flex gap-2">
             <input
               type="text"
               value={address}
@@ -70,7 +98,7 @@ export default function DistrictLookup() {
             >
               {loading ? 'Looking up…' : 'Search'}
             </button>
-          </form>
+          </form>}
 
           {error && (
             <p className="mt-3 text-sm text-red-600">{error}</p>
@@ -78,9 +106,19 @@ export default function DistrictLookup() {
 
           {result && (
             <div className="mt-6">
-              <p className="text-xs font-bold tracking-widest text-slate-400 mb-3">
-                DISTRICT {result.district} LEGISLATORS
-              </p>
+              <div className="flex items-center gap-3 mb-3">
+                <p className="text-xs font-bold tracking-widest text-slate-400">
+                  YOUR DISTRICT {result.district} LEGISLATORS
+                </p>
+                {saved && (
+                  <button
+                    onClick={clearSaved}
+                    className="text-xs text-slate-400 hover:text-red-500 transition-colors"
+                  >
+                    ✕ Not your district?
+                  </button>
+                )}
+              </div>
               <div className="space-y-2">
                 {result.legislators.map((leg, i) => (
                   <Link
