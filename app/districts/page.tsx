@@ -102,14 +102,16 @@ export default async function DistrictsPage() {
               <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full">
 
                 {/* District header */}
-                <div className="flex items-start justify-between mb-3">
-                  <div>
-                    <span className="font-playfair text-3xl font-black text-amber-500 leading-none">
+                <div className="mb-3">
+                  <div className="flex items-baseline gap-2">
+                    <span className="font-oswald text-3xl font-bold text-amber-500 leading-none tracking-tight">
                       {n}
                     </span>
-                    <p className="text-xs text-slate-400 mt-0.5">{area}</p>
+                    <span className="font-oswald text-sm font-semibold text-slate-400 tracking-widest uppercase leading-none">
+                      District
+                    </span>
                   </div>
-                  <span className="text-xs text-slate-300 font-mono">District</span>
+                  <p className="text-xs text-slate-400 mt-0.5">{area}</p>
                 </div>
 
                 {/* Legislators */}

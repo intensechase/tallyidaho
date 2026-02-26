@@ -1,5 +1,5 @@
 import type { Metadata } from 'next'
-import { Playfair_Display, Outfit } from 'next/font/google'
+import { Playfair_Display, Outfit, Oswald } from 'next/font/google'
 import './globals.css'
 import SiteNav from '@/components/SiteNav'
 import Link from 'next/link'
@@ -14,6 +14,12 @@ const outfit = Outfit({
   subsets: ['latin'],
   weight: ['300', '400', '500', '600', '700'],
   variable: '--font-outfit',
+})
+
+const oswald = Oswald({
+  subsets: ['latin'],
+  weight: ['400', '500', '600', '700'],
+  variable: '--font-oswald',
 })
 
 export const metadata: Metadata = {
@@ -40,7 +46,7 @@ const footerLinks = [
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
   return (
-    <html lang="en" className={`${playfair.variable} ${outfit.variable}`}>
+    <html lang="en" className={`${playfair.variable} ${outfit.variable} ${oswald.variable}`}>
       <body className="font-outfit antialiased bg-white text-slate-900">
         <SiteNav />
         {children}
