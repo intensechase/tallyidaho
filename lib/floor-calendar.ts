@@ -25,6 +25,10 @@ export interface FloorBill {
   description: string         // "Amends and adds to existing law..."
   reading: 'second' | 'third' | 'general'
   href: string | null         // "/bills/2026/s1269" if matched in DB
+  // Vote result — populated after vote is recorded in DB
+  votePassed: boolean | null
+  voteYea: number | null
+  voteNay: number | null
 }
 
 export interface FloorCalendar {
@@ -217,6 +221,7 @@ export async function fetchFloorCalendar(): Promise<FloorCalendar> {
   ]
 
   const hrefMap = new Map<string, string>()
+  const voteMap = new Map<string, { passed: boolean; yea: number; nay: number }>()
 
   if (allBillNumbers.length > 0) {
     try {
@@ -230,23 +235,41 @@ export async function fetchFloorCalendar(): Promise<FloorCalendar> {
       if (session) {
         const { data: dbBills } = await supabase
           .from('bills')
-          .select('bill_number')
+          .select('bill_number, roll_calls(passed, yea_count, nay_count, date)')
           .eq('session_id', session.id)
           .in('bill_number', allBillNumbers)
 
         for (const b of dbBills || []) {
           hrefMap.set(b.bill_number, `/bills/${session.year_start}/${b.bill_number.toLowerCase()}`)
+          // Pick the most recent roll call
+          const rcs: any[] = (b as any).roll_calls || []
+          if (rcs.length > 0) {
+            const latest = rcs.sort((a: any, b: any) =>
+              (b.date || '').localeCompare(a.date || '')
+            )[0]
+            voteMap.set(b.bill_number, {
+              passed: latest.passed,
+              yea: latest.yea_count ?? 0,
+              nay: latest.nay_count ?? 0,
+            })
+          }
         }
       }
     } catch {
-      // silently continue with no hrefs
+      // silently continue with no hrefs or vote data
     }
   }
 
-  const toFloor = (b: Omit<FloorBill, 'href'>): FloorBill => ({
-    ...b,
-    href: hrefMap.get(b.billNumber) ?? null,
-  })
+  const toFloor = (b: Omit<FloorBill, 'href' | 'votePassed' | 'voteYea' | 'voteNay'>): FloorBill => {
+    const result = voteMap.get(b.billNumber) ?? null
+    return {
+      ...b,
+      href: hrefMap.get(b.billNumber) ?? null,
+      votePassed: result?.passed ?? null,
+      voteYea: result?.yea ?? null,
+      voteNay: result?.nay ?? null,
+    }
+  }
 
   return {
     senate: senateBills.map(toFloor),

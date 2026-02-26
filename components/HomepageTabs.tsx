@@ -260,12 +260,20 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
 // ── Floor calendar bill card ───────────────────────────────────────────
 function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
   const isThird = bill.reading === 'third'
+  const hasResult = bill.votePassed !== null
   const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
 
+  // Border: green if passed, red if failed, else reading-based default
+  const borderClass = hasResult
+    ? bill.votePassed
+      ? 'border-emerald-300 hover:border-emerald-400'
+      : 'border-red-300 hover:border-red-400'
+    : isThird
+      ? 'border-red-200 hover:border-red-300'
+      : 'border-slate-200 hover:border-amber-300'
+
   const inner = (
-    <div className={`bg-white border rounded-xl p-3.5 hover:shadow-sm transition-all h-full flex flex-col ${
-      isThird ? 'border-red-200 hover:border-red-300' : 'border-slate-200 hover:border-amber-300'
-    }`}>
+    <div className={`bg-white border rounded-xl p-3.5 hover:shadow-sm transition-all h-full flex flex-col ${borderClass}`}>
       <div className="flex items-center gap-2 mb-2 flex-wrap">
         <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
           {bill.rawNumber}
@@ -284,6 +292,19 @@ function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
         <p className="text-[10px] text-slate-400 mt-2 truncate">
           👤 {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
         </p>
+      )}
+      {/* Vote result banner */}
+      {hasResult && (
+        <div className={`mt-2 pt-2 border-t flex items-center gap-2 ${
+          bill.votePassed ? 'border-emerald-100' : 'border-red-100'
+        }`}>
+          <span className={`text-xs font-black ${bill.votePassed ? 'text-emerald-600' : 'text-red-500'}`}>
+            {bill.votePassed ? '✓ PASSED' : '✗ FAILED'}
+          </span>
+          <span className="text-xs text-slate-400 tabular-nums">
+            {bill.voteYea}–{bill.voteNay}
+          </span>
+        </div>
       )}
     </div>
   )
