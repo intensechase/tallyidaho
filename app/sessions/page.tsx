@@ -14,7 +14,7 @@ export default async function SessionsPage() {
 
   const { data: sessions } = await supabase
     .from('sessions')
-    .select('id, name, year_start, year_end, sine_die, special')
+    .select('id, name, year_start, year_end, sine_die, is_special, is_current')
     .order('year_start', { ascending: false })
 
   // Get bill counts per session — one COUNT per session to avoid fetching all rows
@@ -46,7 +46,7 @@ export default async function SessionsPage() {
       <div className="space-y-3">
         {(sessions || []).map((s: any) => {
           const billCount = countsBySession[s.id] || 0
-          const isCurrent = s.year_start === 2026 && !s.sine_die
+          const isCurrent = s.is_current && !s.sine_die
 
           return (
             <Link
@@ -64,7 +64,7 @@ export default async function SessionsPage() {
                           LIVE
                         </span>
                       )}
-                      {s.special && (
+                      {s.is_special && (
                         <span className="text-xs font-semibold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-0.5 rounded-full">
                           SPECIAL
                         </span>

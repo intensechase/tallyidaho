@@ -24,7 +24,7 @@ async function getSessionData(year: number) {
 
   const { data: session } = await supabase
     .from('sessions')
-    .select('id, name, year_start, year_end, sine_die, special')
+    .select('id, name, year_start, year_end, sine_die, is_special, is_current')
     .eq('year_start', year)
     .single()
 
@@ -118,7 +118,7 @@ export default async function SessionPage({ params }: Props) {
               LIVE
             </span>
           )}
-          {session.special && (
+          {session.is_special && (
             <span className="text-xs font-bold text-blue-600 bg-blue-50 border border-blue-200 px-2 py-1 rounded-full">
               SPECIAL SESSION
             </span>
