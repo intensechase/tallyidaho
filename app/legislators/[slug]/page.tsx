@@ -81,7 +81,7 @@ async function getLegislator(slug: string) {
   // Bills sponsored this session
   const { data: sponsorships } = await supabase
     .from('bill_sponsors')
-    .select('sponsor_order, sponsor_type, bills(id, bill_number, title, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
+    .select('sponsor_order, sponsor_type, bills(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
     .eq('legislator_id', leg.id)
     .order('sponsor_order')
 
@@ -401,6 +401,19 @@ function BillRow({ bill, year }: { bill: any; year: number }) {
   const yea = latestRc?.yea_count ?? 0
   const nay = latestRc?.nay_count ?? 0
 
+  // Status chip: 1=Introduced, 2=In Committee, 3=Passed, 4=Enacted/Signed
+  const statusLabel =
+    bill.completed ? 'Enacted' :
+    bill.status === '4' || bill.status === 4 ? 'Enacted' :
+    bill.status === '3' || bill.status === 3 ? 'Passed' :
+    bill.status === '2' || bill.status === 2 ? 'In Committee' :
+    'Introduced'
+  const statusStyle =
+    bill.completed || bill.status === '4' || bill.status === 4 ? 'bg-emerald-50 text-emerald-700' :
+    bill.status === '3' || bill.status === 3 ? 'bg-blue-50 text-blue-600' :
+    bill.status === '2' || bill.status === 2 ? 'bg-amber-50 text-amber-700' :
+    'bg-slate-100 text-slate-500'
+
   return (
     <Link href={`/bills/${year}/${bill.bill_number?.toLowerCase()}`} className="block">
       <div className="flex items-center gap-3 bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all group">
@@ -419,13 +432,13 @@ function BillRow({ bill, year }: { bill: any; year: number }) {
             {bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE'}
           </span>
         )}
+        <span className={`text-[10px] font-semibold px-1.5 py-0.5 rounded shrink-0 ${statusStyle}`}>
+          {statusLabel}
+        </span>
         {latestRc && (
           <span className="text-xs text-slate-400 shrink-0">
             <span className="text-emerald-600 font-bold">{yea}</span>–<span className="text-red-500 font-bold">{nay}</span>
           </span>
-        )}
-        {bill.completed && (
-          <span className="text-xs text-emerald-600 font-semibold shrink-0">✓</span>
         )}
       </div>
     </Link>
