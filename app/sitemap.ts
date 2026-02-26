@@ -16,6 +16,7 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     { url: `${BASE}/legislators`, lastModified: new Date(), changeFrequency: 'daily',   priority: 0.9 },
     { url: `${BASE}/districts`,   lastModified: new Date(), changeFrequency: 'monthly', priority: 0.7 },
     { url: `${BASE}/sessions`,    lastModified: new Date(), changeFrequency: 'monthly', priority: 0.6 },
+    { url: `${BASE}/committees`,  lastModified: new Date(), changeFrequency: 'weekly',  priority: 0.7 },
     ...Array.from({ length: 35 }, (_, i) => ({
       url: `${BASE}/districts/${i + 1}`,
       lastModified: new Date(),
@@ -69,5 +70,24 @@ export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
     offset += PAGE
   }
 
-  return [...staticPages, ...legislatorPages, ...billPages]
+  // All committees (distinct codes — canonical URL has no year param)
+  const { data: committees } = await supabase
+    .from('committees')
+    .select('code')
+    .order('code')
+
+  const seenCodes = new Set<string>()
+  const committeePages: MetadataRoute.Sitemap = []
+  for (const c of (committees || []) as any[]) {
+    if (!c.code || seenCodes.has(c.code)) continue
+    seenCodes.add(c.code)
+    committeePages.push({
+      url: `${BASE}/committees/${c.code}`,
+      lastModified: new Date(),
+      changeFrequency: 'weekly',
+      priority: 0.6,
+    })
+  }
+
+  return [...staticPages, ...legislatorPages, ...billPages, ...committeePages]
 }
