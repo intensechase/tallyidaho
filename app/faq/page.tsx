@@ -56,6 +56,57 @@ const PROCESS_STEPS = [
   },
 ]
 
+const CALENDAR_ORDERS = [
+  {
+    name: 'First Reading (New Introductions)',
+    senate: 'scal1',
+    house: 'hcal1',
+    body: 'The very first step. A brand-new bill is introduced, assigned a number, and its title is read aloud. The presiding officer refers it to a committee. No debate happens — this is just the official entry of the bill into the process. On Tally Idaho, these appear in the "Today\'s Bills" tab on the homepage.',
+  },
+  {
+    name: 'Second Reading',
+    senate: '10th Order',
+    house: 'Second Reading',
+    body: 'A bill that has cleared committee is read for the second time on the floor. This signals the bill has survived committee review and is now before the full chamber. Members may propose amendments. A second reading does not mean a final vote has happened — the bill still needs to pass third reading.',
+  },
+  {
+    name: 'Third Reading (Final Floor Vote)',
+    senate: '10th Order',
+    house: 'Third Reading',
+    body: 'The final stage before a bill leaves the chamber. The full membership debates the bill and then votes. This is the roll call vote that appears on Tally Idaho — the recorded yea/nay count for every legislator. A bill that passes third reading in one chamber moves to the other; one that fails is dead.',
+  },
+  {
+    name: 'General Orders',
+    senate: '—',
+    house: 'General Orders',
+    body: 'A House-specific stage where bills are considered for amendment before being sent to third reading. Bills in General Orders can be amended, debated, or sent back to committee. In the Senate, amendment work typically happens during second reading.',
+  },
+  {
+    name: '10th Order (Senate)',
+    senate: '10th Order',
+    house: '—',
+    body: 'The Senate\'s main daily business section — numbered after the Idaho Senate\'s standing rules of procedure. The 10th Order contains the bulk of the day\'s action: resolutions and memorials, gubernatorial appointment confirmations, bills on second reading, and bills on third reading (final passage votes). If a bill is in the 10th Order under Third Reading, it is being voted on today.',
+  },
+  {
+    name: '14th Order (Senate)',
+    senate: '14th Order',
+    house: '—',
+    body: 'An additional Senate business section used for overflow legislation or bills requiring special handling. Like the 10th Order, it can contain second and third reading bills. Numbered per the Senate\'s standing rules. Bills here are just as binding as those in the 10th Order — the order number is procedural, not a ranking of importance.',
+  },
+  {
+    name: 'Resolutions & Memorials (in the Orders)',
+    senate: '10th Order',
+    house: 'Third Reading',
+    body: 'Resolutions (HCR, SCR, SJM, HJM, etc.) appear alongside bills in the daily orders. They go through the same reading process but do not become law — they are formal expressions of legislative opinion, requests to Congress, or internal procedural actions. A concurrent resolution (HCR/SCR) passes both chambers; a memorial (SJM/HJM) is addressed to the federal government.',
+  },
+  {
+    name: 'Gubernatorial Appointments',
+    senate: '10th Order',
+    house: '—',
+    body: 'The Idaho Senate confirms the Governor\'s appointments to state boards and commissions (e.g., Fish & Game Commission, Parks & Recreation Board). These appear in the 10th Order alongside legislation. A confirmed appointee is approved; a rejected one cannot serve. The House does not vote on appointments.',
+  },
+]
+
 const TERMS = [
   {
     term: 'Adjournment / Sine Die',
@@ -270,6 +321,41 @@ export default function FAQPage() {
               <p className="text-2xl font-black text-amber-400">{f.value}</p>
               <p className="text-xs text-slate-400 uppercase tracking-widest mt-0.5">{f.label}</p>
             </div>
+          ))}
+        </div>
+      </section>
+
+      {/* Floor Calendar Orders */}
+      <section className="mb-14">
+        <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">THE DAILY FLOOR CALENDAR — READING ORDERS</h2>
+        <p className="text-sm text-slate-500 mb-6">
+          Each day the Legislature is in session, the Senate and House publish a floor calendar listing which bills will be considered. Bills are grouped by "reading" — the stage they are at in the process.
+        </p>
+        <div className="space-y-3">
+          {CALENDAR_ORDERS.map(o => (
+            <details key={o.name} className="group bg-white border border-slate-200 rounded-xl overflow-hidden">
+              <summary className="flex items-start justify-between px-5 py-3.5 cursor-pointer list-none hover:bg-slate-50 transition-colors gap-3">
+                <div className="flex-1 min-w-0">
+                  <span className="font-semibold text-slate-800 text-sm">{o.name}</span>
+                  <div className="flex gap-2 mt-1 flex-wrap">
+                    {o.senate !== '—' && (
+                      <span className="text-[10px] font-bold text-blue-600 bg-blue-50 border border-blue-200 px-1.5 py-0.5 rounded">
+                        Senate: {o.senate}
+                      </span>
+                    )}
+                    {o.house !== '—' && (
+                      <span className="text-[10px] font-bold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded">
+                        House: {o.house}
+                      </span>
+                    )}
+                  </div>
+                </div>
+                <span className="text-slate-300 group-open:rotate-90 transition-transform text-lg leading-none shrink-0 mt-0.5">›</span>
+              </summary>
+              <div className="px-5 pb-4 pt-1 border-t border-slate-100">
+                <p className="text-sm text-slate-600 leading-relaxed">{o.body}</p>
+              </div>
+            </details>
           ))}
         </div>
       </section>
