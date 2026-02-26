@@ -79,12 +79,12 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `Idaho ${number.toUpperCase()} (${year}) | Tally Idaho`,
       description: description.slice(0, 160),
-      url: `https://tallyidaho.com/bills/${year}/${number}`,
+      url: `https://www.tallyidaho.com/bills/${year}/${number}`,
       siteName: 'Tally Idaho',
       type: 'article',
     },
     alternates: {
-      canonical: `https://tallyidaho.com/bills/${year}/${number.toUpperCase()}`,
+      canonical: `https://www.tallyidaho.com/bills/${year}/${number.toUpperCase()}`,
     },
   }
 }
