@@ -17,15 +17,17 @@ export default async function SessionsPage() {
     .select('id, name, year_start, year_end, sine_die, special')
     .order('year_start', { ascending: false })
 
-  // Get bill counts per session
-  const { data: billCounts } = await supabase
-    .from('bills')
-    .select('session_id')
-
-  const countsBySession = (billCounts || []).reduce((acc: Record<number, number>, b: any) => {
-    acc[b.session_id] = (acc[b.session_id] || 0) + 1
-    return acc
-  }, {})
+  // Get bill counts per session — one COUNT per session to avoid fetching all rows
+  const countsBySession: Record<string, number> = {}
+  await Promise.all(
+    (sessions || []).map(async (s: any) => {
+      const { count } = await supabase
+        .from('bills')
+        .select('*', { count: 'exact', head: true })
+        .eq('session_id', s.id)
+      countsBySession[s.id] = count ?? 0
+    })
+  )
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">

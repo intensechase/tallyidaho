@@ -209,8 +209,8 @@ export default async function DistrictPage({ params }: Props) {
       <div className="bg-[#0f172a] rounded-2xl px-8 py-7 mb-8 flex flex-col sm:flex-row sm:items-end justify-between gap-4">
         <div>
           <div className="flex items-baseline gap-3 mb-1">
-            <span className="font-oswald text-6xl font-bold text-amber-400 leading-none">{n}</span>
             <span className="font-oswald text-lg font-semibold text-amber-400/60 tracking-widest uppercase">District</span>
+            <span className="font-oswald text-6xl font-bold text-amber-400 leading-none">{n}</span>
           </div>
           {area && <p className="text-slate-300 text-sm mt-1">{area}</p>}
           <p className="text-slate-500 text-xs mt-1">{session.name}</p>

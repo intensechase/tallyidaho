@@ -8,6 +8,7 @@ const navLinks = [
   { href: '/bills', label: 'Bills' },
   { href: '/legislators', label: 'Legislators' },
   { href: '/districts', label: 'Districts' },
+  { href: '/committees', label: 'Committees' },
   { href: '/sessions', label: 'Sessions' },
 ]
 

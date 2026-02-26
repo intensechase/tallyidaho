@@ -362,15 +362,56 @@ export default async function BillPage({ params }: Props) {
                 <dt className="text-slate-500">Chamber</dt>
                 <dd className="font-semibold text-slate-700 capitalize">{bill.chamber}</dd>
               </div>
-              {bill.status_date && (
+              {(bill as any).committee_name && (
+                <div className="flex justify-between gap-2">
+                  <dt className="text-slate-500 shrink-0">Committee</dt>
+                  <dd className="font-semibold text-slate-700 text-right">
+                    {(bill as any).committee_code
+                      ? (
+                        <a
+                          href={`/committees/${(bill as any).committee_code}?year=${year}`}
+                          className="text-amber-700 hover:underline"
+                        >
+                          {(bill as any).committee_name}
+                        </a>
+                      )
+                      : (bill as any).committee_name
+                    }
+                  </dd>
+                </div>
+              )}
+              {(bill as any).status_date && (
                 <div className="flex justify-between">
                   <dt className="text-slate-500">Status date</dt>
                   <dd className="font-semibold text-slate-700">
-                    {new Date(bill.status_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
+                    {new Date((bill as any).status_date).toLocaleDateString('en-US', { month: 'short', day: 'numeric', year: 'numeric' })}
                   </dd>
                 </div>
               )}
             </dl>
+          </section>
+
+          {/* Documents */}
+          <section className="bg-white border border-slate-200 rounded-xl p-4">
+            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">DOCUMENTS</h2>
+            <div className="space-y-2">
+              <a
+                href={`https://legislature.idaho.gov/wp-content/uploads/sessioninfo/${year}/legislation/${bill.bill_number.replace(/\s+/g, '').toUpperCase()}.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-amber-700 hover:underline flex items-center gap-1"
+              >
+                Bill Text (PDF) ↗
+              </a>
+              <a
+                href={`https://legislature.idaho.gov/wp-content/uploads/sessioninfo/${year}/legislation/${bill.bill_number.replace(/\s+/g, '').toUpperCase()}SOP.pdf`}
+                target="_blank"
+                rel="noopener noreferrer"
+                className="text-sm text-amber-700 hover:underline flex items-center gap-1"
+              >
+                Statement of Purpose (PDF) ↗
+              </a>
+            </div>
           </section>
 
           {/* External links */}
