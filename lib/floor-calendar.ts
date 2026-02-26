@@ -69,8 +69,10 @@ function decodeEntities(s: string): string {
     .replace(/&#038;/g, '&')
 }
 
+type ParsedBill = Omit<FloorBill, 'href' | 'votePassed' | 'voteYea' | 'voteNay'>
+
 function parseFloorPage(html: string): {
-  bills: Omit<FloorBill, 'href'>[]
+  bills: ParsedBill[]
   date: string
   legislativeDay: number | null
 } {
@@ -89,7 +91,7 @@ function parseFloorPage(html: string): {
   let date = ''
   let legislativeDay: number | null = null
   let currentReading: 'second' | 'third' | 'general' = 'second'
-  const bills: Omit<FloorBill, 'href'>[] = []
+  const bills: ParsedBill[] = []
 
   for (const row of rows) {
     const cells = row

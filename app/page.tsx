@@ -2,6 +2,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import HomepageTabs from '@/components/HomepageTabs'
 import DistrictLookup from '@/components/DistrictLookup'
 import { fetchFloorCalendar } from '@/lib/floor-calendar'
+import { fetchCommitteeAgenda } from '@/lib/committee-agenda'
 
 export const revalidate = 3600 // Refresh hourly
 
@@ -94,9 +95,10 @@ async function getHomepageData() {
 }
 
 export default async function HomePage() {
-  const [data, floorCalendar] = await Promise.all([
+  const [data, floorCalendar, committeeAgenda] = await Promise.all([
     getHomepageData(),
     fetchFloorCalendar().catch(() => ({ senate: [], house: [], date: '', legislativeDay: null })),
+    fetchCommitteeAgenda().catch(() => ({ committees: [], date: '' })),
   ])
 
   if (!data) {
@@ -146,6 +148,7 @@ export default async function HomePage() {
         recentBills={recentBills}
         year={session.year_start}
         floorCalendar={floorCalendar}
+        committeeAgenda={committeeAgenda}
       />
 
       {/* District lookup */}

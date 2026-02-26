@@ -4,6 +4,7 @@ import { useState } from 'react'
 import Link from 'next/link'
 import { legislatorSlug } from '@/lib/slugify'
 import type { FloorBill, FloorCalendar } from '@/lib/floor-calendar'
+import type { CommitteeAgenda, AgendaCalendar } from '@/lib/committee-agenda'
 
 type Legislator = {
   name: string
@@ -313,20 +314,118 @@ function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
   return <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block h-full">{inner}</a>
 }
 
+// ── Committee agenda card ─────────────────────────────────────────────
+function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
+  const chamberColor = cmte.chamber === 'senate'
+    ? 'text-blue-600 bg-blue-50 border-blue-200'
+    : cmte.chamber === 'joint'
+      ? 'text-purple-600 bg-purple-50 border-purple-200'
+      : 'text-amber-600 bg-amber-50 border-amber-200'
+
+  const rsItems   = cmte.items.filter(i => i.type === 'rs')
+  const billItems = cmte.items.filter(i => i.type === 'bill')
+
+  return (
+    <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
+      {/* Header */}
+      <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-start justify-between gap-3">
+        <div className="flex-1 min-w-0">
+          <div className="flex items-center gap-2 mb-0.5 flex-wrap">
+            <span className={`text-[9px] font-bold border px-1.5 py-0.5 rounded uppercase ${chamberColor}`}>
+              {cmte.chamber}
+            </span>
+            <span className="text-xs text-slate-500">{cmte.time} · Room {cmte.room}</span>
+          </div>
+          <p className="text-sm font-bold text-slate-800 leading-snug">{cmte.name}</p>
+        </div>
+        {cmte.videoUrl && (
+          <a
+            href={cmte.videoUrl}
+            target="_blank"
+            rel="noopener noreferrer"
+            className="text-[10px] font-bold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded hover:bg-red-100 transition-colors shrink-0 whitespace-nowrap"
+          >
+            ▶ Video
+          </a>
+        )}
+      </div>
+
+      {/* RS items */}
+      {rsItems.length > 0 && (
+        <div className="px-4 py-2">
+          <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            RS — Draft Bills ({rsItems.length})
+          </p>
+          <div className="space-y-1.5">
+            {rsItems.map((item, i) => (
+              <div key={i} className="flex items-start gap-2">
+                <span className="text-[10px] font-bold text-slate-500 bg-slate-100 px-1.5 py-0.5 rounded shrink-0 mt-0.5">
+                  {item.number}
+                </span>
+                <div className="flex-1 min-w-0">
+                  <p className="text-xs text-slate-700 leading-snug">{item.topic}</p>
+                  {item.presenter && (
+                    <p className="text-[10px] text-slate-400 mt-0.5">{item.presenter}</p>
+                  )}
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      )}
+
+      {/* Bill items */}
+      {billItems.length > 0 && (
+        <div className={`px-4 py-2 ${rsItems.length > 0 ? 'border-t border-slate-100' : ''}`}>
+          <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase mb-1.5">
+            Bills in Hearing ({billItems.length})
+          </p>
+          <div className="space-y-1.5">
+            {billItems.map((item, i) => {
+              const inner = (
+                <div key={i} className="flex items-start gap-2 group">
+                  <span className="text-[10px] font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-1.5 py-0.5 rounded shrink-0 mt-0.5">
+                    {item.number}
+                  </span>
+                  <div className="flex-1 min-w-0">
+                    <p className="text-xs text-slate-700 group-hover:text-amber-700 transition-colors leading-snug line-clamp-2">
+                      {item.topic}
+                    </p>
+                    {item.presenter && (
+                      <p className="text-[10px] text-slate-400 mt-0.5">{item.presenter}</p>
+                    )}
+                  </div>
+                </div>
+              )
+              return item.href
+                ? <Link key={i} href={item.href}>{inner}</Link>
+                : <div key={i}>{inner}</div>
+            })}
+          </div>
+        </div>
+      )}
+    </div>
+  )
+}
+
 // ── Main tab component ────────────────────────────────────────────────
 interface Props {
   controversialBills: Bill[]
   recentBills: any[]
   year: number
   floorCalendar: FloorCalendar
+  committeeAgenda: AgendaCalendar
 }
 
-export default function HomepageTabs({ controversialBills, recentBills, year, floorCalendar }: Props) {
+export default function HomepageTabs({ controversialBills, recentBills, year, floorCalendar, committeeAgenda }: Props) {
   const hasFloor = floorCalendar.senate.length > 0 || floorCalendar.house.length > 0
-  const [tab, setTab] = useState<'floor' | 'controversial' | 'recent'>(hasFloor ? 'floor' : 'controversial')
+  const hasCommittees = committeeAgenda.committees.length > 0
+  const [tab, setTab] = useState<'floor' | 'committee' | 'controversial' | 'recent'>(
+    hasFloor ? 'floor' : hasCommittees ? 'committee' : 'controversial'
+  )
 
   const thirdCount = [...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'third').length
-  const totalCount = floorCalendar.senate.length + floorCalendar.house.length
+  const rsCount = committeeAgenda.committees.reduce((n, c) => n + c.items.filter(i => i.type === 'rs').length, 0)
 
   const viewAllHref =
     tab === 'floor' ? `/bills?year=${year}` :
@@ -348,6 +447,21 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
             {thirdCount > 0 && (
               <span className="ml-1.5 text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
                 {thirdCount} voting
+              </span>
+            )}
+          </button>
+        )}
+        {hasCommittees && (
+          <button
+            onClick={() => setTab('committee')}
+            className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
+              tab === 'committee' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
+            }`}
+          >
+            📋 IN COMMITTEE
+            {rsCount > 0 && (
+              <span className="ml-1.5 text-[10px] bg-slate-500 text-white rounded-full px-1.5 py-0.5 font-bold">
+                {rsCount} RS
               </span>
             )}
           </button>
@@ -451,6 +565,23 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
 
           {!hasFloor && (
             <p className="text-center text-slate-400 py-8 text-sm">No floor calendar found for today.</p>
+          )}
+        </div>
+      )}
+
+      {/* In Committee: RS items + bills grouped by committee */}
+      {tab === 'committee' && (
+        <div>
+          {committeeAgenda.date && (
+            <p className="text-xs text-slate-400 mb-4">{committeeAgenda.date}</p>
+          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+            {committeeAgenda.committees.map(cmte => (
+              <CommitteeCard key={`${cmte.code}-${cmte.time}`} cmte={cmte} />
+            ))}
+          </div>
+          {!hasCommittees && (
+            <p className="text-center text-slate-400 py-8 text-sm">No committee agendas found for today.</p>
           )}
         </div>
       )}
