@@ -161,6 +161,15 @@ export default async function BillPage({ params }: Props) {
       {/* Status pipeline */}
       <div className="mb-6">
         <BillStepperFull stage={getBillStage(bill.status, bill.completed)} />
+        {bill.committee_name && getBillStage(bill.status, bill.completed) === 2 && (
+          <p className="text-center text-xs text-slate-500 mt-2">
+            Committee:{' '}
+            {bill.committee_code
+              ? <a href={`/committees/${bill.committee_code}?year=${year}`} className="font-semibold text-amber-700 hover:underline">{bill.committee_name}</a>
+              : <span className="font-semibold text-slate-700">{bill.committee_name}</span>
+            }
+          </p>
+        )}
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
@@ -196,6 +205,15 @@ export default async function BillPage({ params }: Props) {
                     .filter((v: any) => v.vote === 'nay')
                     .sort((a: any, b: any) => a.legislators?.name?.localeCompare(b.legislators?.name))
                   const abstains = votes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay')
+
+                  const rYea = yeas.filter((v: any) => v.legislators?.party === 'R').length
+                  const dYea = yeas.filter((v: any) => v.legislators?.party === 'D').length
+                  const rNay = nays.filter((v: any) => v.legislators?.party === 'R').length
+                  const dNay = nays.filter((v: any) => v.legislators?.party === 'D').length
+                  const partySplitRows = [
+                    { label: 'Republican', yea: rYea, nay: rNay, dot: 'bg-red-500' },
+                    { label: 'Democrat',   yea: dYea, nay: dNay, dot: 'bg-blue-500' },
+                  ].filter(p => p.yea + p.nay > 0)
 
                   return (
                     <div key={rc.id} className="rounded-xl border border-slate-200 bg-white overflow-hidden">
@@ -241,6 +259,28 @@ export default async function BillPage({ params }: Props) {
                           <span>{margin > 0 ? `${rc.passed ? 'Passed' : 'Failed'} by ${margin} vote${margin !== 1 ? 's' : ''}` : ''}</span>
                         </div>
                       </div>
+
+                      {/* Party breakdown */}
+                      {partySplitRows.length > 0 && (
+                        <div className="px-4 py-3 border-b border-slate-100 space-y-1.5">
+                          {partySplitRows.map(p => {
+                            const total = p.yea + p.nay
+                            const pct = total > 0 ? Math.round(p.yea / total * 100) : 0
+                            return (
+                              <div key={p.label} className="flex items-center gap-2 text-xs">
+                                <span className={`w-2 h-2 rounded-full ${p.dot} shrink-0`} />
+                                <span className="text-slate-500 w-20 shrink-0">{p.label}</span>
+                                <div className="flex-1 h-1.5 rounded-full bg-slate-100 overflow-hidden">
+                                  <div className="h-full bg-emerald-400 rounded-full" style={{ width: `${pct}%` }} />
+                                </div>
+                                <span className="text-emerald-600 font-semibold w-12 text-right tabular-nums">{p.yea} yea</span>
+                                <span className="text-slate-300 mx-0.5">/</span>
+                                <span className="text-red-500 font-semibold w-10 tabular-nums">{p.nay} nay</span>
+                              </div>
+                            )
+                          })}
+                        </div>
+                      )}
 
                       {/* Legislator votes grid */}
                       {votes.length > 0 && (
