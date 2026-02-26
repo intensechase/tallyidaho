@@ -59,7 +59,7 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
   }
 }
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 function billStatusLabel(bill: any): string {
   if (bill.completed) return 'Enacted'

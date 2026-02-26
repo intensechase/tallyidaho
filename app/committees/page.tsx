@@ -7,7 +7,7 @@ export const metadata: Metadata = {
   description: 'Browse Idaho Senate and House standing committees for 2025 and 2026. View committee membership rosters and assigned bills.',
 }
 
-export const revalidate = 86400
+export const revalidate = 3600
 
 interface Props {
   searchParams: Promise<{ year?: string }>
