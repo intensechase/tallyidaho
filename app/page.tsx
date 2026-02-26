@@ -1,6 +1,7 @@
 import { createServerClient } from '@/lib/supabase/server'
 import HomepageTabs from '@/components/HomepageTabs'
 import DistrictLookup from '@/components/DistrictLookup'
+import { fetchDailyIntroductions } from '@/lib/daily-introductions'
 
 export const revalidate = 3600 // Refresh hourly
 
@@ -93,7 +94,10 @@ async function getHomepageData() {
 }
 
 export default async function HomePage() {
-  const data = await getHomepageData()
+  const [data, dailyIntroductions] = await Promise.all([
+    getHomepageData(),
+    fetchDailyIntroductions().catch(() => ({ senate: [], house: [], date: '', legislativeDay: null })),
+  ])
 
   if (!data) {
     return (
@@ -141,6 +145,7 @@ export default async function HomePage() {
         controversialBills={controversialBills}
         recentBills={recentBills}
         year={session.year_start}
+        dailyIntroductions={dailyIntroductions}
       />
 
       {/* District lookup */}

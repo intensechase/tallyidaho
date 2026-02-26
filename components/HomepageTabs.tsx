@@ -3,6 +3,7 @@
 import { useState } from 'react'
 import Link from 'next/link'
 import { legislatorSlug } from '@/lib/slugify'
+import type { DailyBill, DailyIntroductions } from '@/lib/daily-introductions'
 
 type Legislator = {
   name: string
@@ -256,23 +257,82 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
   )
 }
 
+// ── Daily introduction card ────────────────────────────────────────────
+function DailyBillCard({ bill }: { bill: DailyBill }) {
+  const isCommittee = /COMMITTEE$/i.test(bill.sponsor)
+  const sponsorDisplay = bill.sponsor
+    .split(' ')
+    .map(w => w.charAt(0).toUpperCase() + w.slice(1).toLowerCase())
+    .join(' ')
+    .replace(/\bAnd\b/g, 'and')
+
+  const inner = (
+    <div className="bg-white border border-slate-200 rounded-xl p-3.5 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
+      <div className="flex items-center gap-2 mb-2">
+        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+          {bill.rawNumber}
+        </span>
+        {bill.topic && (
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate">
+            {bill.topic}
+          </span>
+        )}
+      </div>
+      <p className="text-xs text-slate-700 leading-snug flex-1 line-clamp-3">
+        {bill.description || '—'}
+      </p>
+      <p className="text-[10px] text-slate-400 mt-2 truncate">
+        {isCommittee ? '📋' : '👤'} {sponsorDisplay}
+      </p>
+    </div>
+  )
+
+  return bill.href
+    ? <Link href={bill.href} className="block h-full">{inner}</Link>
+    : <div className="h-full">{inner}</div>
+}
+
 // ── Main tab component ────────────────────────────────────────────────
 interface Props {
   controversialBills: Bill[]
   recentBills: any[]
   year: number
+  dailyIntroductions: DailyIntroductions
 }
 
-export default function HomepageTabs({ controversialBills, recentBills, year }: Props) {
-  const [tab, setTab] = useState<'controversial' | 'recent'>('controversial')
+export default function HomepageTabs({ controversialBills, recentBills, year, dailyIntroductions }: Props) {
+  const hasToday = dailyIntroductions.senate.length > 0 || dailyIntroductions.house.length > 0
+  const [tab, setTab] = useState<'today' | 'controversial' | 'recent'>(hasToday ? 'today' : 'controversial')
+
+  const todayCount = dailyIntroductions.senate.length + dailyIntroductions.house.length
+
+  const viewAllHref =
+    tab === 'today' ? `/bills?year=${year}` :
+    tab === 'controversial' ? `/bills?controversial=true&year=${year}` :
+    `/bills?year=${year}`
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-8">
       {/* Tab bar */}
-      <div className="flex items-center gap-6 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl">
+      <div className="flex items-center gap-1 sm:gap-6 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl overflow-x-auto">
+        {hasToday && (
+          <button
+            onClick={() => setTab('today')}
+            className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
+              tab === 'today' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
+            }`}
+          >
+            📋 TODAY'S BILLS
+            {todayCount > 0 && (
+              <span className="ml-1.5 text-[10px] bg-amber-500 text-white rounded-full px-1.5 py-0.5 font-bold">
+                {todayCount}
+              </span>
+            )}
+          </button>
+        )}
         <button
           onClick={() => setTab('controversial')}
-          className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px ${
+          className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
             tab === 'controversial' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
           }`}
         >
@@ -280,19 +340,66 @@ export default function HomepageTabs({ controversialBills, recentBills, year }: 
         </button>
         <button
           onClick={() => setTab('recent')}
-          className={`text-xs font-semibold tracking-wide py-3 transition-colors border-b-2 -mb-px ${
+          className={`text-xs font-semibold tracking-wide py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
             tab === 'recent' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
           }`}
         >
           All Bills
         </button>
         <Link
-          href={tab === 'controversial' ? `/bills?controversial=true&year=${year}` : `/bills?year=${year}`}
-          className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors py-3"
+          href={viewAllHref}
+          className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors py-3 shrink-0"
         >
           View all →
         </Link>
       </div>
+
+      {/* Today's Bills: senate + house side by side */}
+      {tab === 'today' && (
+        <div>
+          {dailyIntroductions.date && (
+            <p className="text-xs text-slate-400 mb-4">
+              {dailyIntroductions.date}
+              {dailyIntroductions.legislativeDay && (
+                <span className="ml-2 text-slate-500">· Day {dailyIntroductions.legislativeDay}</span>
+              )}
+            </p>
+          )}
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+            {/* Senate */}
+            {dailyIntroductions.senate.length > 0 && (
+              <div>
+                <h3 className="text-[10px] font-bold tracking-widest text-blue-600 mb-3 uppercase">
+                  Senate · {dailyIntroductions.senate.length} bill{dailyIntroductions.senate.length !== 1 ? 's' : ''}
+                </h3>
+                <div className="space-y-2">
+                  {dailyIntroductions.senate.map(b => (
+                    <DailyBillCard key={b.billNumber} bill={b} />
+                  ))}
+                </div>
+              </div>
+            )}
+            {/* House */}
+            {dailyIntroductions.house.length > 0 && (
+              <div>
+                <h3 className="text-[10px] font-bold tracking-widest text-amber-600 mb-3 uppercase">
+                  House · {dailyIntroductions.house.length} bill{dailyIntroductions.house.length !== 1 ? 's' : ''}
+                </h3>
+                <div className="space-y-2">
+                  {dailyIntroductions.house.map(b => (
+                    <DailyBillCard key={b.billNumber} bill={b} />
+                  ))}
+                </div>
+              </div>
+            )}
+          </div>
+          {!hasToday && (
+            <p className="text-center text-slate-400 py-8 text-sm">
+              No new bill introductions found for today.
+            </p>
+          )}
+        </div>
+      )}
 
       {/* Controversial: single column expanded cards */}
       {tab === 'controversial' && (
