@@ -130,7 +130,7 @@ export default async function HomePage() {
     )
   }
 
-  const { session, stats, controversialBills, recentBills } = data
+  const { session, stats, controversialBills, recentBills, failedBills } = data
 
   return (
     <>
