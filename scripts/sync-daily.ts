@@ -43,11 +43,11 @@ async function main() {
   if (DRY_RUN) console.log('  DRY RUN — no DB writes')
   console.log('═══════════════════════════════════════════════════\n')
 
-  // Get our internal session UUID
+  // Get our internal session UUID (look up by year, not legiscan_session_id)
   const { data: sessionRow } = await supabase
     .from('sessions')
     .select('id, year_start')
-    .eq('legiscan_session_id', LEGISCAN_SESSION_ID)
+    .eq('year_start', 2026)
     .single()
 
   if (!sessionRow) {
