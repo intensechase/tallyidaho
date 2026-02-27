@@ -235,31 +235,40 @@ export default async function BillPage({ params }: Props) {
         <div className="md:col-span-2 space-y-6">
 
           {/* Statement of Purpose */}
-          {(bill.plain_summary || billText) && (
+          {bill.plain_summary && (
             <section>
               <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">STATEMENT OF PURPOSE</h2>
-              {bill.plain_summary && (
-                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+              <details className="group">
+                <summary className="cursor-pointer list-none">
+                  <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show statement of purpose</span>
+                    <span className="hidden group-open:inline">▼ Hide statement of purpose</span>
+                  </span>
+                </summary>
+                <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl p-4">
                   <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
                 </div>
-              )}
+              </details>
+            </section>
+          )}
 
-              {/* Full bill text — collapsed for readability, in DOM for SEO */}
-              {billText && (
-                <details className="group mt-3">
-                  <summary className="cursor-pointer list-none">
-                    <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
-                      <span className="group-open:hidden">▶ Show full bill text</span>
-                      <span className="hidden group-open:inline">▼ Hide full bill text</span>
-                    </span>
-                  </summary>
-                  <div className="mt-2 bg-white border border-amber-200 rounded-xl p-4 max-h-[500px] overflow-y-auto">
-                    <pre className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap font-mono">
-                      {billText}
-                    </pre>
-                  </div>
-                </details>
-              )}
+          {/* Full bill text — collapsed for readability, in DOM for SEO */}
+          {billText && (
+            <section>
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">BILL TEXT</h2>
+              <details className="group">
+                <summary className="cursor-pointer list-none">
+                  <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show full bill text</span>
+                    <span className="hidden group-open:inline">▼ Hide full bill text</span>
+                  </span>
+                </summary>
+                <div className="mt-2 bg-white border border-amber-200 rounded-xl p-4 max-h-[500px] overflow-y-auto">
+                  <pre className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap font-mono">
+                    {billText}
+                  </pre>
+                </div>
+              </details>
             </section>
           )}
 
@@ -407,30 +416,7 @@ export default async function BillPage({ params }: Props) {
         {/* Sidebar */}
         <div className="space-y-4">
 
-          {/* Sponsors */}
-          {sponsors.length > 0 && (
-            <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">SPONSORS</h2>
-              <div className="space-y-2">
-                {sponsors.map((s: any, i: number) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className={`text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center text-white ${s.legislators.party === 'R' ? 'bg-red-500' : s.legislators.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'}`}>
-                      {s.legislators.party}
-                    </span>
-                    <div>
-                      <a href={`/legislators/${legislatorSlug(s.legislators.name)}`} className="text-sm font-semibold text-slate-800 hover:text-amber-700">
-                        {s.legislators.name}
-                      </a>
-                      <p className="text-xs text-slate-400">{s.legislators.role} · {s.legislators.district}</p>
-                    </div>
-                    {i === 0 && <span className="ml-auto text-xs text-slate-400">Primary</span>}
-                  </div>
-                ))}
-              </div>
-            </section>
-          )}
-
-          {/* Quick facts */}
+            {/* Quick facts */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
             <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">BILL INFO</h2>
             <dl className="space-y-2 text-sm">
@@ -545,6 +531,29 @@ export default async function BillPage({ params }: Props) {
               >
                 View on Idaho Legislature ↗
               </a>
+            </section>
+          )}
+
+          {/* Sponsors */}
+          {sponsors.length > 0 && (
+            <section className="bg-white border border-slate-200 rounded-xl p-4">
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">SPONSORS</h2>
+              <div className="space-y-2">
+                {sponsors.map((s: any, i: number) => (
+                  <div key={i} className="flex items-center gap-2">
+                    <span className={`text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0 ${s.legislators.party === 'R' ? 'bg-red-500' : s.legislators.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'}`}>
+                      {s.legislators.party}
+                    </span>
+                    <div>
+                      <a href={`/legislators/${legislatorSlug(s.legislators.name)}`} className="text-sm font-semibold text-slate-800 hover:text-amber-700">
+                        {s.legislators.name}
+                      </a>
+                      <p className="text-xs text-slate-400">{s.legislators.role} · {s.legislators.district}</p>
+                    </div>
+                    {i === 0 && <span className="ml-auto text-xs text-slate-400 shrink-0">Primary</span>}
+                  </div>
+                ))}
+              </div>
             </section>
           )}
 
