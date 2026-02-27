@@ -100,10 +100,11 @@ export default async function DistrictsPage() {
           const rCount = legs.filter((l: any) => l.party === 'R').length
           const dCount = legs.filter((l: any) => l.party === 'D').length
           const iCount = legs.filter((l: any) => l.party !== 'R' && l.party !== 'D').length
+          const [areaCity, areaCounty] = area ? area.split('·').map((s: string) => s.trim()) : ['', '']
 
           return (
             <Link key={n} href={`/districts/${n}`}>
-              <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full">
+              <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
 
                 {/* District header */}
                 <div className="mb-3">
@@ -130,7 +131,7 @@ export default async function DistrictsPage() {
                       </div>
                     )}
                   </div>
-                  <p className="text-xs text-slate-400 mt-0.5">{area}</p>
+                  {areaCity && <p className="text-xs text-slate-500 font-medium mt-0.5">{areaCity}</p>}
                 </div>
 
                 {/* Legislators */}
@@ -145,6 +146,17 @@ export default async function DistrictsPage() {
                     <p className="text-xs text-slate-300 italic">No data</p>
                   )}
                 </div>
+
+                {/* County footer */}
+                {areaCounty && (
+                  <div className="mt-auto pt-3 flex items-center gap-1.5 text-[10px] text-slate-400">
+                    <svg className="w-3 h-3 shrink-0 text-slate-300" fill="none" viewBox="0 0 24 24" stroke="currentColor" strokeWidth={2}>
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M17.657 16.657L13.414 20.9a1.998 1.998 0 01-2.827 0l-4.244-4.243a8 8 0 1111.314 0z" />
+                      <path strokeLinecap="round" strokeLinejoin="round" d="M15 11a3 3 0 11-6 0 3 3 0 016 0z" />
+                    </svg>
+                    <span>{areaCounty}</span>
+                  </div>
+                )}
               </div>
             </Link>
           )

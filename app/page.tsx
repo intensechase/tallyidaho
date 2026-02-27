@@ -1,4 +1,5 @@
 import { Metadata } from 'next'
+import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import HomepageTabs from '@/components/HomepageTabs'
 import DistrictLookup from '@/components/DistrictLookup'
@@ -130,25 +131,25 @@ export default async function HomePage() {
       {/* Session stats bar */}
       <div className="bg-[#1e293b] header-texture border-b border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4 md:gap-10 flex-wrap">
-          <div className="stat-enter flex items-baseline gap-2">
-            <span className="text-3xl font-black text-white tabular-nums">{stats.billsCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs uppercase tracking-widest">Bills</span>
-          </div>
+          <Link href="/bills" className="stat-enter flex items-baseline gap-2 group">
+            <span className="text-3xl font-black text-white tabular-nums group-hover:text-slate-200 transition-colors">{stats.billsCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Bills</span>
+          </Link>
           <div className="h-7 w-px bg-slate-700" />
-          <div className="stat-enter flex items-baseline gap-2">
-            <span className="text-3xl font-black text-amber-400 tabular-nums">{stats.inCommitteeCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs uppercase tracking-widest">In Committee</span>
-          </div>
+          <Link href={`/bills?year=${session.year_start}&status=2`} className="stat-enter flex items-baseline gap-2 group">
+            <span className="text-3xl font-black text-amber-400 tabular-nums group-hover:text-amber-300 transition-colors">{stats.inCommitteeCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">In Committee</span>
+          </Link>
           <div className="h-7 w-px bg-slate-700" />
-          <div className="stat-enter flex items-baseline gap-2">
-            <span className="text-3xl font-black text-emerald-400 tabular-nums">{stats.enactedCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs uppercase tracking-widest">Enacted</span>
-          </div>
+          <Link href={`/bills?year=${session.year_start}&status=4`} className="stat-enter flex items-baseline gap-2 group">
+            <span className="text-3xl font-black text-emerald-400 tabular-nums group-hover:text-emerald-300 transition-colors">{stats.enactedCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Enacted</span>
+          </Link>
           <div className="h-7 w-px bg-slate-700" />
-          <div className="stat-enter flex items-baseline gap-2">
-            <span className="text-3xl font-black text-red-400 tabular-nums">{stats.controversialCount.toLocaleString()}</span>
-            <span className="text-slate-400 text-xs uppercase tracking-widest">Controversial</span>
-          </div>
+          <Link href={`/bills?year=${session.year_start}&controversial=true`} className="stat-enter flex items-baseline gap-2 group">
+            <span className="text-3xl font-black text-red-400 tabular-nums group-hover:text-red-300 transition-colors">{stats.controversialCount.toLocaleString()}</span>
+            <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Controversial</span>
+          </Link>
           <div className="ml-auto hidden md:flex flex-col items-end">
             <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">{session.name}</span>
             <span className="text-xs text-slate-600 mt-0.5">Updated daily</span>

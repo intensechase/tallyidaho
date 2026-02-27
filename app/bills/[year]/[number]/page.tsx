@@ -1,9 +1,11 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
 import VoteNamesToggle from '@/components/VoteNamesToggle'
+import ShareButton from '@/components/ShareButton'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -112,7 +114,9 @@ export default async function BillPage({ params }: Props) {
 
   const billText = (bill as any).bill_text as string | null
 
-  const [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }] = await Promise.all([
+  const billSubjects = (bill.subjects || []) as string[]
+
+  const [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }, { data: relatedSubjectRows }] = await Promise.all([
     bill.committee_name
       ? supabase
           .from('bills')
@@ -132,12 +136,29 @@ export default async function BillPage({ params }: Props) {
           .eq('bills.session_id', sessionId)
           .limit(10)
       : Promise.resolve({ data: [] as any[] }),
+    billSubjects.length > 0
+      ? supabase
+          .from('bills')
+          .select('id, bill_number, title, completed, status')
+          .eq('session_id', sessionId)
+          .overlaps('subjects', billSubjects)
+          .neq('id', bill.id)
+          .order('last_action_date', { ascending: false })
+          .limit(8)
+      : Promise.resolve({ data: [] as any[] }),
   ])
 
   const relatedByCommittee = (relatedCommitteeRows || []).slice(0, 4)
   const relatedBySponsor = (relatedSponsorRows || [])
     .map((r: any) => r.bills)
     .filter((b: any) => b && b.id !== bill.id)
+    .slice(0, 4)
+  const shownIds = new Set([
+    ...relatedByCommittee.map((b: any) => b.id),
+    ...relatedBySponsor.map((b: any) => b.id),
+  ])
+  const relatedBySubject = (relatedSubjectRows || [])
+    .filter((b: any) => !shownIds.has(b.id))
     .slice(0, 4)
 
   const jsonLd = {
@@ -207,9 +228,13 @@ export default async function BillPage({ params }: Props) {
         {bill.subjects?.length > 0 && (
           <div className="flex gap-2 flex-wrap">
             {bill.subjects.map((s: string) => (
-              <span key={s} className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full">
+              <Link
+                key={s}
+                href={`/bills?subject=${encodeURIComponent(s)}&year=${year}`}
+                className="text-xs bg-slate-100 text-slate-500 px-2 py-0.5 rounded-full hover:bg-amber-100 hover:text-amber-700 transition-colors"
+              >
                 {s}
-              </span>
+              </Link>
             ))}
           </div>
         )}
@@ -238,7 +263,7 @@ export default async function BillPage({ params }: Props) {
           {bill.plain_summary && (
             <section>
               <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">STATEMENT OF PURPOSE</h2>
-              <details className="group">
+              <details open className="group">
                 <summary className="cursor-pointer list-none">
                   <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
                     <span className="group-open:hidden">▶ Show statement of purpose</span>
@@ -424,6 +449,12 @@ export default async function BillPage({ params }: Props) {
         {/* Sidebar */}
         <div className="space-y-4">
 
+          {/* Share */}
+          <ShareButton
+            url={`https://www.tallyidaho.com/bills/${year}/${bill.bill_number.toUpperCase()}`}
+            billNumber={bill.bill_number}
+          />
+
             {/* Quick facts */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
             <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">BILL INFO</h2>
@@ -466,7 +497,7 @@ export default async function BillPage({ params }: Props) {
           </section>
 
           {/* Related bills */}
-          {(relatedByCommittee.length > 0 || relatedBySponsor.length > 0) && (
+          {(relatedByCommittee.length > 0 || relatedBySponsor.length > 0 || relatedBySubject.length > 0) && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
               <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">RELATED BILLS</h2>
 
@@ -493,6 +524,22 @@ export default async function BillPage({ params }: Props) {
                   </p>
                   <div className="space-y-2">
                     {relatedBySponsor.map((b: any) => (
+                      <a key={b.id} href={`/bills/${year}/${b.bill_number.toLowerCase()}`} className="flex items-start gap-2 group">
+                        <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">{b.bill_number}</span>
+                        <span className="text-xs text-slate-600 group-hover:text-amber-700 transition-colors leading-tight line-clamp-2">{b.title}</span>
+                      </a>
+                    ))}
+                  </div>
+                </div>
+              )}
+
+              {relatedBySubject.length > 0 && (
+                <div className={relatedByCommittee.length > 0 || relatedBySponsor.length > 0 ? 'pt-4 border-t border-slate-100' : ''}>
+                  <p className="text-[10px] font-bold tracking-widest text-slate-400 mb-2 uppercase">
+                    Similar bills
+                  </p>
+                  <div className="space-y-2">
+                    {relatedBySubject.map((b: any) => (
                       <a key={b.id} href={`/bills/${year}/${b.bill_number.toLowerCase()}`} className="flex items-start gap-2 group">
                         <span className="text-xs font-bold text-amber-600 shrink-0 mt-0.5">{b.bill_number}</span>
                         <span className="text-xs text-slate-600 group-hover:text-amber-700 transition-colors leading-tight line-clamp-2">{b.title}</span>

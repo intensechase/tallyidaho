@@ -189,13 +189,21 @@ export default async function BillsPage({ searchParams }: Props) {
           const total = yea + nay
           const yeaPct = total > 0 ? Math.round((yea / total) * 100) : 0
 
+          const statusBorderLeft =
+            bill.completed ? 'border-l-4 border-l-emerald-400' :
+            bill.is_controversial && bill.controversy_reason === 'party_line' ? 'border-l-4 border-l-red-400' :
+            bill.is_controversial ? 'border-l-4 border-l-orange-400' :
+            (bill.status === '3' || bill.status === 3) ? 'border-l-4 border-l-blue-400' :
+            (bill.status === '2' || bill.status === 2) ? 'border-l-4 border-l-amber-400' :
+            ''
+
           return (
             <Link
               key={bill.id}
               href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}
               className="block"
             >
-              <div className="rounded-xl bg-white border border-slate-200 p-4 hover:border-amber-300 hover:shadow-sm transition-all">
+              <div className={`rounded-xl bg-white border border-slate-200 ${statusBorderLeft} p-4 hover:border-amber-300 hover:shadow-sm transition-all`}>
                 <div className="flex items-start gap-3">
                   <div className="flex-1 min-w-0">
                     <div className="flex items-center gap-2 flex-wrap mb-1">

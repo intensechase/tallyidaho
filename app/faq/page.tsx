@@ -14,11 +14,13 @@ const PROCESS_STEPS = [
     step: '1',
     title: 'Introduction (First Reading)',
     body: 'A legislator drafts a bill and submits it to their chamber — the Idaho Senate or House of Representatives. The bill is assigned a number (Senate bills: S1001, House bills: H0489) and read by title only on the floor. The presiding officer refers it to the appropriate standing committee.',
+    link: { href: '/bills', label: 'Browse introduced bills' },
   },
   {
     step: '2',
     title: 'Committee Hearing',
     body: 'The committee chair schedules a hearing. Legislators, agency officials, lobbyists, and members of the public can testify for or against the bill. The committee may also request a fiscal note — an estimate of the bill\'s cost or savings to the state.',
+    link: { href: '/committees', label: 'View standing committees' },
   },
   {
     step: '3',
@@ -29,6 +31,7 @@ const PROCESS_STEPS = [
     step: '4',
     title: 'Second & Third Reading (Floor Debate)',
     body: 'Bills that clear committee are placed on the calendar. On second reading, members can propose amendments. On third reading, the full chamber debates and votes. A simple majority (36 of 70 House members, or 18 of 35 Senators) is required to pass.',
+    link: { href: '/legislators', label: 'See all Idaho legislators' },
   },
   {
     step: '5',
@@ -49,11 +52,13 @@ const PROCESS_STEPS = [
     step: '8',
     title: 'Veto Override',
     body: 'If the Governor vetoes a bill, the Legislature can override the veto with a two-thirds majority vote in both chambers — that\'s 47 of 70 House members and 24 of 35 Senators. A successful override makes the bill law without the Governor\'s signature.',
+    link: { href: '/bills?controversial=true', label: 'View party-line & close votes' },
   },
   {
     step: '9',
     title: 'Effective Date',
     body: 'Most Idaho laws take effect on July 1 of the year they are passed. Bills with an emergency clause take effect immediately upon signing. The Legislature can also specify a custom effective date.',
+    link: { href: '/sessions', label: 'Browse all sessions' },
   },
 ]
 
@@ -128,6 +133,7 @@ const TERMS = [
   {
     term: 'Bill',
     def: 'A proposed law. A bill only becomes law after passing both chambers and being signed by the Governor (or the veto being overridden). Until then it is a "bill," not a law.',
+    link: { href: '/bills', label: 'Browse Idaho bills' },
   },
   {
     term: 'Caucus',
@@ -204,6 +210,7 @@ const TERMS = [
   {
     term: 'Party-Line Vote',
     def: 'A vote where members of each party vote as a bloc — Republicans on one side, Democrats on the other. Tally Idaho flags bills where the final vote broke sharply along party lines.',
+    link: { href: '/bills?controversial=true', label: 'View controversial votes' },
   },
   {
     term: 'Pocket Veto',
@@ -232,10 +239,12 @@ const TERMS = [
   {
     term: 'Roll Call Vote',
     def: 'A vote in which each member\'s individual position (yea, nay, or absent) is recorded. All votes on Tally Idaho are roll call votes — you can see exactly how every legislator voted.',
+    link: { href: '/bills', label: 'See all roll call votes' },
   },
   {
     term: 'Session',
     def: 'The period during which the Legislature is officially in business. Idaho holds a regular session beginning in January each year. The Governor can also call special sessions for specific purposes.',
+    link: { href: '/sessions', label: 'Browse all sessions' },
   },
   {
     term: 'Speaker of the House',
@@ -248,10 +257,12 @@ const TERMS = [
   {
     term: 'Sponsor',
     def: 'The legislator who introduces a bill and champions its passage. A bill can have one primary sponsor and multiple co-sponsors. Committees can also sponsor bills.',
+    link: { href: '/legislators', label: 'Find your legislators' },
   },
   {
     term: 'Standing Committee',
     def: 'A permanent committee that meets each session to review bills in a specific subject area — e.g., Health & Welfare, Education, Judiciary & Rules. Most bills live or die in committee.',
+    link: { href: '/committees', label: 'View standing committees' },
   },
   {
     term: 'Statute',
@@ -308,7 +319,7 @@ export default function FAQPage() {
         <span className="text-slate-600">FAQ</span>
       </nav>
 
-      <h1 className="font-playfair text-3xl font-black text-slate-900 mb-2">
+      <h1 className="font-oswald text-3xl font-bold text-slate-900 mb-2 tracking-tight">
         How Idaho Laws Are Made
       </h1>
       <p className="text-slate-500 text-sm mb-10 leading-relaxed">
@@ -327,6 +338,11 @@ export default function FAQPage() {
               <div>
                 <h3 className="font-semibold text-slate-800 mb-1">{s.title}</h3>
                 <p className="text-sm text-slate-600 leading-relaxed">{s.body}</p>
+                {(s as any).link && (
+                  <Link href={(s as any).link.href} className="inline-flex items-center gap-1 text-xs text-amber-700 hover:underline mt-2 font-medium">
+                    {(s as any).link.label} →
+                  </Link>
+                )}
               </div>
             </div>
           ))}
@@ -395,6 +411,11 @@ export default function FAQPage() {
               </summary>
               <div className="px-5 pb-4 pt-1 border-t border-slate-100">
                 <p className="text-sm text-slate-600 leading-relaxed">{t.def}</p>
+                {(t as any).link && (
+                  <Link href={(t as any).link.href} className="inline-flex items-center gap-1 text-xs text-amber-700 hover:underline mt-2 font-medium">
+                    {(t as any).link.label} →
+                  </Link>
+                )}
               </div>
             </details>
           ))}
