@@ -280,7 +280,7 @@ export default async function BillPage({ params }: Props) {
                 {rollCalls.map((rc: any) => {
                   const total = rc.yea_count + rc.nay_count
                   const yeaPct = total > 0 ? Math.round(rc.yea_count / total * 100) : 0
-                  const margin = rc.vote_margin ?? Math.abs(rc.yea_count - rc.nay_count)
+                  const margin = Math.abs(rc.yea_count - rc.nay_count)
 
                   const votes: any[] = rc.legislator_votes || []
                   const yeas = votes

@@ -57,7 +57,7 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
   const nay = latestRc?.nay_count ?? 0
   const total = yea + nay
   const yeaPct = total > 0 ? Math.round((yea / total) * 100) : 0
-  const margin = latestRc?.vote_margin ?? Math.abs(yea - nay)
+  const margin = Math.abs(yea - nay)
 
   const summary = bill.plain_summary || (bill.description !== bill.title ? bill.description : null)
 
@@ -95,7 +95,7 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
 
         {/* Title */}
         <Link href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}>
-          <h3 className="font-playfair text-lg font-bold text-slate-900 leading-snug mb-3 hover:text-amber-700 transition-colors">
+          <h3 className="font-oswald text-lg font-bold text-slate-900 leading-snug mb-3 hover:text-amber-700 transition-colors">
             {bill.title}
           </h3>
         </Link>
