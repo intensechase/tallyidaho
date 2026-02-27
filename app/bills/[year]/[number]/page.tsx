@@ -341,7 +341,15 @@ export default async function BillPage({ params }: Props) {
                         </div>
                         <div className="flex justify-between text-xs text-slate-400">
                           <span>{rc.absent_count > 0 ? `${rc.absent_count} absent` : ''}</span>
-                          <span>{margin > 0 ? `${rc.passed ? 'Passed' : 'Failed'} by ${margin} vote${margin !== 1 ? 's' : ''}` : ''}</span>
+                          <span>
+                            {rc.passed && rc.yea_count > rc.nay_count && margin > 0
+                              ? `Passed by ${margin} vote${margin !== 1 ? 's' : ''}`
+                              : !rc.passed && rc.nay_count > rc.yea_count && margin > 0
+                                ? `Failed by ${margin} vote${margin !== 1 ? 's' : ''}`
+                                : !rc.passed && rc.yea_count >= rc.nay_count
+                                  ? 'Failed — supermajority required'
+                                  : ''}
+                          </span>
                         </div>
                       </div>
 

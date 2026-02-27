@@ -145,7 +145,13 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
             <p className="text-xs text-slate-400 text-center">
               {latestRc.is_party_line ? '⚡ Party-line vote · ' : ''}
               {latestRc.passed ? 'Passed' : 'Failed'}
-              {margin > 0 ? ` by ${margin} vote${margin !== 1 ? 's' : ''}` : ''}
+              {latestRc.passed && yea > nay && margin > 0
+                ? ` by ${margin} vote${margin !== 1 ? 's' : ''}`
+                : !latestRc.passed && nay > yea && margin > 0
+                  ? ` by ${margin} vote${margin !== 1 ? 's' : ''}`
+                  : !latestRc.passed && yea >= nay
+                    ? ' — supermajority required'
+                    : ''}
             </p>
           </div>
         )}

@@ -258,6 +258,10 @@ const TERMS = [
     def: 'A law enacted by the Legislature and signed by the Governor. All Idaho statutes are compiled in the Idaho Code.',
   },
   {
+    term: 'Supermajority',
+    def: 'A vote threshold higher than a simple majority (more than half). Idaho uses supermajorities in specific situations: (1) Veto override — 2/3 of both chambers (47 House, 24 Senate). (2) Emergency clause — 2/3 vote to make a bill take effect immediately. (3) Article V Convention — resolutions calling for a U.S. Constitutional Convention require a 2/3 vote. (4) Constitutional amendments — require a 2/3 vote in both chambers before going to voters. When a supermajority is required, a bill can have more Yea votes than Nay votes and still fail — because it didn\'t reach the higher threshold. For example, a 36–34 House vote fails an Article V resolution because 36 is only 51%, far short of the 47 votes (67%) required.',
+  },
+  {
     term: 'Substitute Bill',
     def: 'A completely rewritten version of a bill that replaces the original. Committee substitutes are common when a committee wants to substantially change a bill\'s approach.',
   },
