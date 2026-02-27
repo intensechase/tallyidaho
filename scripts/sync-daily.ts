@@ -44,14 +44,17 @@ async function main() {
   console.log('═══════════════════════════════════════════════════\n')
 
   // Get our internal session UUID (look up by year, not legiscan_session_id)
-  const { data: sessionRow } = await supabase
+  console.log(`  SUPABASE_URL set: ${!!process.env.NEXT_PUBLIC_SUPABASE_URL}`)
+  console.log(`  SERVICE_KEY set:  ${!!process.env.SUPABASE_SERVICE_ROLE_KEY}`)
+
+  const { data: sessionRow, error: sessionError } = await supabase
     .from('sessions')
     .select('id, year_start')
     .eq('year_start', 2026)
     .single()
 
   if (!sessionRow) {
-    console.error('Session not found in DB. Run import-session.ts first.')
+    console.error('Session not found in DB:', sessionError?.message ?? '(no error details)')
     process.exit(1)
   }
   const sessionUUID = sessionRow.id
