@@ -139,7 +139,7 @@ export default async function BillsPage({ searchParams }: Props) {
 
   // URL builder for server-side pagination links only (not passed to client components)
   function filterUrl(overrides: Record<string, string | undefined>) {
-    const next = { year: String(year), ...params, ...overrides, page: '1' }
+    const next = { year: String(year), page: '1', ...params, ...overrides }
     const qs = Object.entries(next)
       .filter(([, v]) => v && v !== '' && v !== 'false')
       .map(([k, v]) => `${k}=${encodeURIComponent(v!)}`)
