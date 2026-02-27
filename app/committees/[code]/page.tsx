@@ -35,14 +35,42 @@ async function getCommitteeData(code: string, year: number) {
 
   if (!committee) return null
 
-  const { data: bills } = await supabase
+  // Primary: bills explicitly assigned to this committee
+  const { data: assignedBills } = await supabase
     .from('bills')
     .select('bill_number, title, status, completed, last_action, last_action_date')
+    .eq('session_id', session.id)
     .eq('committee_id', committee.id)
     .order('last_action_date', { ascending: false })
-    .limit(100)
+    .limit(200)
 
-  return { session, committee, bills: bills || [] }
+  // Secondary: bills whose last_action text mentions the committee name
+  // Catches "reported out", "presented to", "voted out of" etc.
+  const searchName = committee.short_name || committee.name || ''
+  const { data: textBills } = searchName
+    ? await supabase
+        .from('bills')
+        .select('bill_number, title, status, completed, last_action, last_action_date')
+        .eq('session_id', session.id)
+        .ilike('last_action', `%${searchName}%`)
+        .order('last_action_date', { ascending: false })
+        .limit(200)
+    : { data: [] }
+
+  // Merge and deduplicate by bill_number
+  const seen = new Set<string>()
+  const bills: any[] = []
+  for (const b of [...(assignedBills || []), ...(textBills || [])]) {
+    if (!seen.has(b.bill_number)) {
+      seen.add(b.bill_number)
+      bills.push(b)
+    }
+  }
+  bills.sort((a, b) =>
+    (b.last_action_date || '').localeCompare(a.last_action_date || '')
+  )
+
+  return { session, committee, bills }
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -61,20 +89,20 @@ export async function generateMetadata({ params, searchParams }: Props): Promise
 
 export const revalidate = 300
 
-function billStatusLabel(bill: any): string {
-  if (bill.completed) return 'Enacted'
-  const s = Number(bill.status)
-  if (s === 4) return 'Enacted'
-  if (s === 3) return 'Passed'
-  if (s === 2) return 'In Committee'
-  return 'Introduced'
-}
-
-function billStatusColor(label: string): string {
-  if (label === 'Enacted') return 'bg-emerald-50 text-emerald-700 border-emerald-200'
-  if (label === 'Passed') return 'bg-blue-50 text-blue-700 border-blue-200'
-  if (label === 'In Committee') return 'bg-amber-50 text-amber-700 border-amber-200'
-  return 'bg-slate-50 text-slate-500 border-slate-200'
+/** Derive how this bill relates to the committee from last_action text */
+function committeeRelation(bill: any): { label: string; color: string } {
+  const action = (bill.last_action || '').toLowerCase()
+  if (bill.completed || Number(bill.status) === 4)
+    return { label: 'Enacted', color: 'bg-emerald-50 text-emerald-700 border-emerald-200' }
+  if (/do\s+not\s+pass|failed\s+committee|without\s+recommendation/i.test(action))
+    return { label: 'Failed committee', color: 'bg-red-50 text-red-600 border-red-200' }
+  if (/do\s+pass|reported\s+out|voted\s+out|print\s+ordered/i.test(action))
+    return { label: 'Voted out', color: 'bg-blue-50 text-blue-700 border-blue-200' }
+  if (/referred\s+to|assigned\s+to/i.test(action))
+    return { label: 'Referred', color: 'bg-amber-50 text-amber-700 border-amber-200' }
+  if (Number(bill.status) === 3)
+    return { label: 'Passed chamber', color: 'bg-blue-50 text-blue-700 border-blue-200' }
+  return { label: 'In committee', color: 'bg-slate-50 text-slate-500 border-slate-200' }
 }
 
 export default async function CommitteeDetailPage({ params, searchParams }: Props) {
@@ -229,12 +257,11 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
           </h2>
 
           {bills.length === 0 ? (
-            <p className="text-sm text-slate-400">No bills assigned yet.</p>
+            <p className="text-sm text-slate-400">No bills found for this committee.</p>
           ) : (
             <div className="space-y-2">
               {bills.map((bill: any) => {
-                const statusLabel = billStatusLabel(bill)
-                const statusColor = billStatusColor(statusLabel)
+                const { label, color } = committeeRelation(bill)
                 return (
                   <Link
                     key={bill.bill_number}
@@ -246,8 +273,8 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
                         <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
                           {bill.bill_number}
                         </span>
-                        <span className={`text-[10px] font-bold border px-1.5 py-0.5 rounded-full shrink-0 ${statusColor}`}>
-                          {statusLabel}
+                        <span className={`text-[10px] font-bold border px-1.5 py-0.5 rounded-full shrink-0 ${color}`}>
+                          {label}
                         </span>
                       </div>
                       <p className="text-xs text-slate-700 leading-snug">{bill.title}</p>
