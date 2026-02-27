@@ -6,12 +6,17 @@
  * where spaces are stored as positional offsets rather than space chars.
  */
 
+import path from 'path'
+import { pathToFileURL } from 'url'
+
 let _pdfjs: any = null
 
 async function getPdfjs() {
   if (!_pdfjs) {
     _pdfjs = await import('pdfjs-dist/legacy/build/pdf.mjs' as any)
-    _pdfjs.GlobalWorkerOptions.workerSrc = ''
+    _pdfjs.GlobalWorkerOptions.workerSrc = pathToFileURL(
+      path.join(process.cwd(), 'node_modules/pdfjs-dist/legacy/build/pdf.worker.mjs')
+    ).href
   }
   return _pdfjs
 }
@@ -22,9 +27,6 @@ export async function extractPdfText(buffer: Buffer): Promise<string | null> {
 
     const loadingTask = pdfjsLib.getDocument({
       data: new Uint8Array(buffer),
-      useWorkerFetch: false,
-      isEvalSupported: false,
-      useSystemFonts: true,
       verbosity: 0,
     })
 
@@ -49,10 +51,8 @@ export async function extractPdfText(buffer: Buffer): Promise<string | null> {
           const yDiff = Math.abs(currY - prevY)
 
           if (yDiff > fontSize * 0.5) {
-            // New line
             pageText += '\n'
           } else {
-            // Same line — insert space if gap between items is large enough
             const gap = item.transform[4] - (prevItem.transform[4] + (prevItem.width ?? 0))
             if (gap > fontSize * 0.15 && !pageText.endsWith(' ') && !item.str.startsWith(' ')) {
               pageText += ' '
