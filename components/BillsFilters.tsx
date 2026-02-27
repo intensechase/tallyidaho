@@ -73,7 +73,7 @@ export default function BillsFilters({
           type="search"
           value={query}
           onChange={e => setQuery(e.target.value)}
-          placeholder="Search bill titles…"
+          placeholder="Search titles or bill numbers (e.g. H0123)…"
           className="flex-1 text-sm border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500"
         />
         <button
