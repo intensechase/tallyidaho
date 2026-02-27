@@ -14,6 +14,7 @@
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
 import { PDFParse } from 'pdf-parse'
+import { extractPdfText } from './lib/pdf-extract'
 import { getMasterListRaw, getBill, getRollCall } from './lib/legiscan'
 import { isCloseVote, isPartyLineVote, getControversyReason } from './lib/controversy'
 
@@ -35,6 +36,40 @@ async function fetchBillText(year: number, billNumber: string): Promise<string |
       .join('\n')
       .replace(/\n{3,}/g, '\n\n')
       .trim() || null
+  } catch {
+    return null
+  }
+}
+
+async function fetchSOP(year: number, billNumber: string): Promise<string | null> {
+  try {
+    const num = billNumber.replace(/\s+/g, '').toUpperCase()
+    const res = await fetch(`${LEGIS_BASE}/${year}/legislation/${num}SOP.pdf`)
+    if (!res.ok) return null
+    const buffer = Buffer.from(await res.arrayBuffer())
+    const raw = await extractPdfText(buffer)
+    if (!raw || raw.length < 30) return null
+
+    const sopRegex = /STATEMENT\s+OF\s+PURPOSE[\s\S]*?\n([\s\S]*?)(?:FISCAL\s+NOTE|^\s*$)/im
+    const match = raw.match(sopRegex)
+    let text = match?.[1]?.trim() || raw
+
+    text = text
+      .split('\n')
+      .filter((line: string) => {
+        const t = line.trim()
+        if (!t) return false
+        if (/^RS\s*\d+/i.test(t)) return false
+        if (/^STATEMENT\s+OF\s+PURPOSE/i.test(t)) return false
+        if (/^FISCAL\s+NOTE/i.test(t)) return false
+        if (/^Page\s+\d+/i.test(t)) return false
+        return true
+      })
+      .join(' ')
+      .replace(/\s{2,}/g, ' ')
+      .trim()
+
+    return text.length >= 30 ? text.slice(0, 2000) : null
   } catch {
     return null
   }
@@ -83,15 +118,15 @@ async function main() {
   }
   const sessionUUID = sessionRow.id
 
-  // Get all existing bills' change_hash from DB
+  // Get all existing bills' change_hash and SOP status from DB
   const { data: existingBills } = await supabase
     .from('bills')
-    .select('id, legiscan_bill_id, change_hash')
+    .select('id, legiscan_bill_id, change_hash, plain_summary')
     .eq('session_id', sessionUUID)
 
-  const existingMap = new Map<number, { uuid: string; hash: string | null }>()
+  const existingMap = new Map<number, { uuid: string; hash: string | null; hasSOP: boolean }>()
   for (const b of existingBills || []) {
-    existingMap.set(b.legiscan_bill_id, { uuid: b.id, hash: b.change_hash })
+    existingMap.set(b.legiscan_bill_id, { uuid: b.id, hash: b.change_hash, hasSOP: !!b.plain_summary })
   }
   console.log(`DB has ${existingMap.size} bills for this session`)
 
@@ -153,7 +188,11 @@ async function main() {
     const lastAction = bill.history?.[bill.history.length - 1]?.action || null
     const billText = await fetchBillText(sessionRow.year_start, bill.bill_number)
 
-    const billRow = {
+    // Only fetch SOP if not already in DB — preserves manual edits
+    const hasSOP = existingMap.get(mb.bill_id)?.hasSOP ?? false
+    const sopText = hasSOP ? null : await fetchSOP(sessionRow.year_start, bill.bill_number)
+
+    const billRow: Record<string, any> = {
       legiscan_bill_id: bill.bill_id,
       session_id: sessionUUID,
       bill_number: bill.bill_number,
@@ -172,6 +211,8 @@ async function main() {
       change_hash: bill.change_hash || null,
       bill_text: billText,
       updated_at: new Date().toISOString(),
+      // Only write plain_summary for bills that don't have one yet
+      ...(sopText !== null && { plain_summary: sopText }),
     }
 
     let billUUID = mb.existingUUID as string | undefined

@@ -15,7 +15,7 @@
 
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
-import { PDFParse } from 'pdf-parse'
+import { extractPdfText } from './lib/pdf-extract'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -30,6 +30,7 @@ const BATCH    = 100   // bills per DB page
 const args = process.argv.slice(2)
 const yearArg  = args.includes('--year')  ? parseInt(args[args.indexOf('--year')  + 1]) : null
 const billArg  = args.includes('--bill')  ? args[args.indexOf('--bill')  + 1].toUpperCase() : null
+const FORCE    = args.includes('--force') // re-extract even if plain_summary already set
 
 // ── Helpers ──────────────────────────────────────────────────────────────────
 
@@ -39,26 +40,18 @@ function sopUrl(year: number, billNumber: string): string {
   return `${SOP_BASE}/${year}/legislation/${num}SOP.pdf`
 }
 
-/** Extract SOP text from a PDF buffer. Returns null if image-based or unreadable. */
+/** Extract SOP text from a PDF buffer using position-aware extraction. */
 async function extractSOP(buffer: Buffer): Promise<string | null> {
-  let raw: string
-  try {
-    const parser = new PDFParse({ data: buffer })
-    const result = await parser.getText()
-    raw = result.text?.trim() ?? ''
-  } catch {
-    return null
-  }
+  const raw = await extractPdfText(buffer)
   if (!raw || raw.length < 30) return null
 
   // SOP section starts after "STATEMENT OF PURPOSE" and ends before "FISCAL NOTE"
-  // Try with and without line breaks
   const sopRegex = /STATEMENT\s+OF\s+PURPOSE[\s\S]*?\n([\s\S]*?)(?:FISCAL\s+NOTE|^\s*$)/im
   const match = raw.match(sopRegex)
 
   let text = match?.[1]?.trim() || raw
 
-  // Remove RS number lines like "RS 21234", "RS 21234C1", page headers, etc.
+  // Remove RS number lines, page headers, section headers
   text = text
     .split('\n')
     .filter((line: string) => {
@@ -100,10 +93,12 @@ async function main() {
     let query = supabase
       .from('bills')
       .select('id, bill_number, sessions!inner(year_start)')
-      .is('plain_summary', null)
       .not('bill_number', 'is', null)
       .order('id')
       .range(offset, offset + BATCH - 1)
+
+    // Without --force, skip bills that already have SOP text
+    if (!FORCE && !billArg) query = (query as any).is('plain_summary', null)
 
     if (yearArg) query = query.eq('sessions.year_start', yearArg)
     if (billArg) query = query.eq('bill_number', billArg)
