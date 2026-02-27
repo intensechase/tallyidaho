@@ -4,6 +4,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'FAQ — How Idaho Laws Are Made | Tally Idaho',
   description: 'Understand how a bill becomes law in Idaho, what legislative terms mean, and how to read voting records. A plain-language guide to the Idaho Legislature.',
+  alternates: { canonical: 'https://www.tallyidaho.com/faq' },
 }
 
 export const revalidate = 86400
@@ -275,8 +276,26 @@ const TERMS = [
 ]
 
 export default function FAQPage() {
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'FAQPage',
+    mainEntity: [
+      ...PROCESS_STEPS.map(s => ({
+        '@type': 'Question',
+        name: `What is ${s.title} in the Idaho Legislature?`,
+        acceptedAnswer: { '@type': 'Answer', text: s.body },
+      })),
+      ...TERMS.slice(0, 15).map(t => ({
+        '@type': 'Question',
+        name: `What is "${t.term}" in Idaho Legislature terms?`,
+        acceptedAnswer: { '@type': 'Answer', text: t.def },
+      })),
+    ],
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

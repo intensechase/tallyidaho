@@ -8,6 +8,7 @@ import { legislatorSlug } from '@/lib/slugify'
 export const metadata: Metadata = {
   title: 'Idaho Bills | Tally Idaho',
   description: 'Browse Idaho legislative bills by session, topic, chamber, and controversy. Track votes, sponsors, and outcomes.',
+  alternates: { canonical: 'https://www.tallyidaho.com/bills' },
 }
 
 export const revalidate = 3600

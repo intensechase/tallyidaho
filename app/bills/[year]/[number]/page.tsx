@@ -138,8 +138,29 @@ export default async function BillPage({ params }: Props) {
     .filter((b: any) => b && b.id !== bill.id)
     .slice(0, 4)
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'WebPage',
+    name: `Idaho ${bill.bill_number} (${year}) — ${bill.title}`,
+    description: (bill.plain_summary || bill.title || '').slice(0, 200),
+    url: `https://www.tallyidaho.com/bills/${year}/${bill.bill_number.toUpperCase()}`,
+    about: {
+      '@type': 'Legislation',
+      name: bill.title,
+      identifier: bill.bill_number,
+      legislationIdentifier: bill.bill_number,
+      legislationPassedBy: {
+        '@type': 'GovernmentOrganization',
+        name: 'Idaho Legislature',
+      },
+      ...(sponsors[0] ? { sponsor: { '@type': 'Person', name: sponsors[0].legislators.name } } : {}),
+    },
+    publisher: { '@type': 'Organization', name: 'Tally Idaho', url: 'https://www.tallyidaho.com' },
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">

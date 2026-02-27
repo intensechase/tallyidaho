@@ -144,7 +144,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `Idaho District ${n}${area ? ` — ${area}` : ''} | Tally Idaho`,
     description: `Idaho Legislative District ${n}: 1 senator and 2 representatives. See their bills, voting records, and controversial votes.`,
-    alternates: { canonical: `https://tallyidaho.com/districts/${n}` },
+    alternates: { canonical: `https://www.tallyidaho.com/districts/${n}` },
   }
 }
 

@@ -203,8 +203,19 @@ export default async function LegislatorPage({ params }: Props) {
 
   const chamberPath = leg.chamber === 'senate' ? 'senate' : 'house'
 
+  const jsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Person',
+    name: leg.name,
+    jobTitle: `Idaho ${roleFull}`,
+    affiliation: { '@type': 'GovernmentOrganization', name: 'Idaho Legislature' },
+    ...(leg.photo_url ? { image: leg.photo_url } : {}),
+    url: `https://www.tallyidaho.com/legislators/${slug}`,
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

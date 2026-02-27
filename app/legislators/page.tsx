@@ -6,6 +6,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Idaho Legislators | Tally Idaho',
   description: 'Browse all Idaho state legislators by district. View senators and representatives, their party, voting records, and bills sponsored.',
+  alternates: { canonical: 'https://www.tallyidaho.com/legislators' },
 }
 
 export const revalidate = 3600

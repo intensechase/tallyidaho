@@ -1,8 +1,22 @@
+import { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import HomepageTabs from '@/components/HomepageTabs'
 import DistrictLookup from '@/components/DistrictLookup'
 import { fetchFloorCalendar } from '@/lib/floor-calendar'
 import { fetchCommitteeAgenda } from '@/lib/committee-agenda'
+
+export const metadata: Metadata = {
+  title: 'Tally Idaho — Track Every Vote in the Idaho Legislature',
+  description: 'Follow every bill, vote, and legislator in the 2026 Idaho Legislative Session. Nonpartisan. Transparent. Every vote counted.',
+  alternates: { canonical: 'https://www.tallyidaho.com' },
+  openGraph: {
+    title: 'Tally Idaho — Idaho Legislature Tracker',
+    description: 'Follow every bill, vote, and legislator in the Idaho Legislature.',
+    url: 'https://www.tallyidaho.com',
+    siteName: 'Tally Idaho',
+    type: 'website',
+  },
+}
 
 export const revalidate = 3600 // Refresh hourly
 
