@@ -4,7 +4,6 @@ import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
 import VoteNamesToggle from '@/components/VoteNamesToggle'
-import { fetchBillText } from '@/lib/bill-text'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -111,9 +110,9 @@ export default async function BillPage({ params }: Props) {
   const primarySponsorLegId = sponsors[0]?.legislators?.id
   const sessionId = (bill as any).session_id
 
-  const [billText, [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }]] = await Promise.all([
-    fetchBillText(year, bill.bill_number),
-    Promise.all([
+  const billText = (bill as any).bill_text as string | null
+
+  const [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }] = await Promise.all([
     bill.committee_name
       ? supabase
           .from('bills')
@@ -133,7 +132,6 @@ export default async function BillPage({ params }: Props) {
           .eq('bills.session_id', sessionId)
           .limit(10)
       : Promise.resolve({ data: [] as any[] }),
-    ]),
   ])
 
   const relatedByCommittee = (relatedCommitteeRows || []).slice(0, 4)

@@ -13,8 +13,32 @@
 
 import 'dotenv/config'
 import { createClient } from '@supabase/supabase-js'
+import { PDFParse } from 'pdf-parse'
 import { getMasterListRaw, getBill, getRollCall } from './lib/legiscan'
 import { isCloseVote, isPartyLineVote, getControversyReason } from './lib/controversy'
+
+const LEGIS_BASE = 'https://legislature.idaho.gov/wp-content/uploads/sessioninfo'
+
+async function fetchBillText(year: number, billNumber: string): Promise<string | null> {
+  try {
+    const num = billNumber.replace(/\s+/g, '').toUpperCase()
+    const res = await fetch(`${LEGIS_BASE}/${year}/legislation/${num}.pdf`)
+    if (!res.ok) return null
+    const buffer = Buffer.from(await res.arrayBuffer())
+    const parser = new PDFParse({ data: buffer })
+    const result = await parser.getText()
+    const raw = result.text?.trim() ?? ''
+    if (!raw || raw.length < 50) return null
+    return raw
+      .split('\n')
+      .map((line: string) => line.replace(/^\s*\d{1,3}\s{1,4}/, '').trimEnd())
+      .join('\n')
+      .replace(/\n{3,}/g, '\n\n')
+      .trim() || null
+  } catch {
+    return null
+  }
+}
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -127,6 +151,7 @@ async function main() {
     const subjects = (bill.subjects || []).map((s: any) => s.subject_name)
     const chamberCode = parseChamber(bill.body || 'H')
     const lastAction = bill.history?.[bill.history.length - 1]?.action || null
+    const billText = await fetchBillText(sessionRow.year_start, bill.bill_number)
 
     const billRow = {
       legiscan_bill_id: bill.bill_id,
@@ -145,6 +170,7 @@ async function main() {
       state_url: bill.state_link || null,
       subjects,
       change_hash: bill.change_hash || null,
+      bill_text: billText,
       updated_at: new Date().toISOString(),
     }
 
