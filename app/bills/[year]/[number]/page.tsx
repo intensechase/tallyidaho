@@ -237,12 +237,14 @@ export default async function BillPage({ params }: Props) {
         <div className="md:col-span-2 space-y-6">
 
           {/* Statement of Purpose */}
-          {bill.plain_summary && (
+          {(bill.plain_summary || billText) && (
             <section>
               <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">STATEMENT OF PURPOSE</h2>
-              <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
-                <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
-              </div>
+              {bill.plain_summary && (
+                <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
+                  <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
+                </div>
+              )}
 
               {/* Full bill text — collapsed for readability, in DOM for SEO */}
               {billText && (
