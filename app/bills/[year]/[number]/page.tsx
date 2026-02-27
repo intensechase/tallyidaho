@@ -243,6 +243,23 @@ export default async function BillPage({ params }: Props) {
               <div className="bg-amber-50 border border-amber-200 rounded-xl p-4">
                 <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
               </div>
+
+              {/* Full bill text — collapsed for readability, in DOM for SEO */}
+              {billText && (
+                <details className="group mt-3">
+                  <summary className="cursor-pointer list-none">
+                    <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+                      <span className="group-open:hidden">▶ Show full bill text</span>
+                      <span className="hidden group-open:inline">▼ Hide full bill text</span>
+                    </span>
+                  </summary>
+                  <div className="mt-2 bg-white border border-amber-200 rounded-xl p-4 max-h-[500px] overflow-y-auto">
+                    <pre className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap font-mono">
+                      {billText}
+                    </pre>
+                  </div>
+                </details>
+              )}
             </section>
           )}
 
@@ -384,25 +401,6 @@ export default async function BillPage({ params }: Props) {
             </section>
           )}
 
-          {/* Full bill text — collapsed for readability, in DOM for SEO */}
-          {billText && (
-            <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">FULL BILL TEXT</h2>
-              <details className="group">
-                <summary className="cursor-pointer list-none">
-                  <span className="text-sm text-amber-700 hover:underline inline-flex items-center gap-1">
-                    <span className="group-open:hidden">▶ Show full text</span>
-                    <span className="hidden group-open:inline">▼ Hide full text</span>
-                  </span>
-                </summary>
-                <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4 max-h-[600px] overflow-y-auto">
-                  <pre className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap font-mono">
-                    {billText}
-                  </pre>
-                </div>
-              </details>
-            </section>
-          )}
 
         </div>
 
