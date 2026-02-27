@@ -72,7 +72,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
 
       <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-playfair text-3xl font-black text-slate-900">Idaho Legislative Committees</h1>
+          <h1 className="font-oswald text-4xl font-bold text-slate-900 tracking-tight uppercase">Idaho Legislative Committees</h1>
           <p className="text-sm text-slate-500 mt-1">
             Standing committees · {session?.name || `${year} Session`}
           </p>
@@ -106,7 +106,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {senateCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-playfair text-xl font-bold text-slate-800">Senate Committees</h2>
+                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">Senate Committees</h2>
                 <span className="text-xs text-slate-400">{senateCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={senateCommittees} billCounts={billCounts} year={year} />
@@ -117,7 +117,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {houseCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-playfair text-xl font-bold text-slate-800">House Committees</h2>
+                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">House Committees</h2>
                 <span className="text-xs text-slate-400">{houseCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={houseCommittees} billCounts={billCounts} year={year} />
@@ -128,7 +128,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {jointCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-playfair text-xl font-bold text-slate-800">Joint Committees</h2>
+                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">Joint Committees</h2>
                 <span className="text-xs text-slate-400">{jointCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={jointCommittees} billCounts={billCounts} year={year} />
@@ -164,7 +164,7 @@ function CommitteeGrid({
         return (
           <Link key={c.id} href={`/committees/${c.code}?year=${year}`}>
             <div className="bg-white border border-slate-200 rounded-xl p-4 hover:border-amber-300 hover:shadow-sm transition-all h-full flex flex-col">
-              <h3 className="font-semibold text-slate-800 text-sm leading-snug mb-auto">
+              <h3 className="font-oswald text-base font-bold text-slate-800 leading-snug mb-auto tracking-tight uppercase">
                 {c.short_name}
               </h3>
               <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">

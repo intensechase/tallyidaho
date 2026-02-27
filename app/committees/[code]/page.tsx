@@ -158,7 +158,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
               </span>
               <span className="text-xs text-slate-500 font-mono">{committee.code}</span>
             </div>
-            <h1 className="font-playfair text-2xl font-black text-white leading-tight">
+            <h1 className="font-oswald text-3xl font-bold text-white leading-tight tracking-tight uppercase">
               {committee.short_name}
             </h1>
             <p className="text-slate-400 text-sm mt-1">{session.name}</p>
