@@ -4,6 +4,7 @@ import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
 import VoteNamesToggle from '@/components/VoteNamesToggle'
+import { fetchBillText } from '@/lib/bill-text'
 
 interface Props {
   params: Promise<{ year: string; number: string }>
@@ -110,7 +111,9 @@ export default async function BillPage({ params }: Props) {
   const primarySponsorLegId = sponsors[0]?.legislators?.id
   const sessionId = (bill as any).session_id
 
-  const [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }] = await Promise.all([
+  const [billText, [{ data: relatedCommitteeRows }, { data: relatedSponsorRows }]] = await Promise.all([
+    fetchBillText(year, bill.bill_number),
+    Promise.all([
     bill.committee_name
       ? supabase
           .from('bills')
@@ -130,6 +133,7 @@ export default async function BillPage({ params }: Props) {
           .eq('bills.session_id', sessionId)
           .limit(10)
       : Promise.resolve({ data: [] as any[] }),
+    ]),
   ])
 
   const relatedByCommittee = (relatedCommitteeRows || []).slice(0, 4)
@@ -377,6 +381,26 @@ export default async function BillPage({ params }: Props) {
                   {new Date(bill.last_action_date).toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
                 </p>
               )}
+            </section>
+          )}
+
+          {/* Full bill text — collapsed for readability, in DOM for SEO */}
+          {billText && (
+            <section>
+              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">FULL BILL TEXT</h2>
+              <details className="group">
+                <summary className="cursor-pointer list-none">
+                  <span className="text-sm text-amber-700 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show full text</span>
+                    <span className="hidden group-open:inline">▼ Hide full text</span>
+                  </span>
+                </summary>
+                <div className="mt-3 bg-slate-50 border border-slate-200 rounded-xl p-4 max-h-[600px] overflow-y-auto">
+                  <pre className="text-xs text-slate-600 leading-relaxed whitespace-pre-wrap font-mono">
+                    {billText}
+                  </pre>
+                </div>
+              </details>
             </section>
           )}
 
