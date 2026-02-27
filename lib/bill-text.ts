@@ -8,8 +8,6 @@
  *   https://legislature.idaho.gov/wp-content/uploads/sessioninfo/{year}/legislation/{BILL_NUMBER}.pdf
  */
 
-import { PDFParse } from 'pdf-parse'
-
 const BASE = 'https://legislature.idaho.gov/wp-content/uploads/sessioninfo'
 
 /**
@@ -30,6 +28,7 @@ export async function fetchBillText(
 
     const buffer = Buffer.from(await res.arrayBuffer())
 
+    const { PDFParse } = await import('pdf-parse')
     const parser = new PDFParse({ data: buffer })
     const result = await parser.getText()
     const raw = result.text?.trim() ?? ''
