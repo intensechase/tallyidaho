@@ -1,7 +1,15 @@
 import type { NextConfig } from "next";
 
 const nextConfig: NextConfig = {
-  /* config options here */
+  async redirects() {
+    return [
+      {
+        source: '/faq',
+        destination: '/idaho-legislative-process',
+        permanent: true, // 301 redirect — preserves SEO equity
+      },
+    ]
+  },
 };
 
 export default nextConfig;

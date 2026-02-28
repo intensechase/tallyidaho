@@ -127,9 +127,9 @@ export default function SiteNav() {
 
         {/* FAQ link */}
         <Link
-          href="/faq"
+          href="/idaho-legislative-process"
           className={`hidden md:block text-xs transition-colors shrink-0 ${
-            pathname === '/faq' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'
+            pathname === '/idaho-legislative-process' ? 'text-amber-400' : 'text-slate-500 hover:text-slate-300'
           }`}
         >
           FAQ
@@ -246,7 +246,7 @@ export default function SiteNav() {
       {/* Mobile dropdown */}
       {menuOpen && (
         <div className="md:hidden bg-[#1e293b] border-t border-slate-800 px-4 py-3 space-y-1 font-outfit">
-          {[...navLinks, { href: '/faq', label: 'FAQ' }].map(({ href, label }) => (
+          {[...navLinks, { href: '/idaho-legislative-process', label: 'FAQ' }].map(({ href, label }) => (
             <Link
               key={href}
               href={href}

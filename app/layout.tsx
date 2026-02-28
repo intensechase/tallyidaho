@@ -43,7 +43,7 @@ const footerLinks = [
   { href: '/legislators', label: 'Legislators' },
   { href: '/districts', label: 'Districts' },
   { href: '/sessions', label: 'Sessions' },
-  { href: '/faq', label: 'How Laws Are Made' },
+  { href: '/idaho-legislative-process', label: 'How Laws Are Made' },
   { href: '/about', label: 'About' },
 ]
 

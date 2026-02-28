@@ -148,7 +148,7 @@ export default function AboutPage() {
         <Link href="/bills" className="bg-[#0f172a] text-amber-400 text-sm font-bold px-5 py-2.5 rounded-lg hover:bg-slate-800 transition-colors">
           Browse Bills
         </Link>
-        <Link href="/faq" className="border border-slate-300 text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg hover:border-amber-400 transition-colors">
+        <Link href="/idaho-legislative-process" className="border border-slate-300 text-slate-700 text-sm font-semibold px-5 py-2.5 rounded-lg hover:border-amber-400 transition-colors">
           How Idaho Laws Are Made →
         </Link>
       </div>
