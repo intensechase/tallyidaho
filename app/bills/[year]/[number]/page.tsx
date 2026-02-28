@@ -307,6 +307,10 @@ export default async function BillPage({ params }: Props) {
                   const yeaPct = total > 0 ? Math.round(rc.yea_count / total * 100) : 0
                   const margin = Math.abs(rc.yea_count - rc.nay_count)
 
+                  // LegiScan bug: resolutions with unanimous yea votes are sometimes
+                  // stored as passed=false. Override when nay_count=0 and yea_count>0.
+                  const effectivePassed = rc.passed || (rc.yea_count > 0 && rc.nay_count === 0)
+
                   const votes: any[] = rc.legislator_votes || []
                   const yeas = votes
                     .filter((v: any) => v.vote === 'yea')
@@ -346,8 +350,8 @@ export default async function BillPage({ params }: Props) {
                               ⚡ {rc.is_party_line ? 'Party-line' : 'Close vote'}
                             </span>
                           )}
-                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${rc.passed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
-                            {rc.passed ? '✓ Passed' : '✗ Failed'}
+                          <span className={`text-xs font-bold px-2 py-1 rounded-full ${effectivePassed ? 'bg-emerald-50 text-emerald-700' : 'bg-red-50 text-red-700'}`}>
+                            {effectivePassed ? '✓ Passed' : '✗ Failed'}
                           </span>
                         </div>
                       </div>
@@ -367,11 +371,11 @@ export default async function BillPage({ params }: Props) {
                         <div className="flex justify-between text-xs text-slate-400">
                           <span>{rc.absent_count > 0 ? `${rc.absent_count} absent` : ''}</span>
                           <span>
-                            {rc.passed && rc.yea_count > rc.nay_count && margin > 0
+                            {effectivePassed && rc.yea_count > rc.nay_count && margin > 0
                               ? `Passed by ${margin} vote${margin !== 1 ? 's' : ''}`
-                              : !rc.passed && rc.nay_count > rc.yea_count && margin > 0
+                              : !effectivePassed && rc.nay_count > rc.yea_count && margin > 0
                                 ? `Failed by ${margin} vote${margin !== 1 ? 's' : ''}`
-                                : !rc.passed && rc.yea_count >= rc.nay_count
+                                : !effectivePassed && rc.yea_count >= rc.nay_count
                                   ? 'Failed — supermajority required'
                                   : ''}
                           </span>

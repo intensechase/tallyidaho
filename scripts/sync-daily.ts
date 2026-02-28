@@ -293,7 +293,9 @@ async function main() {
             absent_count: absentCount,
             nv_count: nvCount,
             total_count: totalCount,
-            passed: rc.passed === 1,
+            // LegiScan marks resolutions (HCR/SCR/HR etc.) as passed=0 even on unanimous votes.
+            // Override: if nay=0 and yea>0, it passed regardless of what LegiScan says.
+            passed: rc.passed === 1 || (rc.nay === 0 && (rc.yea || 0) > 0),
             vote_margin: parseFloat(voteMargin.toFixed(2)),
             is_party_line: isPartyLine,
           }, { onConflict: 'legiscan_roll_call_id' })
