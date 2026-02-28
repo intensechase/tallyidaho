@@ -83,6 +83,13 @@ const supabase = createClient(
 const LEGISCAN_SESSION_ID = 2246 // 2026 Idaho Regular Session
 const DRY_RUN = process.argv.includes('--dry-run')
 
+// Query counter — tracks LegiScan API calls for this run
+let apiQueryCount = 0
+function countedApiCall<T>(fn: () => Promise<T>): Promise<T> {
+  apiQueryCount++
+  return fn()
+}
+
 function mapVote(voteCode: number): string {
   switch (voteCode) {
     case 1: return 'yea'
@@ -132,7 +139,7 @@ async function main() {
 
   // Get master list from LegiScan
   console.log('Fetching master list from LegiScan...')
-  const masterList = await getMasterListRaw(LEGISCAN_SESSION_ID)
+  const masterList = await countedApiCall(() => getMasterListRaw(LEGISCAN_SESSION_ID))
 
   // Extract bill entries (skip the 'session' metadata key)
   const masterBills = Object.values(masterList).filter(
@@ -182,7 +189,7 @@ async function main() {
     process.stdout.write(`  ${mb.isNew ? '+ NEW' : '~ UPD'} ${mb.number?.padEnd(10)} `)
 
     // Fetch full bill data
-    const bill = await getBill(mb.bill_id)
+    const bill = await countedApiCall(() => getBill(mb.bill_id))
     const subjects = (bill.subjects || []).map((s: any) => s.subject_name)
     const chamberCode = parseChamber(bill.body || 'H')
     const lastAction = bill.history?.[bill.history.length - 1]?.action || null
@@ -250,7 +257,7 @@ async function main() {
 
     for (const rcRef of newRollCalls) {
       process.stdout.write('.')
-      const rc = await getRollCall(rcRef.roll_call_id)
+      const rc = await countedApiCall(() => getRollCall(rcRef.roll_call_id))
 
       const votes = (rc.votes || []).map((v: any) => ({
         people_id: v.people_id,
@@ -326,10 +333,17 @@ async function main() {
     else billsUpdated++
   }
 
+  const monthlyProjection = apiQueryCount * 30
   console.log('\n═══════════════════════════════════════════════════')
   console.log(`  Bills updated : ${billsUpdated}`)
   console.log(`  Bills added   : ${billsAdded}`)
   console.log(`  Roll calls    : ${rollCallsAdded}`)
+  console.log('───────────────────────────────────────────────────')
+  console.log(`  API queries   : ${apiQueryCount} this run`)
+  console.log(`  ~Monthly est. : ${monthlyProjection.toLocaleString()} / 30,000 (${Math.round(monthlyProjection / 300)}%)`)
+  if (monthlyProjection > 24000) {
+    console.log('  ⚠ WARNING: projected monthly usage exceeds 80% of free tier limit')
+  }
   console.log('═══════════════════════════════════════════════════')
 }
 
