@@ -12,7 +12,6 @@ export function middleware(req: NextRequest) {
 
   if (pathname.startsWith('/api/')) {
     const ip =
-      req.ip ??
       req.headers.get('x-forwarded-for')?.split(',')[0].trim() ??
       'unknown'
 
