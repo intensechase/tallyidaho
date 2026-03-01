@@ -225,7 +225,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
                       {/* Photo */}
                       <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0">
                         {leg.photo_url
-                          ? <img src={leg.photo_url} alt={leg.name} className="w-full h-full object-cover object-top" />
+                          ? <img src={leg.photo_url} alt={leg.name} loading="lazy" className="w-full h-full object-cover object-top" />
                           : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
                               <span className="text-white font-bold text-sm">{leg.name[0]}</span>
                             </div>
