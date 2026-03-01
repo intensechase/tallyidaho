@@ -98,16 +98,15 @@ async function getLegislator(slug: string) {
     .filter((b: any) => b?.session_id === session.id)
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
 
-  // Voting record this session — no limit, floor votes only (LegiScan only records floor votes for Idaho)
+  // Voting record — filter to 2026 session at the DB level via inner joins
   const { data: votes } = await supabase
     .from('legislator_votes')
-    .select('vote, roll_calls(id, date, chamber, passed, yea_count, nay_count, is_party_line, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
+    .select('vote, roll_calls!inner(id, date, chamber, passed, yea_count, nay_count, is_party_line, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason))')
     .eq('legislator_id', leg.id)
+    .eq('roll_calls.bills.session_id', session.id)
     .order('id', { ascending: false })
 
-  const sessionVotes = (votes || []).filter(
-    (v: any) => v.roll_calls?.bills?.session_id === session.id
-  )
+  const sessionVotes = votes || []
 
   // Vote breakdown stats
   const yeaCount = sessionVotes.filter((v: any) => v.vote === 'yea').length
