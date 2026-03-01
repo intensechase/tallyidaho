@@ -144,7 +144,11 @@ function stripHtml(s: string): string {
 
 function extractHref(cellHtml: string): string | null {
   const m = cellHtml.match(/href="([^"]+)"/i)
-  return m ? m[1] : null
+  if (!m) return null
+  // Decode HTML entities that appear in href attributes (e.g. &#038; → &, &amp; → &)
+  return m[1]
+    .replace(/&#(\d+);/g, (_, code) => String.fromCharCode(parseInt(code)))
+    .replace(/&amp;/g, '&')
 }
 
 function absoluteUrl(href: string | null): string | null {
