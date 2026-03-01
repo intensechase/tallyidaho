@@ -1,6 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { createServerClient } from '@/lib/supabase/server'
-import { PDFParse } from 'pdf-parse'
 
 export const runtime = 'nodejs'
 
@@ -52,6 +51,7 @@ export async function GET(
     }
 
     const buffer = Buffer.from(await res.arrayBuffer())
+    const { PDFParse } = await import('pdf-parse')
     const parser = new PDFParse({ data: buffer })
     const result = await parser.getText()
     const text = result.text?.trim() ?? ''
