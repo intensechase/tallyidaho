@@ -169,7 +169,6 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
     openGraph: {
       title: `${leg.name} (${leg.party}) · District ${distNum}`,
       type: 'profile',
-      images: leg.photo_url ? [{ url: leg.photo_url, alt: leg.name }] : [],
     },
     alternates: {
       canonical: `https://www.tallyidaho.com/legislators/${slug}`,

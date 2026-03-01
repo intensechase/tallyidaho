@@ -35,6 +35,10 @@ export const metadata: Metadata = {
     type: 'website',
     url: 'https://tallyidaho.com',
   },
+  twitter: {
+    card: 'summary_large_image',
+    site: '@tallyidaho',
+  },
   metadataBase: new URL('https://tallyidaho.com'),
 }
 
@@ -108,7 +112,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
             </div>
 
             <div className="border-t border-slate-800 pt-6 flex flex-col md:flex-row items-start md:items-center justify-between gap-3 text-xs text-slate-600">
-              <p>© {new Date().getFullYear()} Tally Idaho. Public data. No ads. No affiliation.</p>
+              <p>© {new Date().getFullYear()} Tally Idaho. Public data. No ads. No affiliation. · <Link href="/privacy" className="hover:text-slate-400 transition-colors">Privacy Policy</Link></p>
               <p>
                 Legislative data provided by{' '}
                 <a
