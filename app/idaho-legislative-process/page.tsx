@@ -328,10 +328,20 @@ export default function IdahoLegislativeProcessPage() {
     })),
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home', item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'How Idaho Laws Are Made', item: 'https://www.tallyidaho.com/idaho-legislative-process' },
+    ],
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-10">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(faqJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(howToJsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

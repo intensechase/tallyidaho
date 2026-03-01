@@ -141,9 +141,13 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   const { number } = await params
   const n = parseInt(number)
   const area = DISTRICT_AREAS[n] || ''
+  const [city, county] = area ? area.split(' · ').map(s => s.trim()) : ['', '']
+  const locationStr = city && county ? `${city}, ${county}` : area
   return {
     title: `Idaho District ${n}${area ? ` — ${area}` : ''} | Tally Idaho`,
-    description: `Idaho Legislative District ${n}: 1 senator and 2 representatives. See their bills, voting records, and controversial votes.`,
+    description: locationStr
+      ? `Idaho Legislative District ${n} represents ${locationStr}. See your senator and representatives' bills, voting records, and key votes on Tally Idaho.`
+      : `Idaho Legislative District ${n}: 1 senator and 2 representatives. See their bills, voting records, and key votes on Tally Idaho.`,
     alternates: { canonical: `https://www.tallyidaho.com/districts/${n}` },
   }
 }
@@ -193,8 +197,19 @@ export default async function DistrictPage({ params }: Props) {
   const enactedCount = bills.filter((b: any) => billStatusLabel(b) === 'Enacted').length
   const passedCount  = bills.filter((b: any) => billStatusLabel(b) === 'Passed').length
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',      item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'Districts', item: 'https://www.tallyidaho.com/districts' },
+      { '@type': 'ListItem', position: 3, name: `District ${n}`, item: `https://www.tallyidaho.com/districts/${n}` },
+    ],
+  }
+
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

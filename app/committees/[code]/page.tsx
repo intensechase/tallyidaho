@@ -136,8 +136,19 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
     ? 'bg-amber-50 text-amber-700 border border-amber-200'
     : 'bg-slate-50 text-slate-600 border border-slate-200'
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',       item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'Committees', item: 'https://www.tallyidaho.com/committees' },
+      { '@type': 'ListItem', position: 3, name: committee.short_name || committee.name, item: `https://www.tallyidaho.com/committees/${code.toUpperCase()}` },
+    ],
+  }
+
   return (
     <main className="max-w-5xl mx-auto px-4 py-8">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">

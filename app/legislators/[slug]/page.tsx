@@ -203,6 +203,16 @@ export default async function LegislatorPage({ params }: Props) {
 
   const chamberPath = leg.chamber === 'senate' ? 'senate' : 'house'
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',        item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'Legislators', item: 'https://www.tallyidaho.com/legislators' },
+      { '@type': 'ListItem', position: 3, name: leg.name,      item: `https://www.tallyidaho.com/legislators/${slug}` },
+    ],
+  }
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'Person',
@@ -216,6 +226,7 @@ export default async function LegislatorPage({ params }: Props) {
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

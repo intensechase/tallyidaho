@@ -8,9 +8,19 @@ export const metadata: Metadata = {
 
 export const revalidate = 86400
 
+const breadcrumbJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'BreadcrumbList',
+  itemListElement: [
+    { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.tallyidaho.com' },
+    { '@type': 'ListItem', position: 2, name: 'About', item: 'https://www.tallyidaho.com/about' },
+  ],
+}
+
 export default function AboutPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-6">

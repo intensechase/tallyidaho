@@ -126,8 +126,20 @@ export default async function HomePage() {
 
   const { session, stats, controversialBills, recentBills } = data
 
+  const orgJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'Organization',
+    name: 'Tally Idaho',
+    url: 'https://www.tallyidaho.com',
+    description: 'Nonpartisan Idaho Legislature tracker. Follow every bill, vote, and legislator in the Idaho Legislature. Free, no ads.',
+    foundingDate: '2024',
+    areaServed: { '@type': 'State', name: 'Idaho' },
+    knowsAbout: ['Idaho Legislature', 'Idaho bills', 'Idaho legislators', 'Idaho voting records'],
+  }
+
   return (
     <>
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(orgJsonLd) }} />
       {/* Session stats bar */}
       <div className="bg-[#1e293b] header-texture border-b border-slate-700/60">
         <div className="max-w-7xl mx-auto px-4 py-4 flex items-center gap-4 md:gap-10 flex-wrap">

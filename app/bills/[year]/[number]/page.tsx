@@ -181,9 +181,21 @@ export default async function BillPage({ params }: Props) {
     publisher: { '@type': 'Organization', name: 'Tally Idaho', url: 'https://www.tallyidaho.com' },
   }
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',  item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'Bills', item: 'https://www.tallyidaho.com/bills' },
+      { '@type': 'ListItem', position: 3, name: year,    item: `https://www.tallyidaho.com/bills/${year}` },
+      { '@type': 'ListItem', position: 4, name: bill.bill_number, item: `https://www.tallyidaho.com/bills/${year}/${bill.bill_number.toUpperCase()}` },
+    ],
+  }
+
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(jsonLd) }} />
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
       <nav className="text-xs text-slate-400 mb-4">
