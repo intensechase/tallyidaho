@@ -53,7 +53,7 @@ export default function Image() {
         {/* Bottom URL */}
         <div style={{ position: 'absolute', bottom: 36, display: 'flex', alignItems: 'center', gap: 8 }}>
           <span style={{ color: '#d97706', fontSize: 16, fontWeight: 700 }}>tallyidaho.com</span>
-          <span style={{ color: '#334155', fontSize: 16 }}>· Free · Nonpartisan · No ads</span>
+          <span style={{ color: '#334155', fontSize: 16 }}>· Free · Nonpartisan</span>
         </div>
       </div>
     ),

@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'Privacy Policy | Tally Idaho',
-  description: 'Tally Idaho privacy policy. We collect no personal data, run no ads, and never sell your information.',
+  description: 'Tally Idaho privacy policy. We collect no personal data and never sell your information.',
   alternates: { canonical: 'https://www.tallyidaho.com/privacy' },
 }
 
@@ -31,7 +31,7 @@ export default function PrivacyPage() {
           <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">THE SHORT VERSION</h2>
           <p>
             Tally Idaho does not collect personal information, does not require an account,
-            does not run ads, and does not sell or share data with third parties.
+            and does not sell or share data with third parties.
             We use Google Analytics to understand how people use the site in aggregate.
           </p>
         </section>

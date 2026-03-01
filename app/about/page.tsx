@@ -3,7 +3,7 @@ import Link from 'next/link'
 
 export const metadata: Metadata = {
   title: 'About Tally Idaho | Nonpartisan Idaho Legislature Tracker',
-  description: 'Tally Idaho is a free, nonpartisan civic tool for Idaho voters to track bills, legislators, and votes in the Idaho Legislature. No ads. No spin.',
+  description: 'Tally Idaho is a free, nonpartisan civic tool for Idaho voters to track bills, legislators, and votes in the Idaho Legislature. No spin.',
 }
 
 export const revalidate = 86400
@@ -91,7 +91,6 @@ export default function AboutPage() {
           <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
             {[
               { label: 'Free, always', body: 'Tally Idaho will never charge for access to public legislative data.' },
-              { label: 'No ads', body: 'We do not run advertising of any kind. No banners, no sponsored content, no tracking pixels sold to third parties.' },
               { label: 'Nonpartisan', body: 'We do not favor any party, candidate, or ideology. Our controversial bill flags are based on objective vote patterns — not editorial judgment.' },
               { label: 'No spin', body: 'We present data as it is. Bill summaries come directly from the Idaho Legislature\'s official statements of purpose.' },
               { label: 'Open data', body: 'Legislative data is provided by LegiScan under Creative Commons CC BY 4.0 and sourced from the Idaho Legislature\'s official records.' },
