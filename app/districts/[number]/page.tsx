@@ -253,7 +253,7 @@ export default async function DistrictPage({ params }: Props) {
 
       {/* Legislator cards */}
       <section className="mb-10">
-        <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">Your Legislators</h2>
+        <h2 className="section-label mb-4">Your Legislators</h2>
         <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
           {legislators.map((leg: any) => {
             const stats = voteStats[leg.id] || { yea: 0, nay: 0, absent: 0 }
@@ -318,7 +318,7 @@ export default async function DistrictPage({ params }: Props) {
           {/* Controversial votes */}
           {controversialVotes.length > 0 && (
             <section>
-              <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">
+              <h2 className="section-label mb-4">
                 Key Votes — District {n}
               </h2>
               <div className="space-y-3">
@@ -368,7 +368,7 @@ export default async function DistrictPage({ params }: Props) {
         <div className="md:col-span-2">
           {bills.length > 0 && (
             <section>
-              <h2 className="font-oswald text-xs font-semibold tracking-widest text-slate-400 uppercase mb-4">
+              <h2 className="section-label mb-4">
                 Bills Sponsored ({bills.length})
               </h2>
               <div className="space-y-2">

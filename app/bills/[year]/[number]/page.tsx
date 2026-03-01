@@ -289,7 +289,7 @@ export default async function BillPage({ params }: Props) {
           {/* Statement of Purpose */}
           {bill.plain_summary && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">STATEMENT OF PURPOSE</h2>
+              <h2 className="section-label mb-2">STATEMENT OF PURPOSE</h2>
               <details open className="group">
                 <summary className="cursor-pointer list-none">
                   <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
@@ -307,7 +307,7 @@ export default async function BillPage({ params }: Props) {
           {/* Full bill text — collapsed for readability, in DOM for SEO */}
           {billText && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">BILL TEXT</h2>
+              <h2 className="section-label mb-2">BILL TEXT</h2>
               <details className="group">
                 <summary className="cursor-pointer list-none">
                   <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
@@ -327,7 +327,7 @@ export default async function BillPage({ params }: Props) {
           {/* Roll calls + full voting record */}
           {rollCalls.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">HOW THEY VOTED</h2>
+              <h2 className="section-label mb-3">HOW THEY VOTED</h2>
               <div className="space-y-6">
                 {rollCalls.map((rc: any) => {
                   const total = rc.yea_count + rc.nay_count
@@ -464,7 +464,7 @@ export default async function BillPage({ params }: Props) {
           {/* Bill history */}
           {bill.last_action && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">LATEST ACTION</h2>
+              <h2 className="section-label mb-2">LATEST ACTION</h2>
               <p className="text-sm text-slate-600">{bill.last_action}</p>
               {bill.last_action_date && (
                 <p className="text-xs text-slate-400 mt-1">
@@ -488,7 +488,7 @@ export default async function BillPage({ params }: Props) {
 
             {/* Quick facts */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">BILL INFO</h2>
+            <h2 className="section-label mb-3">BILL INFO</h2>
             <dl className="space-y-2 text-sm">
               <div className="flex justify-between">
                 <dt className="text-slate-500">Session</dt>
@@ -530,7 +530,7 @@ export default async function BillPage({ params }: Props) {
           {/* Related bills */}
           {(relatedByCommittee.length > 0 || relatedBySponsor.length > 0 || relatedBySubject.length > 0) && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">RELATED BILLS</h2>
+              <h2 className="section-label mb-3">RELATED BILLS</h2>
 
               {relatedByCommittee.length > 0 && (
                 <div className={relatedBySponsor.length > 0 ? 'mb-4' : ''}>
@@ -584,7 +584,7 @@ export default async function BillPage({ params }: Props) {
 
           {/* Documents */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">DOCUMENTS</h2>
+            <h2 className="section-label mb-3">DOCUMENTS</h2>
             <div className="space-y-2">
               <a
                 href={`https://legislature.idaho.gov/wp-content/uploads/sessioninfo/${year}/legislation/${bill.bill_number.replace(/\s+/g, '').toUpperCase()}.pdf`}
@@ -608,7 +608,7 @@ export default async function BillPage({ params }: Props) {
           {/* External links */}
           {bill.state_url && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">LINKS</h2>
+              <h2 className="section-label mb-3">LINKS</h2>
               <a
                 href={bill.state_url}
                 target="_blank"
@@ -623,7 +623,7 @@ export default async function BillPage({ params }: Props) {
           {/* Sponsors */}
           {sponsors.length > 0 && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">SPONSORS</h2>
+              <h2 className="section-label mb-3">SPONSORS</h2>
               <div className="space-y-2">
                 {sponsors.map((s: any, i: number) => (
                   <div key={i} className="flex items-center gap-2">

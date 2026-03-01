@@ -45,7 +45,7 @@ export default function AboutPage() {
 
         {/* Mission */}
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">OUR MISSION</h2>
+          <h2 className="section-label mb-3">OUR MISSION</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
               Tally Idaho is a free, nonpartisan civic tool built for Idaho voters. We believe that
@@ -66,7 +66,7 @@ export default function AboutPage() {
 
         {/* What we track */}
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">WHAT WE TRACK</h2>
+          <h2 className="section-label mb-3">WHAT WE TRACK</h2>
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
             {[
               { icon: '📄', title: 'Bills', body: 'Every bill introduced in the Idaho Legislature since 2016 — titles, sponsors, status, and full text links.' },
@@ -87,7 +87,7 @@ export default function AboutPage() {
 
         {/* Principles */}
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">OUR PRINCIPLES</h2>
+          <h2 className="section-label mb-3">OUR PRINCIPLES</h2>
           <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
             {[
               { label: 'Free, always', body: 'Tally Idaho will never charge for access to public legislative data.' },
@@ -105,7 +105,7 @@ export default function AboutPage() {
 
         {/* Data sources */}
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">DATA SOURCES</h2>
+          <h2 className="section-label mb-3">DATA SOURCES</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
               Bill and vote data is sourced from{' '}
@@ -134,7 +134,7 @@ export default function AboutPage() {
 
         {/* Contact / feedback */}
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">CONTACT & FEEDBACK</h2>
+          <h2 className="section-label mb-3">CONTACT & FEEDBACK</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
               Tally Idaho is an independent civic project. We are not affiliated with the Idaho

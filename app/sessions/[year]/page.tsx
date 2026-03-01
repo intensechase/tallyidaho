@@ -154,7 +154,7 @@ export default async function SessionPage({ params }: Props) {
           {/* Recent activity */}
           <section>
             <div className="flex items-center justify-between mb-3">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400">RECENT ACTIVITY</h2>
+              <h2 className="section-label">RECENT ACTIVITY</h2>
               <Link href={`/bills?year=${year}`} className="text-xs text-amber-700 hover:underline">
                 View all {stats.billsCount.toLocaleString()} bills →
               </Link>
@@ -194,7 +194,7 @@ export default async function SessionPage({ params }: Props) {
           {controversialBills.length > 0 && (
             <section>
               <div className="flex items-center justify-between mb-3">
-                <h2 className="text-xs font-bold tracking-widest text-slate-400">CONTROVERSIAL BILLS</h2>
+                <h2 className="section-label">CONTROVERSIAL BILLS</h2>
                 <Link href={`/bills?year=${year}&controversial=true`} className="text-xs text-amber-700 hover:underline">
                   View all {stats.controversialCount} →
                 </Link>
@@ -237,7 +237,7 @@ export default async function SessionPage({ params }: Props) {
         {/* Right sidebar: top sponsors */}
         <div>
           <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-4">TOP SPONSORS</h2>
+            <h2 className="section-label mb-4">TOP SPONSORS</h2>
             <div className="space-y-3">
               {topSponsors.map(({ leg, count }, i) => (
                 <Link
@@ -264,7 +264,7 @@ export default async function SessionPage({ params }: Props) {
 
           {/* Quick links */}
           <div className="mt-4 bg-white border border-slate-200 rounded-xl p-4 space-y-2">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">EXPLORE {year}</h2>
+            <h2 className="section-label mb-3">EXPLORE {year}</h2>
             {[
               { href: `/bills?year=${year}`, label: 'All bills' },
               { href: `/bills?year=${year}&controversial=true`, label: 'Controversial bills' },

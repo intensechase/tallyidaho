@@ -337,7 +337,7 @@ export default async function LegislatorPage({ params }: Props) {
           {/* Bills sponsored */}
           {primaryBills.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">
+              <h2 className="section-label mb-3">
                 BILLS SPONSORED ({primaryBills.length})
               </h2>
               <div className="space-y-2">
@@ -350,7 +350,7 @@ export default async function LegislatorPage({ params }: Props) {
 
           {coBills.length > 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">
+              <h2 className="section-label mb-3">
                 CO-SPONSORED ({coBills.length})
               </h2>
               <div className="space-y-2">
@@ -363,14 +363,14 @@ export default async function LegislatorPage({ params }: Props) {
 
           {primaryBills.length === 0 && coBills.length === 0 && (
             <section>
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">BILLS SPONSORED</h2>
+              <h2 className="section-label mb-3">BILLS SPONSORED</h2>
               <p className="text-sm text-slate-400 italic">No bills sponsored in the 2026 session yet.</p>
             </section>
           )}
 
           {/* Voting record tabs */}
           <section>
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">VOTING RECORD</h2>
+            <h2 className="section-label mb-3">VOTING RECORD</h2>
             <VoteTabs
               allVotes={votes as any}
               keyVotes={keyVotes as any}
@@ -385,7 +385,7 @@ export default async function LegislatorPage({ params }: Props) {
           {/* Vote breakdown */}
           {voteStats && voteStats.total > 0 && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-4">
+              <h2 className="section-label mb-4">
                 {session?.year_start || 2026} VOTES
               </h2>
 
@@ -406,7 +406,7 @@ export default async function LegislatorPage({ params }: Props) {
           {/* Committees */}
           {committees && committees.length > 0 && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">
+              <h2 className="section-label mb-3">
                 COMMITTEES ({session?.year_start || 2026})
               </h2>
               <div className="space-y-1.5">
@@ -443,7 +443,7 @@ export default async function LegislatorPage({ params }: Props) {
 
           {/* Stats */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">STATS</h2>
+            <h2 className="section-label mb-3">STATS</h2>
             <dl className="space-y-3">
               <div>
                 <dt className="text-xs text-slate-500">Bills sponsored</dt>
@@ -479,7 +479,7 @@ export default async function LegislatorPage({ params }: Props) {
           {/* Contact */}
           {((leg as any).email || (leg as any).phone) && (
             <section className="bg-white border border-slate-200 rounded-xl p-4">
-              <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">CONTACT</h2>
+              <h2 className="section-label mb-3">CONTACT</h2>
               <div className="space-y-2 text-sm">
                 {(leg as any).email && (
                   <a
@@ -506,7 +506,7 @@ export default async function LegislatorPage({ params }: Props) {
 
           {/* Links */}
           <section className="bg-white border border-slate-200 rounded-xl p-4">
-            <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">LINKS</h2>
+            <h2 className="section-label mb-3">LINKS</h2>
             <div className="space-y-2 text-sm">
               <Link
                 href={`/districts/${distNum}`}

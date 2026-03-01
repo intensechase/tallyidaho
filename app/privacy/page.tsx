@@ -28,7 +28,7 @@ export default function PrivacyPage() {
       <div className="space-y-8 text-sm text-slate-600 leading-relaxed">
 
         <section className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">THE SHORT VERSION</h2>
+          <h2 className="section-label mb-3">THE SHORT VERSION</h2>
           <p>
             Tally Idaho does not collect personal information, does not require an account,
             and does not sell or share data with third parties.
@@ -37,7 +37,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">INFORMATION WE COLLECT</h2>
+          <h2 className="section-label mb-3">INFORMATION WE COLLECT</h2>
           <div className="bg-white border border-slate-200 rounded-xl divide-y divide-slate-100">
             {[
               {
@@ -66,7 +66,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">DATA SOURCES</h2>
+          <h2 className="section-label mb-3">DATA SOURCES</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
               All legislative data displayed on Tally Idaho is public information sourced from{' '}
@@ -81,7 +81,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">THIRD PARTIES</h2>
+          <h2 className="section-label mb-3">THIRD PARTIES</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
               We do not sell, rent, or share any data with third parties for advertising or marketing purposes.
@@ -93,7 +93,7 @@ export default function PrivacyPage() {
         </section>
 
         <section>
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-3">CONTACT</h2>
+          <h2 className="section-label mb-3">CONTACT</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6">
             <p>
               Questions about this policy? Reach us at{' '}

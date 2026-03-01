@@ -106,7 +106,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {senateCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">Senate Committees</h2>
+                <h2 className="section-heading">Senate Committees</h2>
                 <span className="text-xs text-slate-400">{senateCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={senateCommittees} billCounts={billCounts} year={year} />
@@ -117,7 +117,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {houseCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">House Committees</h2>
+                <h2 className="section-heading">House Committees</h2>
                 <span className="text-xs text-slate-400">{houseCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={houseCommittees} billCounts={billCounts} year={year} />
@@ -128,7 +128,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
           {jointCommittees.length > 0 && (
             <section>
               <div className="flex items-center gap-3 mb-4">
-                <h2 className="font-oswald text-2xl font-bold text-slate-800 tracking-tight uppercase">Joint Committees</h2>
+                <h2 className="section-heading">Joint Committees</h2>
                 <span className="text-xs text-slate-400">{jointCommittees.length} committees</span>
               </div>
               <CommitteeGrid committees={jointCommittees} billCounts={billCounts} year={year} />

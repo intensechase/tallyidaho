@@ -328,7 +328,7 @@ export default function FAQPage() {
 
       {/* Process */}
       <section className="mb-14">
-        <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-6">THE PROCESS — HOW A BILL BECOMES LAW</h2>
+        <h2 className="section-label mb-6">THE PROCESS — HOW A BILL BECOMES LAW</h2>
         <div className="space-y-4">
           {PROCESS_STEPS.map(s => (
             <div key={s.step} className="flex gap-4 bg-white border border-slate-200 rounded-xl p-5">
@@ -366,7 +366,7 @@ export default function FAQPage() {
 
       {/* Floor Calendar Orders */}
       <section className="mb-14">
-        <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-2">THE DAILY FLOOR CALENDAR — READING ORDERS</h2>
+        <h2 className="section-label mb-2">THE DAILY FLOOR CALENDAR — READING ORDERS</h2>
         <p className="text-sm text-slate-500 mb-6">
           Each day the Legislature is in session, the Senate and House publish a floor calendar listing which bills will be considered. Bills are grouped by "reading" — the stage they are at in the process.
         </p>
@@ -401,7 +401,7 @@ export default function FAQPage() {
 
       {/* Glossary */}
       <section>
-        <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-6">GLOSSARY OF TERMS</h2>
+        <h2 className="section-label mb-6">GLOSSARY OF TERMS</h2>
         <div className="space-y-2">
           {TERMS.map(t => (
             <details key={t.term} className="group bg-white border border-slate-200 rounded-xl overflow-hidden">

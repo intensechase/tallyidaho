@@ -136,6 +136,16 @@
   @apply text-3xl font-black text-slate-900;
 }
 
+/* Mid-level section dividers (e.g. "Senate Committees") */
+.section-heading {
+  @apply text-lg font-bold text-slate-700;
+}
+
+/* Tiny ALL-CAPS section labels (e.g. "STATEMENT OF PURPOSE") */
+.section-label {
+  @apply text-xs font-bold tracking-widest text-slate-400 uppercase;
+}
+
 /* Party badge utilities */
 .party-badge {
   @apply inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white;

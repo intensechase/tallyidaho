@@ -202,7 +202,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
 
         {/* Members */}
         <div className="md:col-span-3">
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-4">MEMBERS</h2>
+          <h2 className="section-label mb-4">MEMBERS</h2>
 
           {members.length === 0 ? (
             <p className="text-sm text-slate-400">No member data available.</p>
@@ -263,7 +263,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
 
         {/* Bills */}
         <div className="md:col-span-2">
-          <h2 className="text-xs font-bold tracking-widest text-slate-400 mb-4">
+          <h2 className="section-label mb-4">
             BILLS REFERRED ({bills.length})
           </h2>
 
