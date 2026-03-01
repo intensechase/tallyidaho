@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
+import MeetingRecord, { MeetingRow } from '@/components/MeetingRecord'
 
 interface Props {
   params: Promise<{ code: string }>
@@ -70,7 +71,13 @@ async function getCommitteeData(code: string, year: number) {
     (b.last_action_date || '').localeCompare(a.last_action_date || '')
   )
 
-  return { session, committee, bills }
+  const { data: meetings } = await supabase
+    .from('committee_meetings')
+    .select('id, date, time, room, status, agenda_url, minutes_url, video_url, agenda_text')
+    .eq('committee_id', committee.id)
+    .order('date', { ascending: false })
+
+  return { session, committee, bills, meetings: (meetings ?? []) as MeetingRow[] }
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -113,7 +120,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
   const data = await getCommitteeData(code, year)
   if (!data) notFound()
 
-  const { session, committee, bills } = data
+  const { session, committee, bills, meetings } = data
 
   // Sort members: Chair first, then Vice Chair, then Members
   const roleOrder: Record<string, number> = { Chair: 0, 'Vice Chair': 1, 'Co-Chair': 1 }
@@ -305,6 +312,15 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
         </div>
 
       </div>
+
+      {/* Meeting Record */}
+      {meetings.length > 0 && (
+        <div className="mt-12">
+          <h2 className="section-label mb-6">MEETING RECORD</h2>
+          <MeetingRecord meetings={meetings} year={year} />
+        </div>
+      )}
+
     </main>
   )
 }
