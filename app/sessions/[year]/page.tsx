@@ -112,7 +112,7 @@ export default async function SessionPage({ params }: Props) {
       {/* Header */}
       <div className="mb-8">
         <div className="flex items-center gap-3 mb-2 flex-wrap">
-          <h1 className="font-playfair text-3xl font-black text-slate-900">{session.name}</h1>
+          <h1 className="page-heading">{session.name}</h1>
           {isCurrent && (
             <span className="text-xs font-bold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-1 rounded-full">
               LIVE
