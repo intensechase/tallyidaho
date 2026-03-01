@@ -98,24 +98,39 @@ async function getLegislator(slug: string) {
     .filter((b: any) => b?.session_id === session.id)
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
 
-  // Voting record — filter to 2026 session at the DB level via inner joins
-  const { data: votes } = await supabase
-    .from('legislator_votes')
-    .select('vote, roll_calls!inner(id, date, chamber, passed, yea_count, nay_count, is_party_line, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason))')
-    .eq('legislator_id', leg.id)
-    .eq('roll_calls.bills.session_id', session.id)
-    .order('id', { ascending: false })
+  // Step 1: All floor roll calls for 2026 in this legislator's chamber
+  const { data: chamberRollCalls } = await supabase
+    .from('roll_calls')
+    .select('id, date, chamber, passed, yea_count, nay_count, is_party_line, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason)')
+    .eq('bills.session_id', session.id)
+    .eq('chamber', leg.chamber)
+    .order('date', { ascending: false })
 
-  const sessionVotes = votes || []
+  // Step 2: Which of those did this legislator vote on?
+  const rollCallIds = (chamberRollCalls ?? []).map((rc: any) => rc.id)
+  const { data: legVoteRecords } = rollCallIds.length > 0
+    ? await supabase
+        .from('legislator_votes')
+        .select('vote, roll_call_id')
+        .eq('legislator_id', leg.id)
+        .in('roll_call_id', rollCallIds)
+    : { data: [] }
+
+  // Step 3: Merge — no vote record = absent
+  const voteMap = new Map((legVoteRecords ?? []).map((lv: any) => [lv.roll_call_id, lv.vote]))
+  const sessionVotes = (chamberRollCalls ?? []).map((rc: any) => ({
+    vote: voteMap.get(rc.id) ?? 'absent',
+    roll_calls: rc,
+  }))
 
   // Vote breakdown stats
   const yeaCount = sessionVotes.filter((v: any) => v.vote === 'yea').length
   const nayCount = sessionVotes.filter((v: any) => v.vote === 'nay').length
-  const absentCount = sessionVotes.filter((v: any) => v.vote !== 'yea' && v.vote !== 'nay').length
+  const absentCount = sessionVotes.filter((v: any) => v.vote === 'absent').length
   const totalVotes = sessionVotes.length
 
-  // Party-line vote stat: % they voted with the majority on is_party_line bills
-  const partyLineVotes = sessionVotes.filter((v: any) => v.roll_calls?.is_party_line)
+  // Party-line vote stat: % they voted with majority on party-line bills (exclude absences)
+  const partyLineVotes = sessionVotes.filter((v: any) => v.roll_calls?.is_party_line && v.vote !== 'absent')
   const partyLineTotal = partyLineVotes.length
   const partyLineWithMajority = partyLineVotes.filter((v: any) => {
     const rc = v.roll_calls
