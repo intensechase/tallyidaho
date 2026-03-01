@@ -136,6 +136,7 @@ export default function BillsFilters({
           <option value="3">Floor Vote</option>
           <option value="4">Enacted</option>
           <option value="failed">Failed vote</option>
+          <option value="dead">Dead / Vetoed</option>
         </select>
 
         {/* Sponsor */}

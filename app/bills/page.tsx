@@ -2,7 +2,7 @@ import { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import Link from 'next/link'
 import BillsFilters from '@/components/BillsFilters'
-import { BillStepperCompact, getBillStage } from '@/components/BillStatusStepper'
+import { BillStepperCompact, getBillStage, getBillDead } from '@/components/BillStatusStepper'
 import { legislatorSlug } from '@/lib/slugify'
 
 export const metadata: Metadata = {
@@ -115,6 +115,9 @@ export default async function BillsPage({ searchParams }: Props) {
   else if (status === '2') billsQuery = billsQuery.eq('status', 2).eq('completed', false)
   else if (status === '3') billsQuery = billsQuery.eq('status', 3).eq('completed', false)
   else if (status === '4') billsQuery = billsQuery.eq('completed', true)
+  else if (status === 'dead') {
+    billsQuery = billsQuery.in('status', ['5', '6']).eq('completed', false)
+  }
   else if (status === 'failed') {
     // Two-step: get IDs of bills with at least one failed roll call
     const { data: failedRcRows } = await supabase
@@ -189,8 +192,11 @@ export default async function BillsPage({ searchParams }: Props) {
           const total = yea + nay
           const yeaPct = total > 0 ? Math.round((yea / total) * 100) : 0
 
+          const deadInfo = getBillDead(bill.status, bill.completed)
+
           const statusBorderLeft =
             bill.completed ? 'border-l-4 border-l-emerald-400' :
+            deadInfo.dead ? 'border-l-4 border-l-slate-300' :
             bill.is_controversial && bill.controversy_reason === 'party_line' ? 'border-l-4 border-l-red-400' :
             bill.is_controversial ? 'border-l-4 border-l-orange-400' :
             (bill.status === '3' || bill.status === 3) ? 'border-l-4 border-l-blue-400' :
@@ -227,6 +233,11 @@ export default async function BillsPage({ searchParams }: Props) {
                           ✓ {bill.last_action?.toLowerCase().includes('law') ? 'Signed' : 'Completed'}
                         </span>
                       )}
+                      {deadInfo.dead && (
+                        <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-0.5 rounded-full">
+                          ✗ {deadInfo.label}
+                        </span>
+                      )}
                       {bill.committee_name && !bill.completed && (
                         <span className="text-xs text-slate-500 bg-slate-50 border border-slate-200 px-2 py-0.5 rounded-full">
                           {bill.committee_name}
@@ -245,7 +256,11 @@ export default async function BillsPage({ searchParams }: Props) {
                         {' · '}{sponsor.district}
                       </p>
                     )}
-                    <BillStepperCompact stage={getBillStage(bill.status, bill.completed)} />
+                    <BillStepperCompact
+                      stage={getBillStage(bill.status, bill.completed, (bill.roll_calls?.length ?? 0) > 0)}
+                      dead={deadInfo.dead}
+                      deadLabel={deadInfo.label}
+                    />
                   </div>
 
                   {latestRc && (

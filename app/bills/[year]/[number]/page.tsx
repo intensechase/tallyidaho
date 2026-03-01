@@ -3,7 +3,7 @@ import { notFound } from 'next/navigation'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
-import { BillStepperFull, getBillStage } from '@/components/BillStatusStepper'
+import { BillStepperFull, getBillStage, getBillDead } from '@/components/BillStatusStepper'
 import VoteNamesToggle from '@/components/VoteNamesToggle'
 import ShareButton from '@/components/ShareButton'
 
@@ -106,6 +106,7 @@ export default async function BillPage({ params }: Props) {
     .filter((s: any) => s.legislators?.name && !s.legislators.name.includes('Committee'))
 
   const rollCalls = bill.roll_calls || []
+  const deadInfo = getBillDead(bill.status, bill.completed)
 
   // Fetch related bills — by committee and by primary sponsor
   const supabase = createServerClient()
@@ -232,6 +233,11 @@ export default async function BillPage({ params }: Props) {
               ✓ {bill.last_action?.toLowerCase().includes('law') ? 'Signed into law' : 'Completed'}
             </span>
           )}
+          {deadInfo.dead && (
+            <span className="text-xs font-semibold text-red-600 bg-red-50 border border-red-200 px-2 py-1 rounded-full">
+              ✗ {deadInfo.label === 'Vetoed' ? 'Vetoed by Governor' : 'Failed'}
+            </span>
+          )}
         </div>
 
         <h1 className="font-oswald text-2xl font-bold text-slate-900 leading-snug mb-1 tracking-tight">
@@ -259,7 +265,11 @@ export default async function BillPage({ params }: Props) {
 
       {/* Status pipeline */}
       <div className="mb-6">
-        <BillStepperFull stage={getBillStage(bill.status, bill.completed)} />
+        <BillStepperFull
+          stage={getBillStage(bill.status, bill.completed, rollCalls.length > 0)}
+          dead={deadInfo.dead}
+          deadLabel={deadInfo.label}
+        />
         {bill.committee_name && getBillStage(bill.status, bill.completed) <= 3 && (
           <p className="text-center text-xs text-slate-500 mt-2">
             {getBillStage(bill.status, bill.completed) === 2 ? 'Committee:' : 'Via committee:'}{' '}

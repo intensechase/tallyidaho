@@ -6,7 +6,13 @@ const nextConfig: NextConfig = {
       {
         source: '/faq',
         destination: '/idaho-legislative-process',
-        permanent: true, // 301 redirect — preserves SEO equity
+        permanent: true,
+      },
+      {
+        // /bills/2026 → /bills?year=2026 (year as path segment → query param)
+        source: '/bills/:year(\\d{4})',
+        destination: '/bills?year=:year',
+        permanent: false,
       },
     ]
   },
