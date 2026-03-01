@@ -294,9 +294,14 @@ export default function MeetingRecord({ meetings, year }: Props) {
                         Scheduled
                       </span>
                     ) : hasMinutes ? (
-                      <span className="text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 px-2.5 py-1 rounded-full">
+                      <a
+                        href={meeting.minutes_url!}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="text-xs font-bold bg-emerald-500/20 text-emerald-400 border border-emerald-500/30 hover:bg-emerald-500/30 px-2.5 py-1 rounded-full transition-colors"
+                      >
                         Minutes Available
-                      </span>
+                      </a>
                     ) : (
                       <span className="text-xs font-bold bg-slate-700 text-slate-400 px-2.5 py-1 rounded-full">
                         Met
