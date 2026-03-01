@@ -221,7 +221,7 @@ function extractBios(html: string): Map<string, string> {
       .replace(new RegExp(`^(?:${LEADERSHIP_TITLES.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*`, 'i'), '')
       .replace(/\bPrint\b/g, '')
       .replace(/\bDismiss\b/g, '')
-      .replace(/subscribe to mailing list\(s\).*/si, '') // truncate at nav garbage
+      .replace(/subscribe to mailing list\(s\)[\s\S]*/i, '') // truncate at nav garbage
       .replace(/\bView Bio\b/gi, '')
       .replace(/\s+/g, ' ')
       .trim()
