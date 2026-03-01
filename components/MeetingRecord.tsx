@@ -37,13 +37,38 @@ function parseAgendaItems(text: string): Array<{
   content: string
   normalized?: string
 }> {
+  const lines = text.split('\n')
+
+  // ── Trim header: start after idahoptv.org link (fallback: after "SUBJECT DESCRIPTION PRESENTER") ──
+  let startIdx = 0
+  for (let i = 0; i < lines.length; i++) {
+    if (lines[i].includes('idahoptv.org')) {
+      startIdx = i + 1
+      break
+    }
+    if (/SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(lines[i])) {
+      startIdx = i + 1
+      break
+    }
+  }
+
+  // ── Trim footer: stop before "If you have written testimony" ──
+  let endIdx = lines.length
+  for (let i = startIdx; i < lines.length; i++) {
+    if (/if you have written testimony/i.test(lines[i])) {
+      endIdx = i
+      break
+    }
+  }
+
   const BILL_RE = /^([A-Z]{1,4})\s+(\d{1,4})\b/
   const RS_RE   = /^RS\s+\d{4,6}/i
 
-  return text
-    .split('\n')
+  return lines
+    .slice(startIdx, endIdx)
     .map(l => l.trim())
     .filter(l => l.length > 1)
+    .filter(l => !/^SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(l)) // skip repeated column header
     .map(line => {
       if (RS_RE.test(line)) {
         return { type: 'rs' as const, content: line }
