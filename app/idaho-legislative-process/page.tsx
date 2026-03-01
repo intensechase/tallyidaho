@@ -350,7 +350,7 @@ export default function IdahoLegislativeProcessPage() {
         <span className="text-slate-600">Idaho Legislative Process</span>
       </nav>
 
-      <h1 className="font-oswald text-3xl font-bold text-slate-900 mb-2 tracking-tight">
+      <h1 className="page-heading mb-2">
         How Idaho Laws Are Made
       </h1>
       <p className="text-slate-500 text-sm mb-10 leading-relaxed">

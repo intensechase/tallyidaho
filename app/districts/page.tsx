@@ -84,7 +84,7 @@ export default async function DistrictsPage() {
       </nav>
 
       <div className="mb-8">
-        <h1 className="font-oswald text-4xl font-bold tracking-tight text-slate-900">Idaho Legislative Districts</h1>
+        <h1 className="page-heading">Idaho Legislative Districts</h1>
         <p className="text-sm text-slate-500 mt-2">
           35 districts · each elects 1 senator and 2 representatives
         </p>

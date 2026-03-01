@@ -1,0 +1,45 @@
+# Tally Idaho
+
+> Free, nonpartisan Idaho legislative tracker. Every bill, every vote, every legislator — 2016 to present.
+
+Tally Idaho (www.tallyidaho.com) is an independent civic tool that makes Idaho legislative data easy to find and understand. It covers all bills introduced in the Idaho Legislature since 2016, every recorded roll call vote, all 105 current legislators, all 35 legislative districts, and all standing committees. Data is updated daily from LegiScan (CC BY 4.0) and the Idaho Legislature's official website. Tally Idaho has no political affiliation and does not editorialize.
+
+## What This Site Covers
+
+- **Bills:** Every bill introduced in the Idaho Legislature from the 2016 session through the current 2026 session (~7,000+ bills). Each bill page includes the bill number, title, plain-language summary (from the official Statement of Purpose), chamber of origin, sponsor(s), committee assignment, current status, and all recorded roll call votes with yes/no counts.
+- **Votes:** Every recorded roll call vote in Idaho House and Senate floor sessions since 2016. Each vote record includes the date, bill, motion, yes count, no count, and how every individual legislator voted.
+- **Legislators:** All 105 current Idaho legislators (35 senators, 70 representatives). Each profile includes party, district, chamber, committee memberships, contact information, and a full voting record.
+- **Districts:** All 35 Idaho legislative districts. Each district page shows the senator and two representatives for that district, along with bills and votes relevant to that district.
+- **Committees:** All standing committees of the Idaho House and Senate. Each committee page lists members and bills the committee has considered.
+- **Sessions:** Every legislative session from 2016 to present, including special sessions.
+
+## Key Facts
+
+- Idaho Legislature has 35 senators and 70 representatives (105 total).
+- Legislative sessions run roughly January through April each year.
+- Idaho uses a single-member senate district system with 35 districts; house districts are subdivided into A and B seats.
+- Bill status codes used on this site: Introduced → In Committee → Passed → Enacted/Signed, Vetoed, or Failed/Dead.
+- A bill is flagged as "controversial" when it passed on a close or party-line vote.
+- Data source: LegiScan API (primary) + Idaho Legislature official site (supplement).
+- Data is not real-time; there may be up to 24 hours of delay after official legislative action.
+
+## URL Patterns
+
+- Homepage: https://www.tallyidaho.com/
+- All bills: https://www.tallyidaho.com/bills
+- Bills by year: https://www.tallyidaho.com/bills?year=2026
+- Bill detail: https://www.tallyidaho.com/bills/{year}/{bill-number} (e.g. /bills/2026/HB0001)
+- All legislators: https://www.tallyidaho.com/legislators
+- Legislator profile: https://www.tallyidaho.com/legislators/{first-last} (e.g. /legislators/mike-moyle)
+- All districts: https://www.tallyidaho.com/districts
+- District detail: https://www.tallyidaho.com/districts/{number} (e.g. /districts/14)
+- All committees: https://www.tallyidaho.com/committees
+- Committee detail: https://www.tallyidaho.com/committees/{code} (e.g. /committees/HJUD)
+- All sessions: https://www.tallyidaho.com/sessions
+- Idaho legislative process guide: https://www.tallyidaho.com/idaho-legislative-process
+- About: https://www.tallyidaho.com/about
+- Sitemap: https://www.tallyidaho.com/sitemap.xml
+
+## Contact
+
+hello@tallyidaho.com

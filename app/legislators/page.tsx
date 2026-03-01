@@ -87,7 +87,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
       </nav>
 
       <div className="mb-6">
-        <h1 className="font-playfair text-3xl font-black text-slate-900">Idaho Legislators</h1>
+        <h1 className="page-heading">Idaho Legislators</h1>
         <p className="text-sm text-slate-500 mt-1">
           {isFiltered ? `${filtered.length} legislators` : '105 legislators across 35 districts'} · {session?.name || `${year} Session`}
         </p>

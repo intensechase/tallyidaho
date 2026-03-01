@@ -38,7 +38,7 @@ export default async function SessionsPage() {
         <span className="text-slate-600">Sessions</span>
       </nav>
 
-      <h1 className="text-2xl font-bold text-slate-900 mb-2">Idaho Legislative Sessions</h1>
+      <h1 className="page-heading mb-2">Idaho Legislative Sessions</h1>
       <p className="text-sm text-slate-500 mb-8">
         All sessions tracked from 2016 to present — regular and special sessions.
       </p>

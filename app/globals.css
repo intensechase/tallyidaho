@@ -130,6 +130,11 @@
 .font-outfit { font-family: var(--font-outfit), system-ui, sans-serif; }
 .font-oswald { font-family: var(--font-oswald), Impact, sans-serif; }
 
+/* Consistent listing-page h1 */
+.page-heading {
+  @apply font-playfair text-3xl font-black text-slate-900;
+}
+
 /* Party badge utilities */
 .party-badge {
   @apply inline-flex items-center justify-center w-5 h-5 rounded-full text-xs font-bold text-white;

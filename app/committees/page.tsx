@@ -72,7 +72,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
 
       <div className="mb-6 flex items-end justify-between gap-4 flex-wrap">
         <div>
-          <h1 className="font-oswald text-4xl font-bold text-slate-900 tracking-tight uppercase">Idaho Legislative Committees</h1>
+          <h1 className="page-heading">Idaho Legislative Committees</h1>
           <p className="text-sm text-slate-500 mt-1">
             Standing committees · {session?.name || `${year} Session`}
           </p>

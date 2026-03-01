@@ -160,7 +160,7 @@ export default async function BillsPage({ searchParams }: Props) {
           <span className="mx-2">›</span>
           <span className="text-slate-600">Bills</span>
         </nav>
-        <h1 className="text-2xl font-bold text-slate-900">Idaho Bills</h1>
+        <h1 className="page-heading">Idaho Bills</h1>
         <p className="text-sm text-slate-500 mt-1">
           {count?.toLocaleString()} bill{count !== 1 ? 's' : ''} · {session?.name || `${year} Session`}
         </p>
