@@ -32,25 +32,57 @@ function normalizeBillNum(raw: string): string {
     : prefix + num.padStart(3, '0')
 }
 
-function trimAgendaLines(text: string): string[] {
+function parseAgendaItems(text: string): Array<{
+  type: 'bill' | 'rs' | 'text'
+  content: string
+  normalized?: string
+}> {
   const lines = text.split('\n')
 
-  // Start after idahoptv.org link (fallback: after "SUBJECT DESCRIPTION PRESENTER")
+  // ── Trim header: start after idahoptv.org link (fallback: after "SUBJECT DESCRIPTION PRESENTER") ──
   let startIdx = 0
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes('idahoptv.org')) { startIdx = i + 1; break }
-    if (/SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(lines[i])) { startIdx = i + 1; break }
+    if (lines[i].includes('idahoptv.org')) {
+      startIdx = i + 1
+      break
+    }
+    if (/SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(lines[i])) {
+      startIdx = i + 1
+      break
+    }
   }
 
-  // Stop before "If you have written testimony"
+  // ── Trim footer: stop before "If you have written testimony" ──
   let endIdx = lines.length
   for (let i = startIdx; i < lines.length; i++) {
-    if (/if you have written testimony/i.test(lines[i])) { endIdx = i; break }
+    if (/if you have written testimony/i.test(lines[i])) {
+      endIdx = i
+      break
+    }
   }
+
+  const BILL_RE = /^([A-Z]{1,4})\s+(\d{1,4})\b/
+  const RS_RE   = /^RS\s+\d{4,6}/i
 
   return lines
     .slice(startIdx, endIdx)
-    .filter(l => !/^SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(l.trim()))
+    .map(l => l.trim())
+    .filter(l => l.length > 1)
+    .filter(l => !/^SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(l)) // skip repeated column header
+    .map(line => {
+      if (RS_RE.test(line)) {
+        return { type: 'rs' as const, content: line }
+      }
+      const bm = line.match(BILL_RE)
+      if (bm) {
+        return {
+          type: 'bill' as const,
+          content: line,
+          normalized: normalizeBillNum(`${bm[1]} ${bm[2]}`),
+        }
+      }
+      return { type: 'text' as const, content: line }
+    })
 }
 
 function formatDate(dateStr: string): string {
@@ -86,38 +118,51 @@ function ExpandToggle({
 
 // ── Agenda items renderer ─────────────────────────────────────────────────────
 
-// Match a bill number at the start of a line (e.g. "H 1342", "HB 342", "SB 10")
-// Excludes RS items (Research Services)
-const BILL_LINE_RE = /^([A-Z]{1,2})\s+(\d{1,4})\b/
-
 function AgendaContent({ text, year }: { text: string; year: number }) {
-  const lines = trimAgendaLines(text)
-
   return (
     <div className="mt-2 bg-white border border-amber-200 rounded-xl p-4 max-h-[500px] overflow-y-auto">
-      <div className="font-mono text-[11px] leading-relaxed">
-        {lines.map((line, idx) => {
-          const m = line.match(BILL_LINE_RE)
-          if (m && m[1].toUpperCase() !== 'RS') {
-            const normalized = normalizeBillNum(`${m[1]} ${m[2]}`)
-            const rest = line.slice(m[0].length)
+      <div className="space-y-2">
+        {parseAgendaItems(text).map((item, idx) => {
+          if (item.type === 'bill') {
+            const slug = item.normalized!.toLowerCase()
+            const description = item.content
+              .replace(/^[A-Z]{1,4}\s*\d+\s*[-–—]?\s*/i, '')
+              .trim()
             return (
-              <div key={idx} className="whitespace-pre">
+              <div key={idx} className="flex items-start gap-2">
                 <Link
-                  href={`/bills/${year}/${normalized.toLowerCase()}`}
-                  className="text-amber-600 font-bold hover:underline"
+                  href={`/bills/${year}/${slug}`}
+                  className="shrink-0 text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 hover:bg-amber-100 px-2 py-0.5 rounded-full transition-colors"
                 >
-                  {m[0]}
+                  {item.normalized}
                 </Link>
-                <span className="text-slate-700">{rest}</span>
+                {description && (
+                  <span className="text-xs text-slate-600 pt-0.5 leading-snug">
+                    {description}
+                  </span>
+                )}
               </div>
             )
           }
-          return (
-            <div key={idx} className="whitespace-pre text-slate-600">
-              {line || '\u00a0'}
-            </div>
-          )
+
+          if (item.type === 'rs') {
+            const rsNum  = item.content.match(/^RS\s+\d+/i)?.[0] ?? ''
+            const rsDesc = item.content.replace(/^RS\s+\d+\s*[-–—]?\s*/i, '').trim()
+            return (
+              <div key={idx} className="flex items-start gap-2">
+                <span className="shrink-0 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                  {rsNum}
+                </span>
+                {rsDesc && (
+                  <span className="text-xs text-slate-500 pt-0.5 leading-snug">{rsDesc}</span>
+                )}
+              </div>
+            )
+          }
+
+          return item.content.length > 3
+            ? <p key={idx} className="text-xs text-slate-400 leading-relaxed">{item.content}</p>
+            : null
         })}
       </div>
     </div>
