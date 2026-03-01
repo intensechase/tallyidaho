@@ -62,11 +62,18 @@ async function getLegislator(slug: string) {
   const leg = legislators.find(l => legislatorSlug(l.name) === slug)
   if (!leg) return null
 
-  // Count terms served (sessions this legislator appears in)
-  const { count: termsServed } = await supabase
+  // Count terms served — group sessions into 2-year blocks (odd year = term start)
+  // e.g. 2025 session and 2026 session both map to the "2025 term" (elected Nov 2024)
+  const { data: legSessions } = await supabase
     .from('legislator_sessions')
-    .select('*', { count: 'exact', head: true })
+    .select('sessions(year_start)')
     .eq('legislator_id', leg.id)
+  const termsServed = new Set(
+    (legSessions ?? []).map((ls: any) => {
+      const yr = ls.sessions?.year_start ?? 0
+      return yr % 2 === 0 ? yr - 1 : yr
+    })
+  ).size
 
   // Get 2026 session
   const { data: session } = await supabase
