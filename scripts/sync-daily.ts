@@ -211,7 +211,8 @@ async function main() {
       status_date: bill.status_date || null,
       last_action: lastAction,
       last_action_date: bill.last_action_date || null,
-      completed: bill.completed === 1,
+      // LegiScan's completed flag is unreliable — status=4 means enacted, which is always complete
+      completed: bill.completed === 1 || Number(bill.status || 0) >= 4,
       legiscan_url: bill.url || null,
       state_url: bill.state_link || null,
       subjects,
