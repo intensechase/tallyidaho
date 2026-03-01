@@ -161,12 +161,17 @@ export default async function BillPage({ params }: Props) {
     .filter((b: any) => !shownIds.has(b.id))
     .slice(0, 4)
 
+  const toDateStr = (d: string | null | undefined) =>
+    d ? new Date(d).toISOString().split('T')[0] : null
+
   const jsonLd = {
     '@context': 'https://schema.org',
     '@type': 'WebPage',
     name: `Idaho ${bill.bill_number} (${year}) — ${bill.title}`,
     description: (bill.plain_summary || bill.title || '').slice(0, 200),
     url: `https://www.tallyidaho.com/bills/${year}/${bill.bill_number.toUpperCase()}`,
+    datePublished: toDateStr((bill as any).status_date) ?? `${year}-01-01`,
+    dateModified:  toDateStr(bill.last_action_date) ?? toDateStr((bill as any).status_date) ?? `${year}-01-01`,
     about: {
       '@type': 'Legislation',
       name: bill.title,
