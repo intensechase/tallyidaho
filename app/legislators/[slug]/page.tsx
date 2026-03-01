@@ -83,7 +83,7 @@ async function getLegislator(slug: string) {
     .single()
 
   if (!session) {
-    return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], session: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
+    return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], keyVotes: [], session: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
   }
 
   // Bills sponsored this session
@@ -98,13 +98,21 @@ async function getLegislator(slug: string) {
     .filter((b: any) => b?.session_id === session.id)
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
 
-  // Step 1: All floor roll calls for 2026 in this legislator's chamber
-  const { data: chamberRollCalls } = await supabase
+  // Derive chamber from role — more reliable than leg.chamber which may be null
+  const legislatorChamber = leg.role === 'Sen' ? 'senate' : 'house'
+
+  // Step 1: All floor roll calls for this session
+  const { data: allSessionRollCalls } = await supabase
     .from('roll_calls')
     .select('id, date, chamber, passed, yea_count, nay_count, is_party_line, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason)')
     .eq('bills.session_id', session.id)
-    .eq('chamber', leg.chamber)
     .order('date', { ascending: false })
+
+  // Filter by chamber in JS — handles 'senate'/'house', 'S'/'H', or other variants
+  const chamberRollCalls = (allSessionRollCalls ?? []).filter((rc: any) => {
+    const ch = (rc.chamber ?? '').toLowerCase()
+    return legislatorChamber === 'senate' ? ch.startsWith('s') : ch.startsWith('h')
+  })
 
   // Step 2: Which of those did this legislator vote on?
   const rollCallIds = (chamberRollCalls ?? []).map((rc: any) => rc.id)
@@ -122,6 +130,50 @@ async function getLegislator(slug: string) {
     vote: voteMap.get(rc.id) ?? 'absent',
     roll_calls: rc,
   }))
+
+  // Key Votes: start from all controversial bills (same source as homepage)
+  // then find this legislator's vote on each one
+  const { data: controversialBillsRaw } = await supabase
+    .from('bills')
+    .select('id, bill_number, title, session_id, is_controversial, controversy_reason, roll_calls(id, date, chamber, passed, yea_count, nay_count)')
+    .eq('session_id', session.id)
+    .eq('is_controversial', true)
+    .order('last_action_date', { ascending: false })
+
+  const controversialRcIds = (controversialBillsRaw ?? [])
+    .flatMap((b: any) => (b.roll_calls ?? []).map((rc: any) => rc.id))
+
+  const { data: keyVoteRecords } = controversialRcIds.length > 0
+    ? await supabase
+        .from('legislator_votes')
+        .select('vote, roll_call_id')
+        .eq('legislator_id', leg.id)
+        .in('roll_call_id', controversialRcIds)
+    : { data: [] }
+
+  const keyVoteMap = new Map((keyVoteRecords ?? []).map((lv: any) => [lv.roll_call_id, lv.vote]))
+
+  const keyVotes = (controversialBillsRaw ?? []).map((bill: any) => {
+    // Find the roll call in the legislator's chamber
+    const chamberRc = (bill.roll_calls ?? []).find((rc: any) => {
+      const ch = (rc.chamber ?? '').toLowerCase()
+      return legislatorChamber === 'senate' ? ch.startsWith('s') : ch.startsWith('h')
+    })
+    if (!chamberRc) return null // No floor vote in their chamber — skip
+    return {
+      vote: keyVoteMap.get(chamberRc.id) ?? 'absent',
+      roll_calls: {
+        ...chamberRc,
+        bills: {
+          bill_number: bill.bill_number,
+          title: bill.title,
+          session_id: bill.session_id,
+          is_controversial: bill.is_controversial,
+          controversy_reason: bill.controversy_reason,
+        },
+      },
+    }
+  }).filter(Boolean)
 
   // Vote breakdown stats
   const yeaCount = sessionVotes.filter((v: any) => v.vote === 'yea').length
@@ -164,6 +216,7 @@ async function getLegislator(slug: string) {
     termsServed: termsServed ?? 0,
     bills,
     votes: sessionVotes,
+    keyVotes,
     session,
     voteStats: { yea: yeaCount, nay: nayCount, absent: absentCount, total: totalVotes },
     committees,
@@ -204,7 +257,7 @@ export default async function LegislatorPage({ params }: Props) {
 
   if (!data) notFound()
 
-  const { leg, termsServed, bills, votes, session, voteStats, committees, partyLineTotal, partyUnityPct } = data
+  const { leg, termsServed, bills, votes, keyVotes, session, voteStats, committees, partyLineTotal, partyUnityPct } = data
 
   const primaryBills = bills.filter((b: any) => b.sponsor_order === 1)
   const coBills = bills.filter((b: any) => b.sponsor_order > 1)
@@ -216,8 +269,6 @@ export default async function LegislatorPage({ params }: Props) {
   const partyAccent = leg.party === 'R' ? 'bg-red-500' : leg.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'
   const partyText = leg.party === 'R' ? 'text-red-700 bg-red-50 border-red-200' : leg.party === 'D' ? 'text-blue-700 bg-blue-50 border-blue-200' : 'text-slate-600 bg-slate-100 border-slate-200'
 
-  // Separate key votes (controversial) from all votes
-  const keyVotes = votes.filter((v: any) => v.roll_calls?.bills?.is_controversial)
   const termLabel = termsServed === 1 ? '1st term' : `${termsServed} terms`
 
   const chamberPath = leg.chamber === 'senate' ? 'senate' : 'house'

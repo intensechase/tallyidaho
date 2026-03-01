@@ -211,7 +211,9 @@ function extractBios(html: string): Map<string, string> {
   let m: RegExpExecArray | null
   while ((m = modalRe.exec(html)) !== null) {
     const topicId = m[1]
-    let text = stripHtml(m[2])
+    // Strip incomplete trailing HTML tags (e.g. "<div" with no closing ">") before stripping HTML
+    const rawContent = m[2].replace(/<[^>]*$/, '')
+    let text = stripHtml(rawContent)
 
     // The modal content sometimes starts with the email address or leadership title — strip those
     text = text
@@ -219,6 +221,8 @@ function extractBios(html: string): Map<string, string> {
       .replace(new RegExp(`^(?:${LEADERSHIP_TITLES.map(t => t.replace(/[.*+?^${}()|[\]\\]/g, '\\$&')).join('|')})\\s*`, 'i'), '')
       .replace(/\bPrint\b/g, '')
       .replace(/\bDismiss\b/g, '')
+      .replace(/subscribe to mailing list\(s\).*/si, '') // truncate at nav garbage
+      .replace(/\bView Bio\b/gi, '')
       .replace(/\s+/g, ' ')
       .trim()
 
