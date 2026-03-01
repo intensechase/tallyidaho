@@ -132,7 +132,8 @@
 
 /* Consistent listing-page h1 */
 .page-heading {
-  @apply font-playfair text-3xl font-black text-slate-900;
+  font-family: var(--font-playfair), Georgia, serif;
+  @apply text-3xl font-black text-slate-900;
 }
 
 /* Party badge utilities */
