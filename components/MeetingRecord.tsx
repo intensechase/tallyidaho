@@ -286,7 +286,7 @@ export default function MeetingRecord({ meetings, year }: Props) {
                         className="inline-flex items-center gap-1.5 text-xs font-bold bg-red-600 hover:bg-red-700 text-white px-3 py-1 rounded-full transition-colors"
                       >
                         <Play className="w-3 h-3" />
-                        Recording
+                        Download Video
                       </a>
                     )}
                   </div>

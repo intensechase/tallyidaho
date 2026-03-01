@@ -31,6 +31,45 @@ const codeArg = process.argv.includes('--code')
   ? process.argv[process.argv.indexOf('--code') + 1].toUpperCase()
   : null
 
+// ── Video URL builder ─────────────────────────────────────────────────────────
+
+/**
+ * Build a speculative insession.idaho.gov video URL for a committee meeting.
+ * Pattern: https://insession.idaho.gov/IIS/{year}/{Chamber}/Committee/{Name}/{YYMMDD}_{code}_{HHMM}{AM|PM}-Meeting.mp4
+ */
+function buildVideoUrl(
+  name: string,
+  chamber: string,
+  code: string,
+  date: string,   // ISO "2026-01-22"
+  time: string,   // "8:00 AM"
+  year: number,
+): string | null {
+  // Strip chamber prefix from name
+  const shortName = name
+    .replace(/^House\s+/i, '')
+    .replace(/^Senate\s+/i, '')
+    .replace(/^Joint\s+/i, '')
+
+  // ISO date → YYMMDD
+  const [y, m, d] = date.split('-')
+  const dateStr = `${y.slice(2)}${m}${d}`
+
+  // "8:00 AM" → "0800AM"
+  const timeM = time.match(/(\d{1,2}):(\d{2})\s*(AM|PM)/i)
+  if (!timeM) return null
+  const hh = timeM[1].padStart(2, '0')
+  const mm = timeM[2]
+  const ap = timeM[3].toUpperCase()
+  const timeStr = `${hh}${mm}${ap}`
+
+  const chamberPath = chamber === 'senate' ? 'Senate'
+    : chamber === 'house' ? 'House'
+    : 'Joint'
+
+  return `https://insession.idaho.gov/IIS/${year}/${chamberPath}/Committee/${encodeURIComponent(shortName)}/${dateStr}_${code.toLowerCase()}_${timeStr}-Meeting.mp4`
+}
+
 // ── Types ─────────────────────────────────────────────────────────────────────
 
 interface ParsedMeeting {
@@ -259,9 +298,12 @@ async function main() {
 
     if (DRY_RUN) {
       for (const m of meetings) {
+        const vid = m.videoUrl ?? (m.time && m.status !== 'will_not_meet'
+          ? buildVideoUrl(committee.name, committee.chamber, committee.code, m.date, m.time, yearArg)
+          : null)
         console.log(
           `    ${m.date} ${m.time ?? ''} [${m.status}]` +
-          ` agenda=${!!m.agendaUrl} minutes=${!!m.minutesUrl} video=${!!m.videoUrl}`
+          ` agenda=${!!m.agendaUrl} minutes=${!!m.minutesUrl} video=${!!vid}`
         )
       }
       totalMeetings += meetings.length
@@ -272,17 +314,25 @@ async function main() {
 
     // Upsert — handle null time (some all-day or will-not-meet entries)
     // The unique constraint is (committee_id, date, time); use a sentinel for null time
-    const rows = meetings.map(m => ({
-      committee_id: committee.id,
-      date: m.date,
-      time: m.time ?? '00:00 AM',   // sentinel so UNIQUE constraint works
-      room: m.room,
-      status: m.status,
-      agenda_url: m.agendaUrl,
-      minutes_url: m.minutesUrl,
-      video_url: m.videoUrl,
-      synced_at: new Date().toISOString(),
-    }))
+    const rows = meetings.map(m => {
+      // Build speculative video URL if not found on the page
+      const videoUrl = m.videoUrl ?? (
+        m.time && m.status !== 'will_not_meet'
+          ? buildVideoUrl(committee.name, committee.chamber, committee.code, m.date, m.time, yearArg)
+          : null
+      )
+      return {
+        committee_id: committee.id,
+        date: m.date,
+        time: m.time ?? '00:00 AM',   // sentinel so UNIQUE constraint works
+        room: m.room,
+        status: m.status,
+        agenda_url: m.agendaUrl,
+        minutes_url: m.minutesUrl,
+        video_url: videoUrl,
+        synced_at: new Date().toISOString(),
+      }
+    })
 
     const { error: uErr } = await supabase
       .from('committee_meetings')
