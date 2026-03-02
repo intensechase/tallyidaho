@@ -569,7 +569,6 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
               </span>
               <Link
                 href={`/bills?year=${year}`}
-                onClick={e => e.stopPropagation()}
                 className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors shrink-0"
               >
                 View all →
