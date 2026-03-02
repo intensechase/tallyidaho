@@ -253,8 +253,9 @@ export default function MeetingRecord({ meetings, year }: Props) {
         const agendaText     = getAgendaText(meeting)
         const minutesText    = getMinutesText(meeting)
 
-        const hasAgenda  = !isWillNotMeet && !!meeting.agenda_url
-        const hasMinutes = !isWillNotMeet && !!meeting.minutes_url
+        const hasAgenda          = !isWillNotMeet && !!meeting.agenda_url
+        const hasMinutes         = !isWillNotMeet && !!meeting.minutes_url
+        const hasPreloadedAgenda = hasAgenda && !!meeting.agenda_text
 
         return (
           <div key={meeting.id} className="relative">
@@ -322,10 +323,10 @@ export default function MeetingRecord({ meetings, year }: Props) {
                   </div>
                 </div>
 
-                {/* Expand toggles — below date row, same style as bill text */}
-                {(hasAgenda || hasMinutes) && (
+                {/* Expand toggles — JS-only items (agenda needing fetch + minutes) */}
+                {((!hasPreloadedAgenda && hasAgenda) || hasMinutes) && (
                   <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#1e293b]">
-                    {hasAgenda && (
+                    {!hasPreloadedAgenda && hasAgenda && (
                       <ExpandToggle
                         open={isAgendaOpen}
                         onToggle={() => toggleAgenda(meeting)}
@@ -343,10 +344,23 @@ export default function MeetingRecord({ meetings, year }: Props) {
                 )}
               </div>
 
-              {/* Expanded panels */}
-              {(isAgendaOpen || isMinutesOpen) && (
+              {/* Agenda via native <details> when pre-loaded — always in DOM for search indexing */}
+              {hasPreloadedAgenda && (
+                <details className="group border-t border-[#1e293b]">
+                  <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer px-5 py-3 text-xs text-amber-400 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show agenda</span>
+                    <span className="hidden group-open:inline">▼ Hide agenda</span>
+                  </summary>
+                  <div className="px-5 pb-5">
+                    <AgendaContent text={meeting.agenda_text!} year={year} />
+                  </div>
+                </details>
+              )}
+
+              {/* JS-fetched panels (agenda without pre-loaded text + minutes) */}
+              {((!hasPreloadedAgenda && isAgendaOpen) || isMinutesOpen) && (
                 <div className="px-5 pb-5 space-y-4">
-                  {isAgendaOpen && (
+                  {!hasPreloadedAgenda && isAgendaOpen && (
                     <div>
                       {agendaLoading ? (
                         <p className="text-xs text-slate-400 animate-pulse mt-2">Loading agenda…</p>
