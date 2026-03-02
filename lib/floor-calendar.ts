@@ -116,36 +116,44 @@ function parseFloorPage(html: string): {
     const billMatch = rowText.match(/\b([A-Z]{1,4})\s+(\d{2,4})\b/)
     if (!billMatch) continue
 
-    // Expect the 3-cell row format:
-    //   cell[0] = "Senator Name(district)" or "Representative Name(district)"
-    //   cell[1] = "S 1269" (bill number, possibly with "HD" or "SE" suffix on next line)
-    //   cell[2] = "by COMMITTEE – TOPIC – description"
-    // Sometimes cells merge — use flexible matching
+    // Senate format: [Sponsor Name(district)] [Bill #] [by COMMITTEE – TOPIC – description]
+    // House format:  [Bill #] [Sponsor(district)] [by COMMITTEE – TOPIC – description]
+    // Search the entire row for the bill number cell and 'by ...' description cell
+    // rather than assuming they are adjacent.
 
-    // Find the bill number cell (usually a standalone bill number)
     let billNumberRaw: string | null = null
     let descCell: string | null = null
     let legCell: string | null = null
+    let billIdx = -1
 
     for (let i = 0; i < cells.length; i++) {
       const c = cells[i]
-      // Bill number cell: primarily a bill number, possibly with "HD"/"SE" type suffix
       const m = c.match(/^([A-Z]{1,4})\s+(\d{2,4})/)
       if (m && c.replace(/[A-Z0-9\s]/g, '').length < 5) {
         billNumberRaw = m[0].trim()
-        // Look for description in next cell
-        if (i + 1 < cells.length && cells[i + 1].startsWith('by ')) {
-          descCell = cells[i + 1]
-          legCell = i > 0 ? cells[i - 1] : null
-        } else if (i > 0 && cells[i - 1].startsWith('by ')) {
-          descCell = cells[i - 1]
-          legCell = i > 1 ? cells[i - 2] : null
-        }
+        billIdx = i
         break
       }
     }
 
-    if (!billNumberRaw || !descCell) continue
+    if (!billNumberRaw) continue
+
+    // Find 'by ...' description cell anywhere in the row
+    let descIdx = -1
+    for (let j = 0; j < cells.length; j++) {
+      if (cells[j].startsWith('by ')) { descIdx = j; descCell = cells[j]; break }
+    }
+
+    if (!descCell) continue
+
+    // Determine legCell based on relative positions:
+    //   House: bill at 0, leg at 1, desc at 2 → legCell = cells[billIdx + 1]
+    //   Senate: leg at 0, bill at 1, desc at 2 → legCell = cells[billIdx - 1]
+    if (descIdx === billIdx + 2) {
+      legCell = cells[billIdx + 1]
+    } else if (billIdx > 0) {
+      legCell = cells[billIdx - 1]
+    }
 
     const billNumber = normalizeBillNumber(billNumberRaw)
 
