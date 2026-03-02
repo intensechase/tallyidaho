@@ -1,6 +1,3 @@
-'use client'
-
-import { useState } from 'react'
 import Link from 'next/link'
 import { legislatorSlug } from '@/lib/slugify'
 import type { FloorBill, FloorCalendar } from '@/lib/floor-calendar'
@@ -67,7 +64,6 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
   return (
     <div className={`card-enter bill-card bg-white border border-slate-200 rounded-xl overflow-hidden ${accentClass}`}>
       <div className="p-5">
-        {/* Bill number + controversy badge */}
         <div className="flex items-start justify-between gap-3 mb-3">
           <div className="flex items-center gap-2 flex-wrap">
             <Link href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}>
@@ -93,14 +89,12 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
           </div>
         </div>
 
-        {/* Title */}
         <Link href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}>
           <h3 className="font-oswald text-lg font-bold text-slate-900 leading-snug mb-3 hover:text-amber-700 transition-colors">
             {bill.title}
           </h3>
         </Link>
 
-        {/* Summary / intent */}
         {summary ? (
           <p className="text-sm text-slate-600 leading-relaxed line-clamp-3 mb-4 border-l-2 border-slate-200 pl-3">
             {summary}
@@ -116,7 +110,6 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
           </p>
         )}
 
-        {/* Subject tags */}
         {(bill.subjects?.length ?? 0) > 0 && (
           <div className="flex gap-1.5 flex-wrap mb-4">
             {bill.subjects!.slice(0, 4).map(s => (
@@ -129,7 +122,6 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
           </div>
         )}
 
-        {/* Vote bar */}
         {latestRc && (
           <div className="mb-1">
             <div className="flex items-center gap-2 mb-1.5">
@@ -157,7 +149,6 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
         )}
       </div>
 
-      {/* Sponsors */}
       {sponsors.length > 0 && (
         <div className="border-t border-slate-100 px-5 py-3 bg-slate-50/70">
           <p className="text-xs font-bold tracking-widest text-slate-400 mb-2.5">SPONSORED BY</p>
@@ -182,7 +173,6 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
         </div>
       )}
 
-      {/* Footer links */}
       <div className="border-t border-slate-100 px-5 py-3 flex items-center gap-5">
         <Link
           href={`/bills/${year}/${bill.bill_number.toLowerCase()}`}
@@ -205,7 +195,7 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
   )
 }
 
-// ── Compact card for "All Bills" tab ──────────────────────────────────
+// ── Compact card for "All Bills" section ───────────────────────────────
 function CompactBillCard({ bill, year }: { bill: any; year: number }) {
   const sponsor = [...(bill.bill_sponsors || [])]
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
@@ -270,7 +260,6 @@ function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
   const hasResult = bill.votePassed !== null
   const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
 
-  // Border: green if passed, red if failed, else reading-based default
   const borderClass = hasResult
     ? bill.votePassed
       ? 'border-emerald-300 hover:border-emerald-400'
@@ -300,7 +289,6 @@ function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
           👤 {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
         </p>
       )}
-      {/* Vote result banner */}
       {hasResult && (
         <div className={`mt-2 pt-2 border-t flex items-center gap-2 ${
           bill.votePassed ? 'border-emerald-100' : 'border-red-100'
@@ -333,7 +321,6 @@ function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
 
   return (
     <div className="bg-white border border-slate-200 rounded-xl overflow-hidden">
-      {/* Header */}
       <div className="px-4 py-3 bg-slate-50 border-b border-slate-100 flex items-start justify-between gap-3">
         <div className="flex-1 min-w-0">
           <div className="flex items-center gap-2 mb-0.5 flex-wrap">
@@ -356,7 +343,6 @@ function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
         )}
       </div>
 
-      {/* RS items */}
       {rsItems.length > 0 && (
         <div className="px-4 py-2">
           <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase mb-1.5">
@@ -380,7 +366,6 @@ function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
         </div>
       )}
 
-      {/* Bill items */}
       {billItems.length > 0 && (
         <div className={`px-4 py-2 ${rsItems.length > 0 ? 'border-t border-slate-100' : ''}`}>
           <p className="text-[9px] font-bold tracking-widest text-slate-400 uppercase mb-1.5">
@@ -414,7 +399,27 @@ function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
   )
 }
 
-// ── Main tab component ────────────────────────────────────────────────
+// ── Section header (replaces tab bar) ────────────────────────────────
+function SectionHeader({ label, badge, href, hrefLabel }: {
+  label: string
+  badge?: React.ReactNode
+  href?: string
+  hrefLabel?: string
+}) {
+  return (
+    <div className="flex items-center gap-3 border-b-2 border-amber-500 bg-[#1e293b] -mx-4 px-4 py-3 rounded-t-xl mb-6">
+      <span className="text-xs font-extrabold tracking-widest text-amber-400">{label}</span>
+      {badge}
+      {href && (
+        <Link href={href} className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors shrink-0">
+          {hrefLabel ?? 'View all →'}
+        </Link>
+      )}
+    </div>
+  )
+}
+
+// ── Main component ────────────────────────────────────────────────────
 interface Props {
   controversialBills: Bill[]
   recentBills: any[]
@@ -424,81 +429,27 @@ interface Props {
 }
 
 export default function HomepageTabs({ controversialBills, recentBills, year, floorCalendar, committeeAgenda }: Props) {
-  const hasFloor = floorCalendar.senate.length > 0 || floorCalendar.house.length > 0
+  const hasFloor      = floorCalendar.senate.length > 0 || floorCalendar.house.length > 0
   const hasCommittees = committeeAgenda.committees.length > 0
-  const [tab, setTab] = useState<'floor' | 'committee' | 'controversial' | 'recent'>(
-    hasFloor ? 'floor' : hasCommittees ? 'committee' : 'controversial'
-  )
-
-  const thirdCount = [...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'third').length
-  const rsCount = committeeAgenda.committees.reduce((n, c) => n + c.items.filter(i => i.type === 'rs').length, 0)
-
-  const viewAllHref =
-    tab === 'floor' ? `/bills?year=${year}` :
-    tab === 'controversial' ? `/bills?controversial=true&year=${year}` :
-    `/bills?year=${year}`
+  const thirdCount    = [...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'third').length
+  const rsCount       = committeeAgenda.committees.reduce((n, c) => n + c.items.filter(i => i.type === 'rs').length, 0)
 
   return (
-    <section className="max-w-7xl mx-auto px-4 py-8">
-      {/* Tab bar */}
-      <div className="flex items-center gap-2 sm:gap-4 border-b-2 border-amber-500 mb-6 bg-[#1e293b] -mx-4 px-4 rounded-t-xl">
-        {hasFloor && (
-          <button
-            onClick={() => setTab('floor')}
-            className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
-              tab === 'floor' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
-            }`}
-          >
-            🏛️ FLOOR TODAY
-            {thirdCount > 0 && (
-              <span className="ml-1.5 text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
+    <section className="max-w-7xl mx-auto px-4 py-8 space-y-12">
+
+      {/* Floor Today */}
+      {hasFloor && (
+        <div>
+          <SectionHeader
+            label="🏛️ FLOOR TODAY"
+            badge={thirdCount > 0 ? (
+              <span className="text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
                 {thirdCount} voting
               </span>
-            )}
-          </button>
-        )}
-        {hasCommittees && (
-          <button
-            onClick={() => setTab('committee')}
-            className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
-              tab === 'committee' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
-            }`}
-          >
-            📋 IN COMMITTEE
-            {rsCount > 0 && (
-              <span className="ml-1.5 text-[10px] bg-slate-500 text-white rounded-full px-1.5 py-0.5 font-bold">
-                {rsCount} RS
-              </span>
-            )}
-          </button>
-        )}
-        <button
-          onClick={() => setTab('controversial')}
-          className={`text-xs font-extrabold tracking-widest py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
-            tab === 'controversial' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
-          }`}
-        >
-          ⚡ CONTROVERSIAL
-        </button>
-        <button
-          onClick={() => setTab('recent')}
-          className={`text-xs font-semibold tracking-wide py-3 transition-colors border-b-2 -mb-px whitespace-nowrap px-1 ${
-            tab === 'recent' ? 'text-amber-400 border-amber-400' : 'text-slate-500 border-transparent hover:text-slate-300'
-          }`}
-        >
-          All Bills
-        </button>
-        <Link
-          href={viewAllHref}
-          className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors py-3 shrink-0"
-        >
-          View all →
-        </Link>
-      </div>
+            ) : undefined}
+            href={`/bills?year=${year}`}
+          />
 
-      {/* Floor Today: third reading (voting) + second reading */}
-      {tab === 'floor' && (
-        <div>
           {floorCalendar.date && (
             <p className="text-xs text-slate-400 mb-4">
               {floorCalendar.date}
@@ -508,7 +459,6 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
             </p>
           )}
 
-          {/* Voting Today — third reading */}
           {thirdCount > 0 && (
             <div className="mb-6">
               <h3 className="text-xl font-black text-red-500 mb-3 flex items-center gap-2">
@@ -540,7 +490,6 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
             </div>
           )}
 
-          {/* Second Reading */}
           {[...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'second').length > 0 && (
             <div>
               <h3 className="text-xl font-black text-slate-600 mb-3">Second Reading — Cleared Committee</h3>
@@ -568,16 +517,20 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
               </div>
             </div>
           )}
-
-          {!hasFloor && (
-            <p className="text-center text-slate-400 py-8 text-sm">No floor calendar found for today.</p>
-          )}
         </div>
       )}
 
-      {/* In Committee: RS items + bills grouped by committee */}
-      {tab === 'committee' && (
+      {/* In Committee */}
+      {hasCommittees && (
         <div>
+          <SectionHeader
+            label="📋 IN COMMITTEE"
+            badge={rsCount > 0 ? (
+              <span className="text-[10px] bg-slate-500 text-white rounded-full px-1.5 py-0.5 font-bold">
+                {rsCount} RS
+              </span>
+            ) : undefined}
+          />
           {committeeAgenda.date && (
             <p className="text-xs text-slate-400 mb-4">{committeeAgenda.date}</p>
           )}
@@ -586,14 +539,15 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
               <CommitteeCard key={`${cmte.code}-${cmte.time}`} cmte={cmte} />
             ))}
           </div>
-          {!hasCommittees && (
-            <p className="text-center text-slate-400 py-8 text-sm">No committee agendas found for today.</p>
-          )}
         </div>
       )}
 
-      {/* Controversial: single column expanded cards */}
-      {tab === 'controversial' && (
+      {/* Controversial Bills — always visible, most SEO-valuable */}
+      <div>
+        <SectionHeader
+          label="⚡ CONTROVERSIAL"
+          href={`/bills?controversial=true&year=${year}`}
+        />
         <div className="space-y-4">
           {controversialBills.map(bill => (
             <ControversialBillCard key={bill.id} bill={bill} year={year} />
@@ -602,19 +556,34 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
             <p className="text-center text-slate-400 py-8 text-sm">No controversial bills found.</p>
           )}
         </div>
+      </div>
+
+      {/* All Bills — in <details> so content is in DOM for SEO */}
+      {recentBills.length > 0 && (
+        <details className="group">
+          <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
+            <div className="flex items-center gap-3 border-b-2 border-amber-500 bg-[#1e293b] -mx-4 px-4 py-3 rounded-t-xl mb-6">
+              <span className="text-xs font-semibold tracking-wide text-slate-400 group-open:text-amber-400">
+                <span className="group-open:hidden">▶ All Bills ({recentBills.length})</span>
+                <span className="hidden group-open:inline">▼ All Bills ({recentBills.length})</span>
+              </span>
+              <Link
+                href={`/bills?year=${year}`}
+                onClick={e => e.stopPropagation()}
+                className="ml-auto text-xs text-slate-400 hover:text-amber-400 transition-colors shrink-0"
+              >
+                View all →
+              </Link>
+            </div>
+          </summary>
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
+            {recentBills.map((bill: any) => (
+              <CompactBillCard key={bill.id} bill={bill} year={year} />
+            ))}
+          </div>
+        </details>
       )}
 
-      {/* All Bills: two-column compact cards */}
-      {tab === 'recent' && (
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-3">
-          {recentBills.map((bill: any) => (
-            <CompactBillCard key={bill.id} bill={bill} year={year} />
-          ))}
-          {recentBills.length === 0 && (
-            <p className="text-center text-slate-400 py-8 text-sm col-span-2">No bills found.</p>
-          )}
-        </div>
-      )}
     </section>
   )
 }
