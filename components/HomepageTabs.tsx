@@ -76,13 +76,13 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
                 ? 'bg-red-50 text-red-700 border-red-200'
                 : 'bg-orange-50 text-orange-700 border-orange-200'
             }`}>
-              ⚡ {bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE VOTE'}
+              {bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE VOTE'}
             </span>
           </div>
           <div className="flex items-center gap-2 shrink-0">
             {bill.completed && (
               <span className="text-xs font-semibold text-emerald-600 bg-emerald-50 border border-emerald-200 px-2 py-0.5 rounded-full">
-                ✓ {bill.last_action?.toLowerCase().includes('law') ? 'Signed' : 'Done'}
+                {bill.last_action?.toLowerCase().includes('law') ? 'Signed' : 'Done'}
               </span>
             )}
             <span className="text-xs text-slate-400 capitalize">{bill.chamber}</span>
@@ -135,7 +135,7 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
               <span className="text-sm font-bold text-red-500 w-14 tabular-nums">{nay} Nay</span>
             </div>
             <p className="text-xs text-slate-400 text-center">
-              {latestRc.is_party_line ? '⚡ Party-line vote · ' : ''}
+              {latestRc.is_party_line ? 'Party-line vote · ' : ''}
               {latestRc.passed ? 'Passed' : 'Failed'}
               {latestRc.passed && yea > nay && margin > 0
                 ? ` by ${margin} vote${margin !== 1 ? 's' : ''}`
@@ -254,58 +254,149 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
   )
 }
 
-// ── Floor calendar bill card ───────────────────────────────────────────
+// ── Slim floor bill card ───────────────────────────────────────────────
 function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
-  const isThird = bill.reading === 'third'
   const hasResult = bill.votePassed !== null
   const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
 
   const borderClass = hasResult
     ? bill.votePassed
-      ? 'border-emerald-300 hover:border-emerald-400'
-      : 'border-red-300 hover:border-red-400'
-    : isThird
-      ? 'border-red-200 hover:border-red-300'
-      : 'border-slate-200 hover:border-amber-300'
+      ? 'border border-l-4 border-emerald-300'
+      : 'border border-l-4 border-red-300'
+    : 'border border-slate-200 hover:border-slate-300'
 
   const inner = (
-    <div className={`bg-white border rounded-xl p-3.5 hover:shadow-sm transition-all h-full flex flex-col ${borderClass}`}>
-      <div className="flex items-center gap-2 mb-2 flex-wrap">
-        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+    <div className={`bg-white rounded-lg p-3 transition-all hover:shadow-sm ${borderClass}`}>
+      <div className="flex items-start gap-2 mb-1">
+        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
           {bill.rawNumber}
         </span>
         {bill.topic && (
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate flex-1">
+          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate flex-1 mt-0.5">
             {bill.topic}
           </span>
         )}
-        {!bill.href && <span className="text-[10px] text-slate-300 shrink-0 ml-auto">↗</span>}
+        {hasResult && (
+          <span className={`text-xs font-black shrink-0 tabular-nums whitespace-nowrap ${bill.votePassed ? 'text-emerald-600' : 'text-red-500'}`}>
+            {bill.votePassed ? '✓' : '✗'} {bill.voteYea}–{bill.voteNay}
+          </span>
+        )}
       </div>
-      <p className="text-xs text-slate-700 leading-snug flex-1 line-clamp-3">
-        {bill.description || '—'}
-      </p>
       {bill.floorSponsor && (
-        <p className="text-[10px] text-slate-400 mt-2 truncate">
-          👤 {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
+        <p className="text-[10px] text-slate-400 mb-1 truncate">
+          {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
         </p>
       )}
-      {hasResult && (
-        <div className={`mt-2 pt-2 border-t flex items-center gap-2 ${
-          bill.votePassed ? 'border-emerald-100' : 'border-red-100'
-        }`}>
-          <span className={`text-xs font-black ${bill.votePassed ? 'text-emerald-600' : 'text-red-500'}`}>
-            {bill.votePassed ? '✓ PASSED' : '✗ FAILED'}
-          </span>
-          <span className="text-xs text-slate-400 tabular-nums">
-            {bill.voteYea}–{bill.voteNay}
-          </span>
-        </div>
+      {bill.description && (
+        <p className="text-xs text-slate-700 leading-snug line-clamp-2">
+          {bill.description}
+        </p>
       )}
     </div>
   )
 
-  if (bill.href) return <Link href={bill.href} className="block h-full">{inner}</Link>
-  return <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block h-full">{inner}</a>
+  if (bill.href) return <Link href={bill.href} className="block">{inner}</Link>
+  return <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
+}
+
+// ── Chamber column (Senate or House) ──────────────────────────────────
+function ChamberColumn({ bills, chamber, year }: {
+  bills: FloorBill[]
+  chamber: 'senate' | 'house'
+  year: number
+}) {
+  const isSenate = chamber === 'senate'
+
+  const thirdReading = bills
+    .filter(b => b.reading === 'third')
+    .sort((a, b) => (b.votePassed !== null ? 1 : 0) - (a.votePassed !== null ? 1 : 0))
+  const secondReading = bills.filter(b => b.reading === 'second')
+  const generalOrders = bills.filter(b => b.reading === 'general')
+
+  const hasThird  = thirdReading.length > 0
+  const hasSecond = secondReading.length > 0
+  const hasGeneral = generalOrders.length > 0
+
+  return (
+    <div className="flex flex-col">
+      {/* Chamber header */}
+      <div className={`px-4 py-2.5 rounded-t-lg flex items-center gap-2 ${isSenate ? 'bg-blue-600' : 'bg-amber-500'}`}>
+        <span className="text-xs font-extrabold tracking-widest text-white uppercase">
+          {isSenate ? 'Senate' : 'House'}
+        </span>
+        {bills.length > 0 && (
+          <span className="ml-auto text-[10px] font-semibold text-white/70">
+            {bills.length} bill{bills.length !== 1 ? 's' : ''}
+          </span>
+        )}
+      </div>
+
+      {/* Column body */}
+      <div className={`border-x border-b rounded-b-lg p-3 flex-1 ${isSenate ? 'border-blue-100' : 'border-amber-100'}`}>
+        {bills.length === 0 ? (
+          <p className="text-xs text-slate-400 italic py-6 text-center">No bills scheduled.</p>
+        ) : (
+          <div className="space-y-1">
+
+            {/* Third Reading — always visible */}
+            {hasThird && (
+              <div className="pb-1">
+                <p className={`text-[10px] font-bold tracking-widest uppercase mb-2 pt-1 ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}>
+                  Third Reading <span className="font-normal text-slate-400">({thirdReading.length})</span>
+                </p>
+                <div className="space-y-2">
+                  {thirdReading.map(b => (
+                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                  ))}
+                </div>
+              </div>
+            )}
+
+            {/* Second Reading — collapsed */}
+            {hasSecond && (
+              <details className="group">
+                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
+                  <div className={`flex items-center gap-1.5 py-2 ${hasThird ? 'border-t border-slate-100' : ''}`}>
+                    <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700">
+                      <span className="group-open:hidden">▶</span>
+                      <span className="hidden group-open:inline">▼</span>
+                      {' '}Second Reading ({secondReading.length})
+                    </span>
+                  </div>
+                </summary>
+                <div className="space-y-2 pb-1">
+                  {secondReading.map(b => (
+                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                  ))}
+                </div>
+              </details>
+            )}
+
+            {/* General Orders — collapsed, only rendered if present */}
+            {hasGeneral && (
+              <details className="group">
+                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
+                  <div className={`flex items-center gap-1.5 py-2 ${(hasThird || hasSecond) ? 'border-t border-slate-100' : ''}`}>
+                    <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700">
+                      <span className="group-open:hidden">▶</span>
+                      <span className="hidden group-open:inline">▼</span>
+                      {' '}General Orders ({generalOrders.length})
+                    </span>
+                  </div>
+                </summary>
+                <div className="space-y-2 pb-1">
+                  {generalOrders.map(b => (
+                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
+                  ))}
+                </div>
+              </details>
+            )}
+
+          </div>
+        )}
+      </div>
+    </div>
+  )
 }
 
 // ── Committee agenda card ─────────────────────────────────────────────
@@ -441,7 +532,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
       {hasFloor && (
         <div>
           <SectionHeader
-            label="🏛️ FLOOR TODAY"
+            label="FLOOR TODAY"
             badge={thirdCount > 0 ? (
               <span className="text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
                 {thirdCount} voting
@@ -459,64 +550,10 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
             </p>
           )}
 
-          {thirdCount > 0 && (
-            <div className="mb-6">
-              <h3 className="text-xl font-black text-red-500 mb-3 flex items-center gap-2">
-                🗳️ Voting Today — Third Reading
-                <span className="bg-red-500 text-white text-xs font-bold px-2 py-0.5 rounded-full">{thirdCount}</span>
-              </h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {floorCalendar.senate.filter(b => b.reading === 'third').length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
-                    <div className="space-y-2">
-                      {floorCalendar.senate.filter(b => b.reading === 'third').map(b => (
-                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {floorCalendar.house.filter(b => b.reading === 'third').length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-amber-600 mb-2 uppercase">House</p>
-                    <div className="space-y-2">
-                      {floorCalendar.house.filter(b => b.reading === 'third').map(b => (
-                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
-
-          {[...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'second').length > 0 && (
-            <div>
-              <h3 className="text-xl font-black text-slate-600 mb-3">Second Reading — Cleared Committee</h3>
-              <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-                {floorCalendar.senate.filter(b => b.reading === 'second').length > 0 && (
-                  <div>
-                    <p className="text-xs font-bold tracking-widest text-blue-600 mb-2 uppercase">Senate</p>
-                    <div className="space-y-2">
-                      {floorCalendar.senate.filter(b => b.reading === 'second').map(b => (
-                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-                {floorCalendar.house.filter(b => b.reading === 'second').length > 0 && (
-                  <div>
-                    <p className="text-[10px] font-bold tracking-widest text-amber-600 mb-2 uppercase">House</p>
-                    <div className="space-y-2">
-                      {floorCalendar.house.filter(b => b.reading === 'second').map(b => (
-                        <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                      ))}
-                    </div>
-                  </div>
-                )}
-              </div>
-            </div>
-          )}
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
+            <ChamberColumn chamber="senate" bills={floorCalendar.senate} year={year} />
+            <ChamberColumn chamber="house" bills={floorCalendar.house} year={year} />
+          </div>
         </div>
       )}
 
@@ -524,7 +561,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
       {hasCommittees && (
         <div>
           <SectionHeader
-            label="📋 IN COMMITTEE"
+            label="IN COMMITTEE"
             badge={rsCount > 0 ? (
               <span className="text-[10px] bg-slate-500 text-white rounded-full px-1.5 py-0.5 font-bold">
                 {rsCount} RS
@@ -545,7 +582,7 @@ export default function HomepageTabs({ controversialBills, recentBills, year, fl
       {/* Controversial Bills — always visible, most SEO-valuable */}
       <div>
         <SectionHeader
-          label="⚡ CONTROVERSIAL"
+          label="CONTROVERSIAL"
           href={`/bills?controversial=true&year=${year}`}
         />
         <div className="space-y-4">
