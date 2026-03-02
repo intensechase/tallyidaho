@@ -338,25 +338,31 @@ function ChamberColumn({ bills, chamber, year }: {
         ) : (
           <div className="space-y-1">
 
-            {/* Third Reading — always visible */}
+            {/* Third Reading — open by default, collapsible */}
             {hasThird && (
-              <div className="pb-1">
-                <p className={`text-[10px] font-bold tracking-widest uppercase mb-2 pt-1 ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}>
-                  Third Reading <span className="font-normal text-slate-400">({thirdReading.length})</span>
-                </p>
-                <div className="space-y-2">
+              <details open className="group">
+                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
+                  <div className="flex items-center gap-1.5 py-2">
+                    <span className={`text-[10px] font-bold tracking-widest uppercase group-open:text-current ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}>
+                      <span className="group-open:hidden">▶</span>
+                      <span className="hidden group-open:inline">▼</span>
+                      {' '}Third Reading ({thirdReading.length})
+                    </span>
+                  </div>
+                </summary>
+                <div className="space-y-2 pb-1">
                   {thirdReading.map(b => (
                     <FloorBillCard key={b.billNumber} bill={b} year={year} />
                   ))}
                 </div>
-              </div>
+              </details>
             )}
 
             {/* Second Reading — collapsed */}
             {hasSecond && (
               <details className="group">
                 <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
-                  <div className={`flex items-center gap-1.5 py-2 ${hasThird ? 'border-t border-slate-100' : ''}`}>
+                  <div className={`flex items-center gap-1.5 py-2 ${hasThird ? 'border-t border-slate-100' : 'pt-1'}`}>
                     <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700">
                       <span className="group-open:hidden">▶</span>
                       <span className="hidden group-open:inline">▼</span>

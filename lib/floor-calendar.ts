@@ -108,9 +108,11 @@ function parseFloorPage(html: string): {
     if (dayM && !legislativeDay) legislativeDay = parseInt(dayM[1])
 
     // Detect section headers — update current reading stage
+    // Senate: "BILLS ON THIRD READING" / "BILLS ON SECOND READING" / "14TH ORDER" (≈ General Orders)
+    // House:  "THIRD READING" / "SECOND READING" / "GENERAL ORDERS"
     if (/THIRD\s+READING|BILLS\s+ON\s+THIRD/i.test(rowText)) { currentReading = 'third'; continue }
     if (/SECOND\s+READING|BILLS\s+ON\s+SECOND/i.test(rowText)) { currentReading = 'second'; continue }
-    if (/GENERAL\s+ORDERS/i.test(rowText)) { currentReading = 'general'; continue }
+    if (/GENERAL\s+ORDERS|14TH\s+ORDER/i.test(rowText)) { currentReading = 'general'; continue }
 
     // Skip rows with no bill number pattern
     const billMatch = rowText.match(/\b([A-Z]{1,4})\s+(\d{2,4})\b/)
