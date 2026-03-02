@@ -14,6 +14,7 @@ export interface MeetingRow {
   minutes_url: string | null
   video_url: string | null
   agenda_text: string | null
+  minutes_text: string | null
 }
 
 interface Props {
@@ -253,9 +254,10 @@ export default function MeetingRecord({ meetings, year }: Props) {
         const agendaText     = getAgendaText(meeting)
         const minutesText    = getMinutesText(meeting)
 
-        const hasAgenda          = !isWillNotMeet && !!meeting.agenda_url
-        const hasMinutes         = !isWillNotMeet && !!meeting.minutes_url
-        const hasPreloadedAgenda = hasAgenda && !!meeting.agenda_text
+        const hasAgenda            = !isWillNotMeet && !!meeting.agenda_url
+        const hasMinutes           = !isWillNotMeet && !!meeting.minutes_url
+        const hasPreloadedAgenda   = hasAgenda && !!meeting.agenda_text
+        const hasPreloadedMinutes  = hasMinutes && !!meeting.minutes_text
 
         return (
           <div key={meeting.id} className="relative">
@@ -323,8 +325,8 @@ export default function MeetingRecord({ meetings, year }: Props) {
                   </div>
                 </div>
 
-                {/* Expand toggles — JS-only items (agenda needing fetch + minutes) */}
-                {((!hasPreloadedAgenda && hasAgenda) || hasMinutes) && (
+                {/* Expand toggles — JS-only items (agenda/minutes needing fetch) */}
+                {((!hasPreloadedAgenda && hasAgenda) || (!hasPreloadedMinutes && hasMinutes)) && (
                   <div className="flex items-center gap-4 mt-3 pt-3 border-t border-[#1e293b]">
                     {!hasPreloadedAgenda && hasAgenda && (
                       <ExpandToggle
@@ -333,7 +335,7 @@ export default function MeetingRecord({ meetings, year }: Props) {
                         label="agenda"
                       />
                     )}
-                    {hasMinutes && (
+                    {!hasPreloadedMinutes && hasMinutes && (
                       <ExpandToggle
                         open={isMinutesOpen}
                         onToggle={() => toggleMinutes(meeting)}
@@ -357,8 +359,21 @@ export default function MeetingRecord({ meetings, year }: Props) {
                 </details>
               )}
 
-              {/* JS-fetched panels (agenda without pre-loaded text + minutes) */}
-              {((!hasPreloadedAgenda && isAgendaOpen) || isMinutesOpen) && (
+              {/* Minutes via native <details> when pre-loaded — always in DOM for search indexing */}
+              {hasPreloadedMinutes && (
+                <details className="group border-t border-[#1e293b]">
+                  <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer px-5 py-3 text-xs text-amber-400 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show minutes</span>
+                    <span className="hidden group-open:inline">▼ Hide minutes</span>
+                  </summary>
+                  <div className="px-5 pb-5">
+                    <MinutesContent text={meeting.minutes_text!} />
+                  </div>
+                </details>
+              )}
+
+              {/* JS-fetched panels (agenda/minutes without pre-loaded text) */}
+              {((!hasPreloadedAgenda && isAgendaOpen) || (!hasPreloadedMinutes && isMinutesOpen)) && (
                 <div className="px-5 pb-5 space-y-4">
                   {!hasPreloadedAgenda && isAgendaOpen && (
                     <div>
@@ -371,7 +386,7 @@ export default function MeetingRecord({ meetings, year }: Props) {
                       )}
                     </div>
                   )}
-                  {isMinutesOpen && (
+                  {!hasPreloadedMinutes && isMinutesOpen && (
                     <div>
                       {minutesLoading ? (
                         <p className="text-xs text-slate-400 animate-pulse mt-2">Loading minutes…</p>

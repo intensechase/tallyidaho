@@ -73,7 +73,7 @@ async function getCommitteeData(code: string, year: number) {
 
   const { data: meetings } = await supabase
     .from('committee_meetings')
-    .select('id, date, time, room, status, agenda_url, minutes_url, video_url, agenda_text')
+    .select('id, date, time, room, status, agenda_url, minutes_url, video_url, agenda_text, minutes_text')
     .eq('committee_id', committee.id)
     .order('date', { ascending: false })
 
