@@ -211,6 +211,8 @@ async function getLegislator(slug: string) {
       return (a.committees?.short_name || '').localeCompare(b.committees?.short_name || '')
     })
 
+  const lastActiveDate = sessionVotes[0]?.roll_calls?.date ?? null
+
   return {
     leg,
     termsServed: termsServed ?? 0,
@@ -222,6 +224,7 @@ async function getLegislator(slug: string) {
     committees,
     partyLineTotal,
     partyUnityPct,
+    lastActiveDate,
   }
 }
 
@@ -257,7 +260,7 @@ export default async function LegislatorPage({ params }: Props) {
 
   if (!data) notFound()
 
-  const { leg, termsServed, bills, votes, keyVotes, session, voteStats, committees, partyLineTotal, partyUnityPct } = data
+  const { leg, termsServed, bills, votes, keyVotes, session, voteStats, committees, partyLineTotal, partyUnityPct, lastActiveDate } = data
 
   const primaryBills = bills.filter((b: any) => b.sponsor_order === 1)
   const coBills = bills.filter((b: any) => b.sponsor_order > 1)
@@ -367,6 +370,14 @@ export default async function LegislatorPage({ params }: Props) {
               {/* Occupation */}
               {(leg as any).occupation && (
                 <p className="text-sm text-slate-500 mt-0.5">{(leg as any).occupation}</p>
+              )}
+
+              {/* Last active */}
+              {lastActiveDate && (
+                <p className="text-xs text-slate-400 mt-1">
+                  Last active{' '}
+                  {new Date(lastActiveDate + 'T00:00:00').toLocaleDateString('en-US', { month: 'long', day: 'numeric', year: 'numeric' })}
+                </p>
               )}
 
               {/* Bio — legislature source preferred, fall back to Wikipedia */}

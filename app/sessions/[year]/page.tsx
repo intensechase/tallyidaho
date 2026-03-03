@@ -16,6 +16,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
   return {
     title: `${year} Idaho Legislative Session | Tally Idaho`,
     description: `Browse bills, votes, top sponsors, and key activity from the ${year} Idaho Regular Session.`,
+    alternates: { canonical: `https://www.tallyidaho.com/sessions/${year}` },
   }
 }
 
@@ -97,7 +98,19 @@ export default async function SessionPage({ params }: Props) {
   const { session, stats, recentBills, controversialBills, topSponsors } = data
   const isCurrent = !session.sine_die
 
+  const breadcrumbJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'BreadcrumbList',
+    itemListElement: [
+      { '@type': 'ListItem', position: 1, name: 'Home',     item: 'https://www.tallyidaho.com' },
+      { '@type': 'ListItem', position: 2, name: 'Sessions', item: 'https://www.tallyidaho.com/sessions' },
+      { '@type': 'ListItem', position: 3, name: session.name, item: `https://www.tallyidaho.com/sessions/${year}` },
+    ],
+  }
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
     <main className="max-w-5xl mx-auto px-4 py-8">
 
       {/* Breadcrumb */}
@@ -281,5 +294,6 @@ export default async function SessionPage({ params }: Props) {
 
       </div>
     </main>
+    </>
   )
 }

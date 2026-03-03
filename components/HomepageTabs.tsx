@@ -71,11 +71,18 @@ function ControversialBillCard({ bill, year }: { bill: Bill; year: number }) {
                 {bill.bill_number}
               </span>
             </Link>
-            <span className={`text-sm font-bold px-3 py-1 rounded-full border ${
-              bill.controversy_reason === 'party_line'
-                ? 'bg-red-50 text-red-700 border-red-200'
-                : 'bg-orange-50 text-orange-700 border-orange-200'
-            }`}>
+            <span
+              className={`text-sm font-bold px-3 py-1 rounded-full border ${
+                bill.controversy_reason === 'party_line'
+                  ? 'bg-red-50 text-red-700 border-red-200'
+                  : 'bg-orange-50 text-orange-700 border-orange-200'
+              }`}
+              title={
+                bill.controversy_reason === 'party_line'
+                  ? 'Party-line vote — members voted largely along party lines'
+                  : 'Close vote — the margin between yea and nay was very narrow'
+              }
+            >
               {bill.controversy_reason === 'party_line' ? 'PARTY LINE' : 'CLOSE VOTE'}
             </span>
           </div>
@@ -343,7 +350,10 @@ function ChamberColumn({ bills, chamber, year }: {
               <details open className="group">
                 <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
                   <div className="flex items-center gap-1.5 py-2">
-                    <span className={`text-[10px] font-bold tracking-widest uppercase group-open:text-current ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}>
+                    <span
+                      className={`text-[10px] font-bold tracking-widest uppercase group-open:text-current ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}
+                      title="Third Reading — final floor vote on whether to pass the bill"
+                    >
                       <span className="group-open:hidden">▶</span>
                       <span className="hidden group-open:inline">▼</span>
                       {' '}Third Reading ({thirdReading.length})
@@ -363,7 +373,10 @@ function ChamberColumn({ bills, chamber, year }: {
               <details className="group">
                 <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
                   <div className={`flex items-center gap-1.5 py-2 ${hasThird ? 'border-t border-slate-100' : 'pt-1'}`}>
-                    <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700">
+                    <span
+                      className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700"
+                      title="Second Reading — bills introduced for floor consideration or amendment"
+                    >
                       <span className="group-open:hidden">▶</span>
                       <span className="hidden group-open:inline">▼</span>
                       {' '}Second Reading ({secondReading.length})
@@ -383,7 +396,10 @@ function ChamberColumn({ bills, chamber, year }: {
               <details className="group">
                 <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
                   <div className={`flex items-center gap-1.5 py-2 ${(hasThird || hasSecond) ? 'border-t border-slate-100' : ''}`}>
-                    <span className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700">
+                    <span
+                      className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700"
+                      title="General Orders — bills debated and amended in committee of the whole; typically precede a final vote"
+                    >
                       <span className="group-open:hidden">▶</span>
                       <span className="hidden group-open:inline">▼</span>
                       {' '}General Orders ({generalOrders.length})

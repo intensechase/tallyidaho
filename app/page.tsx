@@ -147,17 +147,17 @@ export default async function HomePage() {
             <span className="text-3xl font-black text-white tabular-nums group-hover:text-slate-200 transition-colors">{stats.billsCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Bills</span>
           </Link>
-          <div className="h-7 w-px bg-slate-700" />
+          <div className="hidden md:block h-7 w-px bg-slate-700" />
           <Link href={`/bills?year=${session.year_start}&status=2`} className="stat-enter flex items-baseline gap-2 group">
             <span className="text-3xl font-black text-amber-400 tabular-nums group-hover:text-amber-300 transition-colors">{stats.inCommitteeCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">In Committee</span>
           </Link>
-          <div className="h-7 w-px bg-slate-700" />
+          <div className="hidden md:block h-7 w-px bg-slate-700" />
           <Link href={`/bills?year=${session.year_start}&status=4`} className="stat-enter flex items-baseline gap-2 group">
             <span className="text-3xl font-black text-emerald-400 tabular-nums group-hover:text-emerald-300 transition-colors">{stats.enactedCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Enacted</span>
           </Link>
-          <div className="h-7 w-px bg-slate-700" />
+          <div className="hidden md:block h-7 w-px bg-slate-700" />
           <Link href={`/bills?year=${session.year_start}&controversial=true`} className="stat-enter flex items-baseline gap-2 group">
             <span className="text-3xl font-black text-red-400 tabular-nums group-hover:text-red-300 transition-colors">{stats.controversialCount.toLocaleString()}</span>
             <span className="text-slate-400 text-xs uppercase tracking-widest group-hover:text-slate-300 transition-colors">Controversial</span>
