@@ -39,7 +39,7 @@ export const metadata: Metadata = {
     card: 'summary_large_image',
     site: '@tallyidaho',
   },
-  metadataBase: new URL('https://tallyidaho.com'),
+  metadataBase: new URL('https://www.tallyidaho.com'),
 }
 
 const footerLinks = [

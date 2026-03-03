@@ -5,6 +5,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Idaho Legislative Committees | Tally Idaho',
   description: 'Browse Idaho Senate and House standing committees for 2025 and 2026. View committee membership rosters and assigned bills.',
+  alternates: { canonical: 'https://www.tallyidaho.com/committees' },
 }
 
 export const revalidate = 300

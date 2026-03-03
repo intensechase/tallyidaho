@@ -77,7 +77,19 @@ export default async function LegislatorsPage({ searchParams }: Props) {
     return `/legislators${qs ? `?${qs}` : ''}`
   }
 
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Idaho Legislators — ${session?.name || `${year} Session`}`,
+    description: `All ${all.length} Idaho state legislators for the ${year} session — senators and representatives.`,
+    url: `https://www.tallyidaho.com/legislators`,
+    numberOfItems: all.length,
+    publisher: { '@type': 'Organization', name: 'Tally Idaho', url: 'https://www.tallyidaho.com' },
+  }
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
     <main className="max-w-7xl mx-auto px-4 py-8">
 
       <nav className="text-xs text-slate-400 mb-4">
@@ -185,6 +197,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
         </div>
       )}
     </main>
+    </>
   )
 }
 

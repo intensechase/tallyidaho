@@ -175,7 +175,19 @@ export default async function BillsPage({ searchParams }: Props) {
     return `/bills${qs ? `?${qs}` : ''}`
   }
 
+  const collectionJsonLd = {
+    '@context': 'https://schema.org',
+    '@type': 'CollectionPage',
+    name: `Idaho Bills — ${session?.name || `${year} Session`}`,
+    description: `Browse all ${count?.toLocaleString()} Idaho legislative bills for the ${year} session.`,
+    url: `https://www.tallyidaho.com/bills?year=${year}`,
+    numberOfItems: count ?? 0,
+    publisher: { '@type': 'Organization', name: 'Tally Idaho', url: 'https://www.tallyidaho.com' },
+  }
+
   return (
+    <>
+    <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(collectionJsonLd) }} />
     <main className="max-w-7xl mx-auto px-4 py-8">
 
       {/* Header */}
@@ -365,5 +377,6 @@ export default async function BillsPage({ searchParams }: Props) {
         </div>
       )}
     </main>
+    </>
   )
 }

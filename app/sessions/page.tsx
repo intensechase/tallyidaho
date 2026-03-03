@@ -5,6 +5,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Idaho Legislative Sessions | Tally Idaho',
   description: 'Browse Idaho legislative sessions from 2016 to present. View bills, votes, and activity for each session.',
+  alternates: { canonical: 'https://www.tallyidaho.com/sessions' },
 }
 
 export const revalidate = 86400

@@ -6,6 +6,7 @@ import Link from 'next/link'
 export const metadata: Metadata = {
   title: 'Idaho Legislative Districts | Tally Idaho',
   description: 'Browse all 35 Idaho legislative districts. See your senator and representatives, their party, and the area they represent.',
+  alternates: { canonical: 'https://www.tallyidaho.com/districts' },
 }
 
 export const revalidate = 3600

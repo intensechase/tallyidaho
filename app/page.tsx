@@ -164,7 +164,9 @@ export default async function HomePage() {
           </Link>
           <div className="ml-auto hidden md:flex flex-col items-end">
             <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">{session.name}</span>
-            <span className="text-xs text-slate-600 mt-0.5">Updated daily</span>
+            <span className="text-xs text-slate-600 mt-0.5">
+              {floorCalendar.legislativeDay ? `Legislative Day ${floorCalendar.legislativeDay}` : 'Updated daily'}
+            </span>
           </div>
         </div>
       </div>
