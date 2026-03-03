@@ -84,11 +84,18 @@ export default async function DistrictsPage() {
         <span className="text-slate-600">Districts</span>
       </nav>
 
-      <div className="mb-8">
+      <div className="mb-6">
         <h1 className="page-heading">Idaho Legislative Districts</h1>
         <p className="text-sm text-slate-500 mt-2">
           35 districts · each elects 1 senator and 2 representatives
         </p>
+      </div>
+
+      <div className="mb-6 flex items-center gap-3 bg-amber-50 border border-amber-200 rounded-xl px-4 py-3 text-sm text-slate-600">
+        <span className="font-semibold text-slate-700 shrink-0">Don&apos;t know your district?</span>
+        <Link href="/" className="text-amber-700 hover:underline">
+          Enter your address on the homepage →
+        </Link>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -164,14 +171,6 @@ export default async function DistrictsPage() {
         })}
       </div>
 
-      <div className="mt-10 bg-amber-50 border border-amber-200 rounded-xl p-4 text-sm text-slate-600">
-        <p className="font-semibold mb-1">Don&apos;t know your district?</p>
-        <p>
-          Enter your address on the{' '}
-          <Link href="/" className="text-amber-700 hover:underline">homepage</Link>
-          {' '}to look up your district and legislators instantly.
-        </p>
-      </div>
     </main>
   )
 }

@@ -1,7 +1,7 @@
 'use client'
 
 import { useRouter } from 'next/navigation'
-import { useState, useTransition } from 'react'
+import { useState, useTransition, useEffect } from 'react'
 
 const YEARS = [2026, 2025, 2024, 2023, 2022, 2021, 2020, 2019, 2018, 2017, 2016]
 
@@ -59,6 +59,20 @@ export default function BillsFilters({
   const [, startTransition] = useTransition()
   const [query, setQuery] = useState(currentQuery)
 
+  const activeFilterCount = [
+    currentChamber,
+    currentControversial,
+    currentSubject,
+    currentStatus,
+    currentSponsor,
+    currentSort && currentSort !== 'recent' ? currentSort : '',
+  ].filter(Boolean).length
+
+  const [showFilters, setShowFilters] = useState(activeFilterCount > 0)
+  useEffect(() => {
+    if (activeFilterCount > 0) setShowFilters(true)
+  }, [activeFilterCount])
+
   function navigate(url: string) {
     startTransition(() => router.push(url))
   }
@@ -96,8 +110,25 @@ export default function BillsFilters({
         )}
       </form>
 
+      {/* Mobile filter toggle */}
+      <div className="flex items-center gap-2 md:hidden">
+        <button
+          type="button"
+          onClick={() => setShowFilters(v => !v)}
+          className="flex items-center gap-1.5 text-sm border border-slate-300 rounded-lg px-3 py-1.5 bg-white hover:border-slate-400 transition-colors"
+        >
+          <span>Filters</span>
+          {activeFilterCount > 0 && (
+            <span className="bg-amber-500 text-white text-[10px] font-bold rounded-full w-4 h-4 flex items-center justify-center">
+              {activeFilterCount}
+            </span>
+          )}
+          <span className="text-slate-400 text-xs">{showFilters ? '▲' : '▼'}</span>
+        </button>
+      </div>
+
       {/* Filter chips */}
-      <div className="flex items-center gap-2 flex-wrap text-sm">
+      <div className={`gap-2 flex-wrap text-sm ${showFilters ? 'flex' : 'hidden md:flex'}`}>
 
         {/* Year */}
         <select

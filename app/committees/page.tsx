@@ -35,23 +35,6 @@ export default async function CommitteesPage({ searchParams }: Props) {
         .order('name')
     : { data: [] }
 
-  // Get bill counts per committee
-  const committeeIds = (committees || []).map((c: any) => c.id)
-  let billCounts: Record<string, number> = {}
-
-  if (committeeIds.length > 0) {
-    const { data: billRows } = await supabase
-      .from('bills')
-      .select('committee_id')
-      .in('committee_id', committeeIds)
-
-    for (const row of (billRows || [])) {
-      if (row.committee_id) {
-        billCounts[row.committee_id] = (billCounts[row.committee_id] || 0) + 1
-      }
-    }
-  }
-
   const allCommittees = committees || []
   const senateCommittees = allCommittees.filter((c: any) => c.chamber === 'senate')
   const houseCommittees = allCommittees.filter((c: any) => c.chamber === 'house')
@@ -110,7 +93,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
                 <h2 className="section-heading">Senate Committees</h2>
                 <span className="text-xs text-slate-400">{senateCommittees.length} committees</span>
               </div>
-              <CommitteeGrid committees={senateCommittees} billCounts={billCounts} year={year} />
+              <CommitteeGrid committees={senateCommittees} year={year} />
             </section>
           )}
 
@@ -121,7 +104,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
                 <h2 className="section-heading">House Committees</h2>
                 <span className="text-xs text-slate-400">{houseCommittees.length} committees</span>
               </div>
-              <CommitteeGrid committees={houseCommittees} billCounts={billCounts} year={year} />
+              <CommitteeGrid committees={houseCommittees} year={year} />
             </section>
           )}
 
@@ -132,7 +115,7 @@ export default async function CommitteesPage({ searchParams }: Props) {
                 <h2 className="section-heading">Joint Committees</h2>
                 <span className="text-xs text-slate-400">{jointCommittees.length} committees</span>
               </div>
-              <CommitteeGrid committees={jointCommittees} billCounts={billCounts} year={year} />
+              <CommitteeGrid committees={jointCommittees} year={year} />
             </section>
           )}
 
@@ -144,18 +127,15 @@ export default async function CommitteesPage({ searchParams }: Props) {
 
 function CommitteeGrid({
   committees,
-  billCounts,
   year,
 }: {
   committees: any[]
-  billCounts: Record<string, number>
   year: number
 }) {
   return (
     <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
       {committees.map((c: any) => {
         const memberCount = (c.committee_members || []).length
-        const bills = billCounts[c.id] || 0
         const chamberColor = c.chamber === 'senate'
           ? 'bg-blue-50 text-blue-700 border-blue-200'
           : c.chamber === 'house'
@@ -168,13 +148,8 @@ function CommitteeGrid({
               <h3 className="font-oswald text-base font-bold text-slate-800 leading-snug mb-auto tracking-tight uppercase">
                 {c.short_name}
               </h3>
-              <div className="flex items-center justify-between gap-2 mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
-                <div className="flex gap-3">
-                  <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
-                  {bills > 0 && (
-                    <span className="text-amber-600 font-medium">{bills} bill{bills !== 1 ? 's' : ''}</span>
-                  )}
-                </div>
+              <div className="flex items-center justify-between mt-3 pt-3 border-t border-slate-100 text-xs text-slate-400">
+                <span>{memberCount} member{memberCount !== 1 ? 's' : ''}</span>
                 <span className={`font-mono text-[10px] font-bold border px-1.5 py-0.5 rounded ${chamberColor}`}>
                   {c.code}
                 </span>

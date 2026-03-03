@@ -13,7 +13,7 @@ export const metadata: Metadata = {
 export const revalidate = 3600
 
 interface Props {
-  searchParams: Promise<{ chamber?: string; party?: string; year?: string }>
+  searchParams: Promise<{ chamber?: string; party?: string; year?: string; q?: string }>
 }
 
 export default async function LegislatorsPage({ searchParams }: Props) {
@@ -23,6 +23,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   const year = parseInt(params.year || '2026')
   const chamber = params.chamber || ''
   const party = params.party || ''
+  const q = params.q || ''
 
   const { data: session } = await supabase
     .from('sessions')
@@ -44,6 +45,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   let filtered = all
   if (chamber) filtered = filtered.filter((l: any) => l.chamber?.toLowerCase() === chamber)
   if (party)   filtered = filtered.filter((l: any) => l.party === party)
+  if (q)       filtered = filtered.filter((l: any) => l.name?.toLowerCase().includes(q.toLowerCase()))
 
   // Group by district number for the by-district view
   const byDistrict: Record<number, { senator?: any; reps: any[] }> = {}
@@ -56,8 +58,8 @@ export default async function LegislatorsPage({ searchParams }: Props) {
     else byDistrict[n].reps.push(l)
   })
 
-  // Are we in filtered mode (chamber or party selected)?
-  const isFiltered = !!(chamber || party)
+  // Are we in filtered mode?
+  const isFiltered = !!(chamber || party || q)
 
   // For filtered grid: sort by district then role
   filtered.sort((a: any, b: any) => {
@@ -70,7 +72,7 @@ export default async function LegislatorsPage({ searchParams }: Props) {
   })
 
   function filterUrl(overrides: Record<string, string | undefined>) {
-    const next = { year: String(year), chamber, party, ...overrides }
+    const next = { year: String(year), chamber, party, q, ...overrides }
     const qs = Object.entries(next)
       .filter(([, v]) => v && v !== '')
       .map(([k, v]) => `${k}=${encodeURIComponent(v!)}`)
@@ -107,7 +109,31 @@ export default async function LegislatorsPage({ searchParams }: Props) {
       </div>
 
       {/* Filters */}
-      <div className="flex items-center gap-2 flex-wrap mb-8 text-sm">
+      <div className="space-y-3 mb-8">
+
+      {/* Name search */}
+      <form method="get" action="/legislators" className="flex gap-2">
+        <input type="hidden" name="year" value={year} />
+        {chamber && <input type="hidden" name="chamber" value={chamber} />}
+        {party && <input type="hidden" name="party" value={party} />}
+        <input
+          type="search"
+          name="q"
+          defaultValue={q}
+          placeholder="Search by name…"
+          className="flex-1 text-sm border border-slate-300 rounded-lg px-4 py-2 focus:outline-none focus:border-amber-500 focus:ring-1 focus:ring-amber-500 max-w-xs"
+        />
+        <button type="submit" className="bg-[#0f172a] text-white text-sm font-semibold px-4 py-2 rounded-lg hover:bg-slate-800 transition-colors">
+          Search
+        </button>
+        {q && (
+          <a href={filterUrl({ q: undefined })} className="text-sm text-slate-500 hover:text-slate-800 px-2 flex items-center">
+            ✕ Clear
+          </a>
+        )}
+      </form>
+
+      <div className="flex items-center gap-2 flex-wrap text-sm">
         <div className="flex gap-1">
           {(['', 'senate', 'house'] as const).map(c => (
             <Link key={c} href={filterUrl({ chamber: c || undefined, party: party || undefined })}>
@@ -136,9 +162,10 @@ export default async function LegislatorsPage({ searchParams }: Props) {
         </div>
         {isFiltered && (
           <Link href="/legislators" className="text-xs text-slate-400 hover:text-red-500 transition-colors ml-1">
-            ✕ Clear
+            ✕ Clear all
           </Link>
         )}
+      </div>
       </div>
 
       {/* ── By-district view (default) ── */}

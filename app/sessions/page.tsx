@@ -18,15 +18,15 @@ export default async function SessionsPage() {
     .select('id, name, year_start, year_end, sine_die, is_special, is_current')
     .order('year_start', { ascending: false })
 
-  // Get bill counts per session — one COUNT per session to avoid fetching all rows
-  const countsBySession: Record<string, number> = {}
+  // Get bill counts + enacted counts per session
+  const countsBySession: Record<string, { total: number; enacted: number }> = {}
   await Promise.all(
     (sessions || []).map(async (s: any) => {
-      const { count } = await supabase
-        .from('bills')
-        .select('*', { count: 'exact', head: true })
-        .eq('session_id', s.id)
-      countsBySession[s.id] = count ?? 0
+      const [{ count: total }, { count: enacted }] = await Promise.all([
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', s.id),
+        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', s.id).eq('completed', true),
+      ])
+      countsBySession[s.id] = { total: total ?? 0, enacted: enacted ?? 0 }
     })
   )
 
@@ -46,7 +46,7 @@ export default async function SessionsPage() {
 
       <div className="space-y-3">
         {(sessions || []).map((s: any) => {
-          const billCount = countsBySession[s.id] || 0
+          const { total: billCount, enacted: enactedCount } = countsBySession[s.id] || { total: 0, enacted: 0 }
           const isCurrent = s.is_current && !s.sine_die
 
           return (
@@ -72,7 +72,10 @@ export default async function SessionsPage() {
                       )}
                     </div>
                     <p className="text-sm text-slate-500">
-                      {billCount.toLocaleString()} bill{billCount !== 1 ? 's' : ''}
+                      {billCount.toLocaleString()} bills
+                      {enactedCount > 0 && (
+                        <span> · <span className="text-emerald-600 font-medium">{enactedCount.toLocaleString()} enacted</span></span>
+                      )}
                       {s.sine_die ? ' · Adjourned' : ' · In progress'}
                     </p>
                   </div>
