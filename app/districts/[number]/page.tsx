@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
+import Image from 'next/image'
 
 interface Props {
   params: Promise<{ number: string }>
@@ -269,9 +270,9 @@ export default async function DistrictPage({ params }: Props) {
                   <div className="p-4 flex flex-col flex-1">
                     {/* Photo + name */}
                     <div className="flex items-start gap-3 mb-3">
-                      <div className="w-14 h-14 rounded-lg bg-slate-100 overflow-hidden shrink-0">
+                      <div className="relative w-14 h-14 rounded-lg bg-slate-100 overflow-hidden shrink-0">
                         {leg.photo_url
-                          ? <img src={leg.photo_url} alt={leg.name} loading="lazy" className="w-full h-full object-cover object-top" />
+                          ? <Image src={leg.photo_url} alt={leg.name} fill sizes="56px" className="object-cover object-top" />
                           : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
                               <span className="text-white font-bold text-lg">{leg.name[0]}</span>
                             </div>

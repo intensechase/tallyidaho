@@ -171,6 +171,14 @@ export default async function HomePage() {
         </div>
       </div>
 
+      {/* Intro — first-visit context */}
+      <div className="max-w-7xl mx-auto px-4 pt-6 pb-0">
+        <p className="text-sm text-slate-500 leading-relaxed max-w-2xl">
+          Tally Idaho tracks every bill, vote, and legislator in the Idaho Legislature — free, nonpartisan, and updated daily.{' '}
+          <Link href="/about" className="text-amber-700 hover:underline">Learn more →</Link>
+        </p>
+      </div>
+
       {/* Bill tabs section */}
       <HomepageTabs
         controversialBills={controversialBills}

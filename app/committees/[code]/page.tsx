@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
+import Image from 'next/image'
 import MeetingRecord, { MeetingRow } from '@/components/MeetingRecord'
 
 interface Props {
@@ -230,9 +231,9 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
                       isChair ? 'border-amber-300' : 'border-slate-200'
                     }`}>
                       {/* Photo */}
-                      <div className="w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0">
+                      <div className="relative w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0">
                         {leg.photo_url
-                          ? <img src={leg.photo_url} alt={leg.name} loading="lazy" className="w-full h-full object-cover object-top" />
+                          ? <Image src={leg.photo_url} alt={leg.name} fill sizes="40px" className="object-cover object-top" />
                           : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
                               <span className="text-white font-bold text-sm">{leg.name[0]}</span>
                             </div>

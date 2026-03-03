@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
+import Image from 'next/image'
 
 export const metadata: Metadata = {
   title: 'Idaho Legislators | Tally Idaho',
@@ -211,9 +212,9 @@ function LegCell({ leg, role }: { leg: any; role: string }) {
   return (
     <Link href={`/legislators/${slug}`} className="flex items-center gap-2.5 px-3 py-2.5 hover:bg-amber-50 transition-colors h-full group">
       {/* Photo */}
-      <div className="w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+      <div className="relative w-9 h-9 rounded-full bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
         {leg.photo_url
-          ? <img src={leg.photo_url} alt={leg.name} loading="lazy" className="w-full h-full object-cover object-top" />
+          ? <Image src={leg.photo_url} alt={leg.name} fill sizes="36px" className="object-cover object-top" />
           : <span className={`text-[10px] font-bold text-white ${partyColor} w-full h-full flex items-center justify-center`}>{leg.party}</span>
         }
       </div>
@@ -251,9 +252,9 @@ function LegCard({ leg }: { leg: any }) {
   return (
     <Link href={`/legislators/${slug}`}>
       <div className="bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 hover:shadow-sm transition-all text-center">
-        <div className="w-16 h-16 rounded-full bg-slate-100 mx-auto mb-2 overflow-hidden flex items-center justify-center">
+        <div className="relative w-16 h-16 rounded-full bg-slate-100 mx-auto mb-2 overflow-hidden flex items-center justify-center">
           {leg.photo_url
-            ? <img src={leg.photo_url} alt={leg.name} loading="lazy" className="w-full h-full object-cover object-top" />
+            ? <Image src={leg.photo_url} alt={leg.name} fill sizes="64px" className="object-cover object-top" />
             : <span className={`text-sm font-bold text-white ${partyColor} w-full h-full flex items-center justify-center`}>{leg.party}</span>
           }
         </div>

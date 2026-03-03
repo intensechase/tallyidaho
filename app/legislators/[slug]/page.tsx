@@ -3,6 +3,7 @@ import { notFound } from 'next/navigation'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import Link from 'next/link'
+import Image from 'next/image'
 import VoteTabs from '@/components/VoteTabs'
 
 interface Props {
@@ -319,12 +320,15 @@ export default async function LegislatorPage({ params }: Props) {
           <div className="flex items-start gap-6">
 
             {/* Photo */}
-            <div className="w-28 h-28 md:w-32 md:h-32 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
+            <div className="relative w-28 h-28 md:w-32 md:h-32 rounded-xl bg-slate-100 overflow-hidden shrink-0 flex items-center justify-center">
               {leg.photo_url
-                ? <img
+                ? <Image
                     src={leg.photo_url}
                     alt={leg.name}
-                    className="w-full h-full object-cover object-top"
+                    fill
+                    sizes="(min-width: 768px) 128px, 112px"
+                    className="object-cover object-top"
+                    priority
                   />
                 : <span className={`party-badge party-${leg.party?.toLowerCase()} text-2xl w-full h-full flex items-center justify-center`}>
                     {leg.party}
