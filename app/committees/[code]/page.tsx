@@ -44,7 +44,7 @@ async function getCommitteeData(code: string, year: number) {
     .eq('session_id', session.id)
     .eq('committee_id', committee.id)
     .order('last_action_date', { ascending: false })
-    .limit(200)
+    .limit(60)
 
   // Secondary: bills whose last_action text mentions the committee name
   // Catches "reported out", "presented to", "voted out of" etc.
@@ -56,7 +56,7 @@ async function getCommitteeData(code: string, year: number) {
         .eq('session_id', session.id)
         .ilike('last_action', `%${searchName}%`)
         .order('last_action_date', { ascending: false })
-        .limit(200)
+        .limit(60)
     : { data: [] }
 
   // Merge and deduplicate by bill_number
@@ -210,106 +210,120 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
 
         {/* Members */}
         <div className="md:col-span-3">
-          <h2 className="section-label mb-4">MEMBERS</h2>
+          <details open className="group">
+            <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer mb-4">
+              <h2 className="section-label inline-flex items-center gap-2">
+                <span className="group-open:hidden">▶</span>
+                <span className="hidden group-open:inline">▼</span>
+                MEMBERS ({members.length})
+              </h2>
+            </summary>
 
-          {members.length === 0 ? (
-            <p className="text-sm text-slate-400">No member data available.</p>
-          ) : (
-            <div className="space-y-2">
-              {members.map((m: any, i: number) => {
-                const leg = m.legislators
-                const slug = legislatorSlug(leg.name)
-                const partyColor =
-                  leg.party === 'R' ? 'bg-red-500' :
-                  leg.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'
-                const isChair = m.member_role === 'Chair' || m.member_role === 'Co-Chair'
-                const isVice = m.member_role === 'Vice Chair'
+            {members.length === 0 ? (
+              <p className="text-sm text-slate-400">No member data available.</p>
+            ) : (
+              <div className="space-y-2">
+                {members.map((m: any, i: number) => {
+                  const leg = m.legislators
+                  const slug = legislatorSlug(leg.name)
+                  const partyColor =
+                    leg.party === 'R' ? 'bg-red-500' :
+                    leg.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'
+                  const isChair = m.member_role === 'Chair' || m.member_role === 'Co-Chair'
+                  const isVice = m.member_role === 'Vice Chair'
 
-                return (
-                  <Link key={i} href={`/legislators/${slug}`}>
-                    <div className={`bg-white border rounded-xl p-3 hover:border-amber-300 hover:shadow-sm transition-all flex items-center gap-3 ${
-                      isChair ? 'border-amber-300' : 'border-slate-200'
-                    }`}>
-                      {/* Photo */}
-                      <div className="relative w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0">
-                        {leg.photo_url
-                          ? <Image src={leg.photo_url} alt={leg.name} fill sizes="40px" className="object-cover object-top" />
-                          : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
-                              <span className="text-white font-bold text-sm">{leg.name[0]}</span>
-                            </div>
-                        }
-                      </div>
-
-                      {/* Info */}
-                      <div className="flex-1 min-w-0">
-                        <div className="flex items-center gap-1.5 mb-0.5">
-                          <span className={`text-[9px] font-bold text-white ${partyColor} rounded-full px-1.5 py-0.5`}>{leg.party}</span>
-                          <span className="text-[10px] text-slate-400">
-                            {leg.role === 'Sen' ? 'Sen.' : 'Rep.'} · {leg.district}
-                          </span>
+                  return (
+                    <Link key={i} href={`/legislators/${slug}`}>
+                      <div className={`bg-white border rounded-xl p-3 hover:border-amber-300 hover:shadow-sm transition-all flex items-center gap-3 ${
+                        isChair ? 'border-amber-300' : 'border-slate-200'
+                      }`}>
+                        {/* Photo */}
+                        <div className="relative w-10 h-10 rounded-full bg-slate-100 overflow-hidden shrink-0">
+                          {leg.photo_url
+                            ? <Image src={leg.photo_url} alt={leg.name} fill sizes="40px" className="object-cover object-top" />
+                            : <div className={`w-full h-full flex items-center justify-center ${partyColor}`}>
+                                <span className="text-white font-bold text-sm">{leg.name[0]}</span>
+                              </div>
+                          }
                         </div>
-                        <p className="text-sm font-semibold text-slate-800 truncate">{leg.name}</p>
-                      </div>
 
-                      {/* Role badge */}
-                      {(isChair || isVice) && (
-                        <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
-                          isChair
-                            ? 'bg-amber-50 text-amber-700 border border-amber-200'
-                            : 'bg-slate-50 text-slate-500 border border-slate-200'
-                        }`}>
-                          {m.member_role}
-                        </span>
-                      )}
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+                        {/* Info */}
+                        <div className="flex-1 min-w-0">
+                          <div className="flex items-center gap-1.5 mb-0.5">
+                            <span className={`text-[9px] font-bold text-white ${partyColor} rounded-full px-1.5 py-0.5`}>{leg.party}</span>
+                            <span className="text-[10px] text-slate-400">
+                              {leg.role === 'Sen' ? 'Sen.' : 'Rep.'} · {leg.district}
+                            </span>
+                          </div>
+                          <p className="text-sm font-semibold text-slate-800 truncate">{leg.name}</p>
+                        </div>
+
+                        {/* Role badge */}
+                        {(isChair || isVice) && (
+                          <span className={`text-xs font-bold px-2 py-0.5 rounded-full shrink-0 ${
+                            isChair
+                              ? 'bg-amber-50 text-amber-700 border border-amber-200'
+                              : 'bg-slate-50 text-slate-500 border border-slate-200'
+                          }`}>
+                            {m.member_role}
+                          </span>
+                        )}
+                      </div>
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </details>
         </div>
 
         {/* Bills */}
         <div className="md:col-span-2">
-          <h2 className="section-label mb-4">
-            BILLS REFERRED ({bills.length})
-          </h2>
+          <details open className="group">
+            <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer mb-4">
+              <h2 className="section-label inline-flex items-center gap-2">
+                <span className="group-open:hidden">▶</span>
+                <span className="hidden group-open:inline">▼</span>
+                BILLS REFERRED ({bills.length})
+              </h2>
+            </summary>
 
-          {bills.length === 0 ? (
-            <p className="text-sm text-slate-400">No bills found for this committee.</p>
-          ) : (
-            <div className="space-y-2">
-              {bills.map((bill: any) => {
-                const { label, color } = committeeRelation(bill)
-                return (
-                  <Link
-                    key={bill.bill_number}
-                    href={`/bills/${session.year_start}/${bill.bill_number.toLowerCase()}`}
-                    className="block"
-                  >
-                    <div className="bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all">
-                      <div className="flex items-start justify-between gap-2 mb-1">
-                        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
-                          {bill.bill_number}
-                        </span>
-                        <span className={`text-[10px] font-bold border px-1.5 py-0.5 rounded-full shrink-0 ${color}`}>
-                          {label}
-                        </span>
+            {bills.length === 0 ? (
+              <p className="text-sm text-slate-400">No bills found for this committee.</p>
+            ) : (
+              <div className="space-y-2 max-h-[480px] overflow-y-auto pr-1">
+                {bills.map((bill: any) => {
+                  const { label, color } = committeeRelation(bill)
+                  return (
+                    <Link
+                      key={bill.bill_number}
+                      href={`/bills/${session.year_start}/${bill.bill_number.toLowerCase()}`}
+                      className="block"
+                    >
+                      <div className="bg-white border border-slate-200 rounded-xl p-3 hover:border-amber-300 transition-all">
+                        <div className="flex items-start justify-between gap-2 mb-1">
+                          <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0">
+                            {bill.bill_number}
+                          </span>
+                          <span className={`text-[10px] font-bold border px-1.5 py-0.5 rounded-full shrink-0 ${color}`}>
+                            {label}
+                          </span>
+                        </div>
+                        <p className="text-xs text-slate-700 leading-snug">{bill.title}</p>
+                        {bill.last_action_date && (
+                          <p className="text-[10px] text-slate-400 mt-1">
+                            {new Date(bill.last_action_date).toLocaleDateString('en-US', {
+                              month: 'short', day: 'numeric', year: 'numeric'
+                            })}
+                          </p>
+                        )}
                       </div>
-                      <p className="text-xs text-slate-700 leading-snug">{bill.title}</p>
-                      {bill.last_action_date && (
-                        <p className="text-[10px] text-slate-400 mt-1">
-                          {new Date(bill.last_action_date).toLocaleDateString('en-US', {
-                            month: 'short', day: 'numeric', year: 'numeric'
-                          })}
-                        </p>
-                      )}
-                    </div>
-                  </Link>
-                )
-              })}
-            </div>
-          )}
+                    </Link>
+                  )
+                })}
+              </div>
+            )}
+          </details>
         </div>
 
       </div>
