@@ -8,6 +8,15 @@ export const metadata: Metadata = {
 
 export const revalidate = 86400
 
+const personJsonLd = {
+  '@context': 'https://schema.org',
+  '@type': 'Person',
+  name: 'Chase',
+  description: 'Civic developer based in Boise, Idaho. Builder of Tally Idaho.',
+  url: 'https://www.tallyidaho.com/about',
+  homeLocation: { '@type': 'City', name: 'Boise', containedInPlace: { '@type': 'State', name: 'Idaho' } },
+}
+
 const breadcrumbJsonLd = {
   '@context': 'https://schema.org',
   '@type': 'BreadcrumbList',
@@ -20,6 +29,7 @@ const breadcrumbJsonLd = {
 export default function AboutPage() {
   return (
     <main className="max-w-3xl mx-auto px-4 py-10">
+      <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(personJsonLd) }} />
       <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(breadcrumbJsonLd) }} />
 
       {/* Breadcrumb */}
@@ -137,8 +147,9 @@ export default function AboutPage() {
           <h2 className="section-label mb-3">CONTACT & FEEDBACK</h2>
           <div className="bg-white border border-slate-200 rounded-xl p-6 space-y-3">
             <p>
-              Tally Idaho is an independent civic project. We are not affiliated with the Idaho
-              Legislature, any political party, or any government agency.
+              Tally Idaho is an independent civic project built by Chase, a Boise resident who
+              believes Idaho voters deserve simple, honest access to their legislature's public record.
+              We are not affiliated with the Idaho Legislature, any political party, or any government agency.
             </p>
             <p>
               Found an error? Have a suggestion? We want to hear from you. Reach us at{' '}
