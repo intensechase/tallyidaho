@@ -20,6 +20,7 @@ interface Props {
   currentQuery: string
   currentStatus: string
   currentSponsor: string
+  currentSort: string
   subjects: string[]
   legislators: Legislator[]
 }
@@ -32,6 +33,7 @@ export default function BillsFilters({
   currentQuery,
   currentStatus,
   currentSponsor,
+  currentSort,
   subjects,
   legislators,
 }: Props) {
@@ -44,6 +46,7 @@ export default function BillsFilters({
       ...(currentQuery && { q: currentQuery }),
       ...(currentStatus && { status: currentStatus }),
       ...(currentSponsor && { sponsor: currentSponsor }),
+      ...(currentSort && currentSort !== 'recent' && { sort: currentSort }),
     }
     const next = { ...current, ...overrides, page: '1' }
     const qs = Object.entries(next)
@@ -169,8 +172,19 @@ export default function BillsFilters({
               : 'bg-white border-slate-300 text-slate-600 hover:border-amber-400'
           }`}
         >
-          ⚡ Controversial only
+          Controversial only
         </button>
+
+        {/* Sort */}
+        <select
+          value={currentSort}
+          onChange={e => navigate(filterUrl({ sort: e.target.value !== 'recent' ? e.target.value : undefined, page: '1' }))}
+          className="border border-slate-300 rounded-lg px-3 py-1.5 text-sm focus:outline-none focus:border-amber-500 bg-white"
+        >
+          <option value="recent">Most Recent</option>
+          <option value="bill_number">Bill #</option>
+          <option value="controversial">Controversial First</option>
+        </select>
 
         {/* Subject */}
         {subjects.length > 0 && (
@@ -187,7 +201,7 @@ export default function BillsFilters({
         )}
 
         {/* Active filter count */}
-        {(currentChamber || currentControversial || currentSubject || currentQuery || currentStatus) && (
+        {(currentChamber || currentControversial || currentSubject || currentQuery || currentStatus || (currentSort && currentSort !== 'recent')) && (
           <a
             href="/bills"
             className="text-xs text-slate-400 hover:text-red-500 transition-colors ml-2"

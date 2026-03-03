@@ -19,7 +19,7 @@ export const metadata: Metadata = {
   },
 }
 
-export const revalidate = 3600 // Refresh hourly
+export const revalidate = 1800 // Refresh every 30 min
 
 async function getHomepageData() {
   const supabase = createServerClient()

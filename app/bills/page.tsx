@@ -11,7 +11,7 @@ export const metadata: Metadata = {
   alternates: { canonical: 'https://www.tallyidaho.com/bills' },
 }
 
-export const revalidate = 3600
+export const revalidate = 1800
 
 interface Props {
   searchParams: Promise<{
@@ -23,7 +23,20 @@ interface Props {
     sponsor?: string
     q?: string
     page?: string
+    sort?: string
   }>
+}
+
+function getPageNumbers(current: number, total: number): (number | '...')[] {
+  if (total <= 7) return Array.from({ length: total }, (_, i) => i + 1)
+  const pages: (number | '...')[] = [1]
+  if (current > 3) pages.push('...')
+  for (let i = Math.max(2, current - 1); i <= Math.min(total - 1, current + 1); i++) {
+    pages.push(i)
+  }
+  if (current < total - 2) pages.push('...')
+  pages.push(total)
+  return pages
 }
 
 export default async function BillsPage({ searchParams }: Props) {
@@ -38,6 +51,7 @@ export default async function BillsPage({ searchParams }: Props) {
   const sponsorId = params.sponsor || ''
   const query = params.q || ''
   const page = parseInt(params.page || '1')
+  const sort = params.sort || 'recent'
   const perPage = 25
 
   // Get session for this year
@@ -91,7 +105,7 @@ export default async function BillsPage({ searchParams }: Props) {
     sponsorBillIds = (sponsorRows || []).map((s: any) => s.bills?.id).filter(Boolean)
   }
 
-  // Build query
+  // Build query — filters first, then sort, then range
   let billsQuery = supabase
     .from('bills')
     .select(`
@@ -99,13 +113,11 @@ export default async function BillsPage({ searchParams }: Props) {
       status, committee_name,
       is_controversial, controversy_reason,
       completed, last_action, last_action_date,
-      subjects,
+      subjects, plain_summary,
       bill_sponsors(sponsor_order, legislators(name, party, district)),
       roll_calls(yea_count, nay_count, passed)
     `, { count: 'exact' })
     .eq('session_id', session?.id || 0)
-    .order('bill_number', { ascending: true })
-    .range((page - 1) * perPage, page * perPage - 1)
 
   if (chamber) billsQuery = billsQuery.eq('chamber', chamber)
   if (controversial) billsQuery = billsQuery.eq('is_controversial', true)
@@ -119,7 +131,6 @@ export default async function BillsPage({ searchParams }: Props) {
     billsQuery = billsQuery.in('status', ['5', '6']).eq('completed', false)
   }
   else if (status === 'failed') {
-    // Two-step: get IDs of bills with at least one failed roll call
     const { data: failedRcRows } = await supabase
       .from('roll_calls')
       .select('bills!inner(id)')
@@ -137,10 +148,24 @@ export default async function BillsPage({ searchParams }: Props) {
       : billsQuery.eq('id', '00000000-0000-0000-0000-000000000000')
   }
 
+  // Apply sort
+  if (sort === 'bill_number') {
+    billsQuery = billsQuery.order('bill_number', { ascending: true })
+  } else if (sort === 'controversial') {
+    billsQuery = billsQuery
+      .order('is_controversial', { ascending: false })
+      .order('last_action_date', { ascending: false })
+  } else {
+    // default: most recent activity
+    billsQuery = billsQuery.order('last_action_date', { ascending: false })
+  }
+
+  billsQuery = billsQuery.range((page - 1) * perPage, page * perPage - 1)
+
   const { data: bills, count } = await billsQuery
   const totalPages = Math.ceil((count || 0) / perPage)
 
-  // URL builder for server-side pagination links only (not passed to client components)
+  // URL builder for server-side pagination links
   function filterUrl(overrides: Record<string, string | undefined>) {
     const next = { year: String(year), page: '1', ...params, ...overrides }
     const qs = Object.entries(next)
@@ -175,6 +200,7 @@ export default async function BillsPage({ searchParams }: Props) {
         currentStatus={status}
         currentSponsor={sponsorId}
         currentQuery={query}
+        currentSort={sort}
         subjects={allSubjects}
         legislators={legislators}
       />
@@ -244,7 +270,15 @@ export default async function BillsPage({ searchParams }: Props) {
                         </span>
                       )}
                     </div>
+
                     <p className="text-sm font-semibold text-slate-800 leading-snug">{bill.title}</p>
+
+                    {bill.plain_summary && (
+                      <p className="text-xs text-slate-500 mt-1 line-clamp-2 leading-relaxed">
+                        {bill.plain_summary}
+                      </p>
+                    )}
+
                     {sponsor && (
                       <p className="text-xs text-slate-400 mt-1">
                         <Link
@@ -266,7 +300,7 @@ export default async function BillsPage({ searchParams }: Props) {
                   {latestRc && (
                     <div className="shrink-0 text-right w-28">
                       <div className="flex items-center gap-1.5 mb-1">
-                        <div className="flex-1 h-1.5 rounded-full bg-slate-200 overflow-hidden">
+                        <div className="flex-1 h-2 rounded-full bg-slate-200 overflow-hidden">
                           <div className="h-full bg-emerald-500 rounded-full" style={{ width: `${yeaPct}%` }} />
                         </div>
                       </div>
@@ -294,22 +328,36 @@ export default async function BillsPage({ searchParams }: Props) {
 
       {/* Pagination */}
       {totalPages > 1 && (
-        <div className="flex items-center justify-center gap-2 mt-10">
+        <div className="flex items-center justify-center gap-1 mt-10 flex-wrap">
           {page > 1 && (
             <Link
               href={filterUrl({ page: String(page - 1) })}
-              className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:border-amber-400 transition-colors"
+              className="px-3 py-2 text-sm border border-slate-300 rounded-lg hover:border-amber-400 transition-colors"
             >
-              ← Previous
+              ← Prev
             </Link>
           )}
-          <span className="text-sm text-slate-500">
-            Page {page} of {totalPages}
-          </span>
+          {getPageNumbers(page, totalPages).map((p, i) =>
+            p === '...' ? (
+              <span key={`ellipsis-${i}`} className="px-2 py-2 text-sm text-slate-400">…</span>
+            ) : (
+              <Link
+                key={p}
+                href={filterUrl({ page: String(p) })}
+                className={`px-3 py-2 text-sm border rounded-lg transition-colors ${
+                  p === page
+                    ? 'bg-[#0f172a] text-white border-transparent'
+                    : 'border-slate-300 hover:border-amber-400'
+                }`}
+              >
+                {p}
+              </Link>
+            )
+          )}
           {page < totalPages && (
             <Link
               href={filterUrl({ page: String(page + 1) })}
-              className="px-4 py-2 text-sm border border-slate-300 rounded-lg hover:border-amber-400 transition-colors"
+              className="px-3 py-2 text-sm border border-slate-300 rounded-lg hover:border-amber-400 transition-colors"
             >
               Next →
             </Link>
