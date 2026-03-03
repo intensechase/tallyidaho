@@ -179,6 +179,21 @@ export default async function HomePage() {
         </p>
       </div>
 
+      {/* Featured Guides */}
+      <div className="max-w-7xl mx-auto px-4 pt-4 pb-0">
+        <div className="flex flex-wrap gap-2">
+          <Link href="/idaho-income-tax-legislation" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:border-amber-400 hover:text-amber-700 rounded-lg px-3 py-1.5 transition-colors">
+            <span>💰</span> Idaho Income Tax Laws
+          </Link>
+          <Link href="/idaho-property-tax-legislation" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:border-amber-400 hover:text-amber-700 rounded-lg px-3 py-1.5 transition-colors">
+            <span>🏠</span> Idaho Property Tax Laws
+          </Link>
+          <Link href="/idaho-legislative-process" className="inline-flex items-center gap-1.5 text-xs font-medium text-slate-600 bg-white border border-slate-200 hover:border-amber-400 hover:text-amber-700 rounded-lg px-3 py-1.5 transition-colors">
+            <span>🏛️</span> How Idaho Laws Are Made
+          </Link>
+        </div>
+      </div>
+
       {/* Bill tabs section */}
       <HomepageTabs
         controversialBills={controversialBills}
