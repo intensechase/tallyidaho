@@ -108,20 +108,30 @@ async function getDistrictData(districtNum: number) {
     .filter(Boolean)
     .sort((a: any, b: any) => (a.bill_number || '').localeCompare(b.bill_number || ''))
 
-  // Controversial votes involving district legislators — session filter in SQL
-  const { data: controversialVotes } = await supabase
-    .from('legislator_votes')
-    .select('vote, legislator_id, legislators(name, party), roll_calls!inner(id, date, passed, session_id, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason))')
-    .in('legislator_id', legIds)
-    .eq('roll_calls.session_id', session.id)
-    .order('roll_call_id', { ascending: false })
-    .limit(150)
+  // Step 1: Controversial roll calls for this session — is_controversial filtered in SQL
+  const { data: controversialRcs } = await supabase
+    .from('roll_calls')
+    .select('id, date, passed, bills!inner(bill_number, title, is_controversial, controversy_reason)')
+    .eq('session_id', session.id)
+    .eq('bills.is_controversial', true)
 
+  const rcIds = (controversialRcs || []).map((rc: any) => rc.id)
+
+  // Step 2: District legislators' votes on those roll calls only
+  const { data: districtVotes } = rcIds.length > 0
+    ? await supabase
+        .from('legislator_votes')
+        .select('vote, legislator_id, roll_call_id, legislators(name, party)')
+        .in('legislator_id', legIds)
+        .in('roll_call_id', rcIds)
+    : { data: [] }
+
+  const rcMap = new Map((controversialRcs || []).map((rc: any) => [rc.id, rc]))
   const controversialRollCalls = new Map<string, any>()
-  for (const v of (controversialVotes || [])) {
-    const rc = v.roll_calls as any
-    const bill = rc?.bills
-    if (!bill?.is_controversial) continue
+  for (const v of (districtVotes || [])) {
+    const rc = rcMap.get((v as any).roll_call_id) as any
+    if (!rc) continue
+    const bill = rc.bills as any
     if (!controversialRollCalls.has(bill.bill_number)) {
       controversialRollCalls.set(bill.bill_number, { bill, votes: [], date: rc.date, passed: rc.passed })
     }

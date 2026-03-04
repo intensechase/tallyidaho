@@ -1,5 +1,6 @@
 import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
+import { cache } from 'react'
 import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
@@ -11,8 +12,9 @@ interface Props {
   params: Promise<{ year: string; number: string }>
 }
 
-// Fetch bill data — used by both generateMetadata and the page
-async function getBill(year: string, number: string) {
+// cache() deduplicates calls within a single render — generateMetadata and the page
+// component both call this, so without cache() the big nested query runs twice.
+const getBill = cache(async function getBill(year: string, number: string) {
   const supabase = createServerClient()
 
   const { data: bill } = await supabase
@@ -40,7 +42,7 @@ async function getBill(year: string, number: string) {
     .single()
 
   return bill
-}
+})
 
 // Dynamic SEO metadata — Google will index each bill by number, title, sponsors
 export async function generateMetadata({ params }: Props): Promise<Metadata> {
