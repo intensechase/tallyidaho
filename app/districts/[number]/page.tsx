@@ -79,11 +79,12 @@ async function getDistrictData(districtNum: number) {
 
   const legIds = legislators.map((l: any) => l.id)
 
-  // Vote stats per legislator
+  // Vote stats per legislator — filter to current session via roll_calls join
   const { data: allVotes } = await supabase
     .from('legislator_votes')
-    .select('legislator_id, vote')
+    .select('legislator_id, vote, roll_calls!inner(session_id)')
     .in('legislator_id', legIds)
+    .eq('roll_calls.session_id', session.id)
 
   const voteStats: Record<string, { yea: number; nay: number; absent: number }> = {}
   for (const v of (allVotes || [])) {
@@ -94,31 +95,33 @@ async function getDistrictData(districtNum: number) {
     else voteStats[v.legislator_id].absent++
   }
 
-  // Bills sponsored by district legislators this session
+  // Bills sponsored by district legislators this session — session filter in SQL
   const { data: sponsorships } = await supabase
     .from('bill_sponsors')
-    .select('legislator_id, legislators(name), bills(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
+    .select('legislator_id, legislators(name), bills!inner(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
     .in('legislator_id', legIds)
     .eq('sponsor_order', 1)
+    .eq('bills.session_id', session.id)
 
   const bills = (sponsorships || [])
     .map((s: any) => ({ ...s.bills, sponsor_name: s.legislators?.name, legislator_id: s.legislator_id }))
-    .filter((b: any) => b?.session_id === session.id)
+    .filter(Boolean)
     .sort((a: any, b: any) => (a.bill_number || '').localeCompare(b.bill_number || ''))
 
-  // Controversial votes involving district legislators
+  // Controversial votes involving district legislators — session filter in SQL
   const { data: controversialVotes } = await supabase
     .from('legislator_votes')
-    .select('vote, legislator_id, legislators(name, party), roll_calls(id, date, passed, bills(bill_number, title, session_id, is_controversial, controversy_reason))')
+    .select('vote, legislator_id, legislators(name, party), roll_calls!inner(id, date, passed, session_id, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason))')
     .in('legislator_id', legIds)
-    .order('id', { ascending: false })
+    .eq('roll_calls.session_id', session.id)
+    .order('roll_call_id', { ascending: false })
     .limit(150)
 
   const controversialRollCalls = new Map<string, any>()
   for (const v of (controversialVotes || [])) {
     const rc = v.roll_calls as any
     const bill = rc?.bills
-    if (!bill?.is_controversial || bill.session_id !== session.id) continue
+    if (!bill?.is_controversial) continue
     if (!controversialRollCalls.has(bill.bill_number)) {
       controversialRollCalls.set(bill.bill_number, { bill, votes: [], date: rc.date, passed: rc.passed })
     }

@@ -18,17 +18,17 @@ export default async function SessionsPage() {
     .select('id, name, year_start, year_end, sine_die, is_special, is_current')
     .order('year_start', { ascending: false })
 
-  // Get bill counts + enacted counts per session
+  // Get bill counts + enacted counts per session — 1 query instead of 2×N
+  const { data: billCounts } = await supabase
+    .from('bills')
+    .select('session_id, completed')
+
   const countsBySession: Record<string, { total: number; enacted: number }> = {}
-  await Promise.all(
-    (sessions || []).map(async (s: any) => {
-      const [{ count: total }, { count: enacted }] = await Promise.all([
-        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', s.id),
-        supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', s.id).eq('completed', true),
-      ])
-      countsBySession[s.id] = { total: total ?? 0, enacted: enacted ?? 0 }
-    })
-  )
+  for (const bill of (billCounts || [])) {
+    if (!countsBySession[bill.session_id]) countsBySession[bill.session_id] = { total: 0, enacted: 0 }
+    countsBySession[bill.session_id].total++
+    if (bill.completed) countsBySession[bill.session_id].enacted++
+  }
 
   return (
     <main className="max-w-4xl mx-auto px-4 py-8">

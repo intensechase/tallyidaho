@@ -53,14 +53,15 @@ const DISTRICT_AREAS: Record<number, string> = {
 async function getLegislator(slug: string) {
   const supabase = createServerClient()
 
-  // Fetch all legislators and match by normalized name
-  const { data: legislators } = await supabase
+  // Direct indexed lookup by slug — requires add-legislator-slug.sql migration to be run
+  // Filter to real legislators only (committee pseudo-legislators have null district)
+  const { data: leg } = await supabase
     .from('legislators')
     .select('id, name, party, role, district, chamber, photo_url, bio, wiki_url, email, phone, occupation, leadership_title, legislature_bio')
+    .eq('slug', slug)
+    .not('district', 'is', null)
+    .maybeSingle()
 
-  if (!legislators) return null
-
-  const leg = legislators.find(l => legislatorSlug(l.name) === slug)
   if (!leg) return null
 
   // Count terms served — group sessions into 2-year blocks (odd year = term start)
@@ -87,33 +88,29 @@ async function getLegislator(slug: string) {
     return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], keyVotes: [], session: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
   }
 
-  // Bills sponsored this session
+  // Bills sponsored this session — session filter in SQL
   const { data: sponsorships } = await supabase
     .from('bill_sponsors')
-    .select('sponsor_order, sponsor_type, bills(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
+    .select('sponsor_order, sponsor_type, bills!inner(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
     .eq('legislator_id', leg.id)
+    .eq('bills.session_id', session.id)
     .order('sponsor_order')
 
   const bills = (sponsorships || [])
     .map((s: any) => ({ ...s.bills, sponsor_order: s.sponsor_order, sponsor_type: s.sponsor_type }))
-    .filter((b: any) => b?.session_id === session.id)
+    .filter(Boolean)
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
 
   // Derive chamber from role — more reliable than leg.chamber which may be null
   const legislatorChamber = leg.role === 'Sen' ? 'senate' : 'house'
 
-  // Step 1: All floor roll calls for this session
-  const { data: allSessionRollCalls } = await supabase
+  // Step 1: Floor roll calls for this session + chamber — filter in SQL
+  const { data: chamberRollCalls } = await supabase
     .from('roll_calls')
     .select('id, date, chamber, passed, yea_count, nay_count, is_party_line, bills!inner(bill_number, title, session_id, is_controversial, controversy_reason)')
     .eq('bills.session_id', session.id)
+    .eq('chamber', legislatorChamber)
     .order('date', { ascending: false })
-
-  // Filter by chamber in JS — handles 'senate'/'house', 'S'/'H', or other variants
-  const chamberRollCalls = (allSessionRollCalls ?? []).filter((rc: any) => {
-    const ch = (rc.chamber ?? '').toLowerCase()
-    return legislatorChamber === 'senate' ? ch.startsWith('s') : ch.startsWith('h')
-  })
 
   // Step 2: Which of those did this legislator vote on?
   const rollCallIds = (chamberRollCalls ?? []).map((rc: any) => rc.id)

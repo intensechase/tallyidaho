@@ -31,19 +31,22 @@ async function getSessionData(year: number) {
 
   if (!session) return null
 
+  // Single query for stats — 1 round trip instead of 4 COUNT queries
+  const { data: sessionBillStats } = await supabase
+    .from('bills')
+    .select('status, completed, is_controversial')
+    .eq('session_id', session.id)
+
+  const billsCount       = sessionBillStats?.length ?? 0
+  const enactedCount     = sessionBillStats?.filter(b => b.completed).length ?? 0
+  const inCommitteeCount = sessionBillStats?.filter(b => b.status === '2' && !b.completed).length ?? 0
+  const controversialCount = sessionBillStats?.filter(b => b.is_controversial).length ?? 0
+
   const [
-    { count: billsCount },
-    { count: enactedCount },
-    { count: inCommitteeCount },
-    { count: controversialCount },
     { data: recentBills },
     { data: controversialBills },
     { data: primarySponsors },
   ] = await Promise.all([
-    supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', session.id),
-    supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', session.id).eq('completed', true),
-    supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', session.id).eq('status', '2').eq('completed', false),
-    supabase.from('bills').select('*', { count: 'exact', head: true }).eq('session_id', session.id).eq('is_controversial', true),
     supabase
       .from('bills')
       .select('id, bill_number, title, chamber, status, completed, last_action_date, committee_name, bill_sponsors(sponsor_order, legislators(name, party, district))')

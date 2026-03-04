@@ -8,6 +8,7 @@ import AdmZip from 'adm-zip'
 import { createClient } from '@supabase/supabase-js'
 import { getDatasetList, getDataset } from './lib/legiscan'
 import { isCloseVote, isPartyLineVote, getControversyReason } from './lib/controversy'
+import { legislatorSlug } from '../lib/slugify'
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -113,6 +114,7 @@ async function importSession(sessionId: number, dataset: any) {
     const { data: upserted } = await supabase.from('legislators').upsert({
       legiscan_people_id: person.people_id,
       name: person.name,
+      slug: legislatorSlug(person.name),
       first_name: person.first_name || null,
       last_name: person.last_name || null,
       nickname: person.nickname || null,
