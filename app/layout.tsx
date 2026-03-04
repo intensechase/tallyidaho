@@ -49,6 +49,7 @@ const footerLinks = [
   { href: '/sessions', label: 'Sessions' },
   { href: '/idaho-legislative-process', label: 'How Laws Are Made' },
   { href: '/about', label: 'About' },
+  { href: '/contact', label: 'Contact' },
 ]
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
