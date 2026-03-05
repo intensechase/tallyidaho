@@ -345,18 +345,31 @@ function ChamberColumn({ bills, chamber, year }: {
         ) : (
           <div className="space-y-1">
 
-            {/* Third Reading — open by default, collapsible */}
+            {/* Third Reading — collapsed by default */}
             {hasThird && (
-              <details open className="group">
+              <details className="group">
                 <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
-                  <div className="flex items-center gap-1.5 py-2">
+                  <div className={`flex items-center gap-1.5 py-2 px-2 rounded-lg transition-colors ${isSenate ? 'hover:bg-blue-50' : 'hover:bg-amber-50'}`}>
                     <span
-                      className={`text-[10px] font-bold tracking-widest uppercase group-open:text-current ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}
+                      className={`text-xs font-extrabold tracking-widest uppercase shrink-0 ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}
                       title="Third Reading — final floor vote on whether to pass the bill"
                     >
                       <span className="group-open:hidden">▶</span>
                       <span className="hidden group-open:inline">▼</span>
-                      {' '}Third Reading ({thirdReading.length})
+                      {' '}Third Reading
+                    </span>
+                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isSenate ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
+                      {thirdReading.length}
+                    </span>
+                    <span className="group-open:hidden flex items-center gap-1 flex-wrap overflow-hidden">
+                      {thirdReading.slice(0, 4).map(b => (
+                        <span key={b.billNumber} className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
+                          {b.rawNumber}
+                        </span>
+                      ))}
+                      {thirdReading.length > 4 && (
+                        <span className="text-[10px] text-slate-400">+{thirdReading.length - 4}</span>
+                      )}
                     </span>
                   </div>
                 </summary>
