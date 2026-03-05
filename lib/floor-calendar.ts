@@ -202,7 +202,7 @@ async function fetchPage(url: string): Promise<string | null> {
     const timer = setTimeout(() => controller.abort(), 8000)
     const res = await fetch(url, {
       signal: controller.signal,
-      next: { revalidate: 1800 },
+      cache: 'no-store',
     })
     clearTimeout(timer)
     if (!res.ok) return null

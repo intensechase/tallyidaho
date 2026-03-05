@@ -3,7 +3,6 @@ import Link from 'next/link'
 import { createServerClient } from '@/lib/supabase/server'
 import HomepageTabs from '@/components/HomepageTabs'
 import DistrictLookup from '@/components/DistrictLookup'
-import { fetchFloorCalendar } from '@/lib/floor-calendar'
 import { fetchCommitteeAgenda } from '@/lib/committee-agenda'
 
 export const metadata: Metadata = {
@@ -110,9 +109,8 @@ async function getHomepageData() {
 }
 
 export default async function HomePage() {
-  const [data, floorCalendar, committeeAgenda] = await Promise.all([
+  const [data, committeeAgenda] = await Promise.all([
     getHomepageData(),
-    fetchFloorCalendar().catch(() => ({ senate: [], house: [], date: '', legislativeDay: null })),
     fetchCommitteeAgenda().catch(() => ({ committees: [], date: '' })),
   ])
 
@@ -164,9 +162,7 @@ export default async function HomePage() {
           </Link>
           <div className="ml-auto hidden md:flex flex-col items-end">
             <span className="text-xs font-bold tracking-widest text-slate-400 uppercase">{session.name}</span>
-            <span className="text-xs text-slate-600 mt-0.5">
-              {floorCalendar.legislativeDay ? `Legislative Day ${floorCalendar.legislativeDay}` : 'Updated daily'}
-            </span>
+            <span className="text-xs text-slate-600 mt-0.5">Updated daily</span>
           </div>
         </div>
       </div>
@@ -199,7 +195,6 @@ export default async function HomePage() {
         controversialBills={controversialBills}
         recentBills={recentBills}
         year={session.year_start}
-        floorCalendar={floorCalendar}
         committeeAgenda={committeeAgenda}
       />
 

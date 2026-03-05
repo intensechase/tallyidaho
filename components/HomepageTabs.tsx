@@ -1,7 +1,7 @@
 import Link from 'next/link'
 import { legislatorSlug } from '@/lib/slugify'
-import type { FloorBill, FloorCalendar } from '@/lib/floor-calendar'
 import type { CommitteeAgenda, AgendaCalendar } from '@/lib/committee-agenda'
+import FloorCalendarSection from './FloorCalendarSection'
 
 type Legislator = {
   name: string
@@ -261,179 +261,6 @@ function CompactBillCard({ bill, year }: { bill: any; year: number }) {
   )
 }
 
-// ── Slim floor bill card ───────────────────────────────────────────────
-function FloorBillCard({ bill, year }: { bill: FloorBill; year: number }) {
-  const hasResult = bill.votePassed !== null
-  const stateUrl = `https://legislature.idaho.gov/sessioninfo/${year}/legislation/${bill.billNumber}/`
-
-  const borderClass = hasResult
-    ? bill.votePassed
-      ? 'border border-l-4 border-emerald-300'
-      : 'border border-l-4 border-red-300'
-    : 'border border-slate-200 hover:border-slate-300'
-
-  const inner = (
-    <div className={`bg-white rounded-lg p-3 transition-all hover:shadow-sm ${borderClass}`}>
-      <div className="flex items-start gap-2 mb-1">
-        <span className="text-xs font-extrabold text-amber-600 bg-amber-50 border border-amber-200 px-2 py-0.5 rounded-full shrink-0 mt-0.5">
-          {bill.rawNumber}
-        </span>
-        {bill.topic && (
-          <span className="text-xs font-semibold text-slate-500 uppercase tracking-wide truncate flex-1 mt-0.5">
-            {bill.topic}
-          </span>
-        )}
-        {hasResult && (
-          <span className={`text-xs font-black shrink-0 tabular-nums whitespace-nowrap ${bill.votePassed ? 'text-emerald-600' : 'text-red-500'}`}>
-            {bill.votePassed ? '✓' : '✗'} {bill.voteYea}–{bill.voteNay}
-          </span>
-        )}
-      </div>
-      {bill.floorSponsor && (
-        <p className="text-[10px] text-slate-400 mb-1 truncate">
-          {bill.floorSponsor}{bill.floorDistrict ? ` · Dist. ${bill.floorDistrict}` : ''}
-        </p>
-      )}
-      {bill.description && (
-        <p className="text-xs text-slate-700 leading-snug line-clamp-2">
-          {bill.description}
-        </p>
-      )}
-    </div>
-  )
-
-  if (bill.href) return <Link href={bill.href} className="block">{inner}</Link>
-  return <a href={stateUrl} target="_blank" rel="noopener noreferrer" className="block">{inner}</a>
-}
-
-// ── Chamber column (Senate or House) ──────────────────────────────────
-function ChamberColumn({ bills, chamber, year }: {
-  bills: FloorBill[]
-  chamber: 'senate' | 'house'
-  year: number
-}) {
-  const isSenate = chamber === 'senate'
-
-  const thirdReading = bills
-    .filter(b => b.reading === 'third')
-    .sort((a, b) => (b.votePassed !== null ? 1 : 0) - (a.votePassed !== null ? 1 : 0))
-  const secondReading = bills.filter(b => b.reading === 'second')
-  const generalOrders = bills.filter(b => b.reading === 'general')
-
-  const hasThird  = thirdReading.length > 0
-  const hasSecond = secondReading.length > 0
-  const hasGeneral = generalOrders.length > 0
-
-  return (
-    <div className="flex flex-col">
-      {/* Chamber header */}
-      <div className={`px-4 py-2.5 rounded-t-lg flex items-center gap-2 ${isSenate ? 'bg-blue-600' : 'bg-amber-500'}`}>
-        <span className="text-xs font-extrabold tracking-widest text-white uppercase">
-          {isSenate ? 'Senate' : 'House'}
-        </span>
-        {bills.length > 0 && (
-          <span className="ml-auto text-[10px] font-semibold text-white/70">
-            {bills.length} bill{bills.length !== 1 ? 's' : ''}
-          </span>
-        )}
-      </div>
-
-      {/* Column body */}
-      <div className={`border-x border-b rounded-b-lg p-3 flex-1 ${isSenate ? 'border-blue-100' : 'border-amber-100'}`}>
-        {bills.length === 0 ? (
-          <p className="text-xs text-slate-400 italic py-6 text-center">No bills scheduled.</p>
-        ) : (
-          <div className="space-y-1">
-
-            {/* Third Reading — collapsed by default */}
-            {hasThird && (
-              <details className="group">
-                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
-                  <div className={`flex items-center gap-1.5 py-2 px-2 rounded-lg transition-colors ${isSenate ? 'hover:bg-blue-50' : 'hover:bg-amber-50'}`}>
-                    <span
-                      className={`text-xs font-extrabold tracking-widest uppercase shrink-0 ${isSenate ? 'text-blue-600' : 'text-amber-600'}`}
-                      title="Third Reading — final floor vote on whether to pass the bill"
-                    >
-                      <span className="group-open:hidden">▶</span>
-                      <span className="hidden group-open:inline">▼</span>
-                      {' '}Third Reading
-                    </span>
-                    <span className={`text-[10px] font-bold px-1.5 py-0.5 rounded-full shrink-0 ${isSenate ? 'bg-blue-100 text-blue-700' : 'bg-amber-100 text-amber-700'}`}>
-                      {thirdReading.length}
-                    </span>
-                    <span className="group-open:hidden flex items-center gap-1 flex-wrap overflow-hidden">
-                      {thirdReading.slice(0, 4).map(b => (
-                        <span key={b.billNumber} className="text-[10px] font-semibold text-slate-400 bg-slate-100 px-1.5 py-0.5 rounded">
-                          {b.rawNumber}
-                        </span>
-                      ))}
-                      {thirdReading.length > 4 && (
-                        <span className="text-[10px] text-slate-400">+{thirdReading.length - 4}</span>
-                      )}
-                    </span>
-                  </div>
-                </summary>
-                <div className="space-y-2 pb-1">
-                  {thirdReading.map(b => (
-                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                  ))}
-                </div>
-              </details>
-            )}
-
-            {/* Second Reading — collapsed */}
-            {hasSecond && (
-              <details className="group">
-                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
-                  <div className={`flex items-center gap-1.5 py-2 ${hasThird ? 'border-t border-slate-100' : 'pt-1'}`}>
-                    <span
-                      className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700"
-                      title="Second Reading — bills introduced for floor consideration or amendment"
-                    >
-                      <span className="group-open:hidden">▶</span>
-                      <span className="hidden group-open:inline">▼</span>
-                      {' '}Second Reading ({secondReading.length})
-                    </span>
-                  </div>
-                </summary>
-                <div className="space-y-2 pb-1">
-                  {secondReading.map(b => (
-                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                  ))}
-                </div>
-              </details>
-            )}
-
-            {/* General Orders — collapsed, only rendered if present */}
-            {hasGeneral && (
-              <details className="group">
-                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer">
-                  <div className={`flex items-center gap-1.5 py-2 ${(hasThird || hasSecond) ? 'border-t border-slate-100' : ''}`}>
-                    <span
-                      className="text-[10px] font-bold tracking-widest text-slate-500 uppercase group-open:text-slate-700"
-                      title="General Orders — bills debated and amended in committee of the whole; typically precede a final vote"
-                    >
-                      <span className="group-open:hidden">▶</span>
-                      <span className="hidden group-open:inline">▼</span>
-                      {' '}General Orders ({generalOrders.length})
-                    </span>
-                  </div>
-                </summary>
-                <div className="space-y-2 pb-1">
-                  {generalOrders.map(b => (
-                    <FloorBillCard key={b.billNumber} bill={b} year={year} />
-                  ))}
-                </div>
-              </details>
-            )}
-
-          </div>
-        )}
-      </div>
-    </div>
-  )
-}
-
 // ── Committee agenda card ─────────────────────────────────────────────
 function CommitteeCard({ cmte }: { cmte: CommitteeAgenda }) {
   const chamberColor = cmte.chamber === 'senate'
@@ -550,47 +377,18 @@ interface Props {
   controversialBills: Bill[]
   recentBills: any[]
   year: number
-  floorCalendar: FloorCalendar
   committeeAgenda: AgendaCalendar
 }
 
-export default function HomepageTabs({ controversialBills, recentBills, year, floorCalendar, committeeAgenda }: Props) {
-  const hasFloor      = floorCalendar.senate.length > 0 || floorCalendar.house.length > 0
+export default function HomepageTabs({ controversialBills, recentBills, year, committeeAgenda }: Props) {
   const hasCommittees = committeeAgenda.committees.length > 0
-  const thirdCount    = [...floorCalendar.senate, ...floorCalendar.house].filter(b => b.reading === 'third').length
   const rsCount       = committeeAgenda.committees.reduce((n, c) => n + c.items.filter(i => i.type === 'rs').length, 0)
 
   return (
     <section className="max-w-7xl mx-auto px-4 py-8 space-y-12">
 
-      {/* Floor Today */}
-      {hasFloor && (
-        <div>
-          <SectionHeader
-            label="FLOOR TODAY"
-            badge={thirdCount > 0 ? (
-              <span className="text-[10px] bg-red-500 text-white rounded-full px-1.5 py-0.5 font-bold">
-                {thirdCount} voting
-              </span>
-            ) : undefined}
-            href={`/bills?year=${year}`}
-          />
-
-          {floorCalendar.date && (
-            <p className="text-xs text-slate-400 mb-4">
-              {floorCalendar.date}
-              {floorCalendar.legislativeDay && (
-                <span className="ml-2 text-slate-500">· Day {floorCalendar.legislativeDay}</span>
-              )}
-            </p>
-          )}
-
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-5">
-            <ChamberColumn chamber="senate" bills={floorCalendar.senate} year={year} />
-            <ChamberColumn chamber="house" bills={floorCalendar.house} year={year} />
-          </div>
-        </div>
-      )}
+      {/* Floor Today — client component, always-fresh via /api/floor-calendar */}
+      <FloorCalendarSection year={year} />
 
       {/* In Committee */}
       {hasCommittees && (
