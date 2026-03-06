@@ -16,6 +16,7 @@ const supabase = createClient(
 
 const LEGIS_BASE = 'https://legislature.idaho.gov/wp-content/uploads/sessioninfo'
 const DRY_RUN = process.argv.includes('--dry-run')
+const REPROCESS = process.argv.includes('--reprocess')
 
 async function fetchRawSop(year: number, billNumber: string): Promise<string | null> {
   try {
@@ -71,7 +72,7 @@ async function main() {
         .eq('bill_id', bill.id)
 
       const hasIndividual = existingSponsors?.some(s => !s.committee_sponsor)
-      if (hasIndividual) continue
+      if (hasIndividual && !REPROCESS) continue
 
       const raw = await fetchRawSop(session.year_start, bill.bill_number)
       if (!raw) continue

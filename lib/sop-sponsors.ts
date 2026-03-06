@@ -86,13 +86,20 @@ export function extractSopSponsorNames(rawText: string): string[] {
   const after = rawText.slice(contactIdx + 'contact:'.length)
   const lines = after.split('\n').map(l => l.trim())
 
+  // Role-only lines that are not actual names
+  const ROLE_ONLY = /^(speaker of the house|president of the senate|president pro tempore)$/i
+
   const sponsors: string[] = []
   for (const line of lines) {
+    if (ROLE_ONLY.test(line)) continue
     if (/^(Representative|Senator)\s+\S/i.test(line)) {
       const name = line.replace(/^(Representative|Senator)\s+/i, '').trim()
       if (name) sponsors.push(name)
+    } else if (line === '' || /^\(?\d{3}\)?[\s\-]\d{3}[\s\-]\d{4}/.test(line)) {
+      // Skip blank lines and phone numbers between sponsor entries
+      continue
     } else if (sponsors.length > 0) {
-      // Stop at the first non-sponsor line after finding at least one
+      // Stop at first non-sponsor, non-blank, non-phone line
       break
     }
   }
@@ -128,7 +135,10 @@ function preprocessName(raw: string): string {
     }
   }
 
-  // Strip parenthetical: "Josh Tanner (14)" → "Josh Tanner"
+  // Strip outer parens: "(Grayson Stone)" → "Grayson Stone"
+  name = name.replace(/^\((.+)\)$/, '$1').trim()
+
+  // Strip parenthetical district: "Josh Tanner (14)" → "Josh Tanner"
   name = name.replace(/\s*\(\d+\)\s*$/, '').trim()
 
   // Apply nickname map
