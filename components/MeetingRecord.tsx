@@ -20,6 +20,7 @@ export interface MeetingRow {
 interface Props {
   meetings: MeetingRow[]
   year: number
+  rsToBill?: Record<string, string>  // RS number → bill_number, e.g. "RS 22456" → "H0234"
 }
 
 // ── Helpers ───────────────────────────────────────────────────────────────────
@@ -33,57 +34,75 @@ function normalizeBillNum(raw: string): string {
     : prefix + num.padStart(3, '0')
 }
 
-function parseAgendaItems(text: string): Array<{
+interface AgendaItem {
   type: 'bill' | 'rs' | 'text'
   content: string
+  description?: string
   normalized?: string
-}> {
+}
+
+function parseAgendaItems(text: string): AgendaItem[] {
   const lines = text.split('\n')
 
-  // ── Trim header: start after idahoptv.org link (fallback: after "SUBJECT DESCRIPTION PRESENTER") ──
+  // ── Trim header ──────────────────────────────────────────────────────────
   let startIdx = 0
   for (let i = 0; i < lines.length; i++) {
-    if (lines[i].includes('idahoptv.org')) {
-      startIdx = i + 1
-      break
-    }
-    if (/SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(lines[i])) {
-      startIdx = i + 1
-      break
-    }
+    if (lines[i].includes('idahoptv.org')) { startIdx = i + 1; break }
+    if (/SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(lines[i])) { startIdx = i + 1; break }
   }
 
-  // ── Trim footer: stop before "If you have written testimony" ──
+  // ── Trim footer ──────────────────────────────────────────────────────────
   let endIdx = lines.length
   for (let i = startIdx; i < lines.length; i++) {
-    if (/if you have written testimony/i.test(lines[i])) {
-      endIdx = i
-      break
+    if (/if you have written testimony/i.test(lines[i])) { endIdx = i; break }
+  }
+
+  // ── Regex patterns ───────────────────────────────────────────────────────
+  // \s* instead of \s+ to catch "S1342" (no space from PDF extraction)
+  const BILL_RE      = /^([A-Z]{1,4})\s*(\d{1,4})\b/
+  const RS_RE        = /^RS\s+\d{4,6}/i
+  const BOILERPLATE  = /public testimony|register to testify|if you have written|written testimony|disclaimer/i
+  const PRESENTER    = /^(Chairman|Chairwoman|Representative|Senator|Rep\.|Sen\.)\s+\S/i
+  const PHONE        = /^\(\d{3}\)\s*\d{3}-\d{4}/
+  const COL_HEADER   = /^SUBJECT\s+DESCRIPTION\s+PRESENTER/i
+
+  const filtered = lines
+    .slice(startIdx, endIdx)
+    .map(l => l.trim())
+    .filter(l => l.length > 1 && !COL_HEADER.test(l))
+
+  const result: AgendaItem[] = []
+
+  for (const line of filtered) {
+    if (BOILERPLATE.test(line)) continue
+    if (PHONE.test(line)) continue
+    if (PRESENTER.test(line)) continue  // presenter column — implied by committee context
+
+    if (RS_RE.test(line)) {
+      result.push({ type: 'rs', content: line })
+    } else {
+      const bm = line.match(BILL_RE)
+      if (bm) {
+        const descInline = line.replace(/^[A-Z]{1,4}\s*\d+\s*[-–—]?\s*/i, '').trim()
+        result.push({
+          type: 'bill',
+          content: line,
+          normalized: normalizeBillNum(`${bm[1]} ${bm[2]}`),
+          description: descInline || undefined,
+        })
+      } else {
+        // Check if this is a description continuation of the previous bill
+        const prev = result[result.length - 1]
+        if (prev?.type === 'bill') {
+          prev.description = prev.description ? `${prev.description} ${line}` : line
+        } else {
+          result.push({ type: 'text', content: line })
+        }
+      }
     }
   }
 
-  const BILL_RE = /^([A-Z]{1,4})\s+(\d{1,4})\b/
-  const RS_RE   = /^RS\s+\d{4,6}/i
-
-  return lines
-    .slice(startIdx, endIdx)
-    .map(l => l.trim())
-    .filter(l => l.length > 1)
-    .filter(l => !/^SUBJECT\s+DESCRIPTION\s+PRESENTER/i.test(l)) // skip repeated column header
-    .map(line => {
-      if (RS_RE.test(line)) {
-        return { type: 'rs' as const, content: line }
-      }
-      const bm = line.match(BILL_RE)
-      if (bm) {
-        return {
-          type: 'bill' as const,
-          content: line,
-          normalized: normalizeBillNum(`${bm[1]} ${bm[2]}`),
-        }
-      }
-      return { type: 'text' as const, content: line }
-    })
+  return result
 }
 
 function formatDate(dateStr: string): string {
@@ -119,16 +138,13 @@ function ExpandToggle({
 
 // ── Agenda items renderer ─────────────────────────────────────────────────────
 
-function AgendaContent({ text, year }: { text: string; year: number }) {
+function AgendaContent({ text, year, rsToBill = {} }: { text: string; year: number; rsToBill?: Record<string, string> }) {
   return (
     <div className="mt-2 bg-white border border-amber-200 rounded-xl p-4 max-h-[500px] overflow-y-auto">
       <div className="space-y-2">
         {parseAgendaItems(text).map((item, idx) => {
           if (item.type === 'bill') {
             const slug = item.normalized!.toLowerCase()
-            const description = item.content
-              .replace(/^[A-Z]{1,4}\s*\d+\s*[-–—]?\s*/i, '')
-              .trim()
             return (
               <div key={idx} className="flex items-start gap-2">
                 <Link
@@ -137,9 +153,9 @@ function AgendaContent({ text, year }: { text: string; year: number }) {
                 >
                   {item.normalized}
                 </Link>
-                {description && (
+                {item.description && (
                   <span className="text-xs text-slate-600 pt-0.5 leading-snug">
-                    {description}
+                    {item.description}
                   </span>
                 )}
               </div>
@@ -147,13 +163,25 @@ function AgendaContent({ text, year }: { text: string; year: number }) {
           }
 
           if (item.type === 'rs') {
-            const rsNum  = item.content.match(/^RS\s+\d+/i)?.[0] ?? ''
+            const rsNum  = item.content.match(/^RS\s+\d+/i)?.[0]?.trim() ?? ''
             const rsDesc = item.content.replace(/^RS\s+\d+\s*[-–—]?\s*/i, '').trim()
+            const linkedBill = rsToBill[rsNum]
+
             return (
               <div key={idx} className="flex items-start gap-2">
-                <span className="shrink-0 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
-                  {rsNum}
-                </span>
+                {linkedBill ? (
+                  <Link
+                    href={`/bills/${year}/${linkedBill.toLowerCase()}`}
+                    className="shrink-0 text-xs font-bold text-amber-600 bg-amber-50 border border-amber-200 hover:bg-amber-100 px-2 py-0.5 rounded-full transition-colors"
+                    title={`Became ${linkedBill}`}
+                  >
+                    {rsNum} → {linkedBill}
+                  </Link>
+                ) : (
+                  <span className="shrink-0 text-xs font-bold text-slate-500 bg-slate-100 border border-slate-200 px-2 py-0.5 rounded-full">
+                    {rsNum}
+                  </span>
+                )}
                 {rsDesc && (
                   <span className="text-xs text-slate-500 pt-0.5 leading-snug">{rsDesc}</span>
                 )}
@@ -182,7 +210,7 @@ function MinutesContent({ text }: { text: string }) {
 
 // ── Main component ────────────────────────────────────────────────────────────
 
-export default function MeetingRecord({ meetings, year }: Props) {
+export default function MeetingRecord({ meetings, year, rsToBill = {} }: Props) {
   const [agendaOpen, setAgendaOpen]     = useState<Record<string, boolean>>({})
   const [minutesOpen, setMinutesOpen]   = useState<Record<string, boolean>>({})
   const [loadingKey, setLoadingKey]     = useState<string | null>(null)
@@ -354,7 +382,7 @@ export default function MeetingRecord({ meetings, year }: Props) {
                     <span className="hidden group-open:inline">▼ Hide agenda</span>
                   </summary>
                   <div className="px-5 pb-5">
-                    <AgendaContent text={meeting.agenda_text!} year={year} />
+                    <AgendaContent text={meeting.agenda_text!} year={year} rsToBill={rsToBill} />
                   </div>
                 </details>
               )}
@@ -380,7 +408,7 @@ export default function MeetingRecord({ meetings, year }: Props) {
                       {agendaLoading ? (
                         <p className="text-xs text-slate-400 animate-pulse mt-2">Loading agenda…</p>
                       ) : agendaText ? (
-                        <AgendaContent text={agendaText} year={year} />
+                        <AgendaContent text={agendaText} year={year} rsToBill={rsToBill} />
                       ) : (
                         <p className="text-xs text-slate-400 mt-2">Agenda not available.</p>
                       )}

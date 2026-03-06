@@ -2,6 +2,7 @@ import { Metadata } from 'next'
 import { notFound } from 'next/navigation'
 import { cache } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { createServerClient } from '@/lib/supabase/server'
 import { legislatorSlug } from '@/lib/slugify'
 import { BillStepperFull, getBillStage, getBillDead } from '@/components/BillStatusStepper'
@@ -25,7 +26,7 @@ const getBill = cache(async function getBill(year: string, number: string) {
       bill_sponsors(
         sponsor_type,
         sponsor_order,
-        legislators(id, name, party, role, district, chamber)
+        legislators(id, name, party, role, district, chamber, photo_url)
       ),
       roll_calls(
         id, date, chamber, yea_count, nay_count, absent_count,
@@ -116,6 +117,9 @@ export default async function BillPage({ params }: Props) {
   const sessionId = (bill as any).session_id
 
   const billText = (bill as any).bill_text as string | null
+  const rsNumber = (bill as any).rs_number as string | null
+  const fiscalNote = (bill as any).fiscal_note as string | null
+  const sopRevisedAt = (bill as any).sop_revised_at as string | null
 
   const billSubjects = (bill.subjects || []) as string[]
 
@@ -240,6 +244,11 @@ export default async function BillPage({ params }: Props) {
               ✗ {deadInfo.label === 'Vetoed' ? 'Vetoed by Governor' : 'Failed'}
             </span>
           )}
+          {rsNumber && (
+            <span className="text-xs text-slate-400 bg-slate-50 border border-slate-200 px-2 py-1 rounded-full font-mono">
+              {rsNumber}
+            </span>
+          )}
         </div>
 
         <h1 className="font-oswald text-2xl font-bold text-slate-900 leading-snug mb-1 tracking-tight">
@@ -301,6 +310,29 @@ export default async function BillPage({ params }: Props) {
                 </summary>
                 <div className="mt-2 bg-amber-50 border border-amber-200 rounded-xl p-4">
                   <p className="text-slate-700 text-sm leading-relaxed">{bill.plain_summary}</p>
+                </div>
+              </details>
+            </section>
+          )}
+
+          {/* Fiscal note */}
+          {fiscalNote && (
+            <section>
+              <h2 className="section-label mb-2">FISCAL NOTE</h2>
+              <details className="group">
+                <summary className="cursor-pointer list-none">
+                  <span className="text-xs text-amber-700 hover:underline inline-flex items-center gap-1">
+                    <span className="group-open:hidden">▶ Show fiscal note</span>
+                    <span className="hidden group-open:inline">▼ Hide fiscal note</span>
+                  </span>
+                </summary>
+                <div className="mt-2 bg-slate-50 border border-slate-200 rounded-xl p-4">
+                  <p className="text-slate-600 text-sm leading-relaxed">{fiscalNote}</p>
+                  {sopRevisedAt && (
+                    <p className="text-xs text-slate-400 mt-2 pt-2 border-t border-slate-200">
+                      SOP revised: {sopRevisedAt}
+                    </p>
+                  )}
                 </div>
               </details>
             </section>
@@ -404,7 +436,7 @@ export default async function BillPage({ params }: Props) {
                               ? `Passed by ${margin} vote${margin !== 1 ? 's' : ''}`
                               : !effectivePassed && rc.nay_count > rc.yea_count && margin > 0
                                 ? `Failed by ${margin} vote${margin !== 1 ? 's' : ''}`
-                                : !effectivePassed && rc.yea_count >= rc.nay_count
+                                : !effectivePassed && rc.yea_count > rc.nay_count && rc.total_count > 0 && (rc.yea_count / rc.total_count) < 0.667
                                   ? 'Failed — supermajority required'
                                   : ''}
                           </span>
@@ -453,7 +485,7 @@ export default async function BillPage({ params }: Props) {
                             party: v.legislators?.party,
                             district: v.legislators?.district,
                             slug: legislatorSlug(v.legislators?.name || ''),
-                          })).filter((v: any) => v.name)}
+                          })).filter((v: any) => v.name?.trim())}
                         />
                       )}
                     </div>
@@ -628,18 +660,23 @@ export default async function BillPage({ params }: Props) {
               <h2 className="section-label mb-3">SPONSORS</h2>
               <div className="space-y-2">
                 {sponsors.map((s: any, i: number) => (
-                  <div key={i} className="flex items-center gap-2">
-                    <span className={`text-xs font-bold w-4 h-4 rounded-full flex items-center justify-center text-white shrink-0 ${s.legislators.party === 'R' ? 'bg-red-500' : s.legislators.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'}`}>
-                      {s.legislators.party}
-                    </span>
-                    <div>
-                      <a href={`/legislators/${legislatorSlug(s.legislators.name)}`} className="text-sm font-semibold text-slate-800 hover:text-amber-700">
+                  <a key={i} href={`/legislators/${legislatorSlug(s.legislators.name)}`} className="flex items-center gap-2.5 group">
+                    <div className="relative w-8 h-8 rounded-full overflow-hidden bg-slate-100 shrink-0">
+                      {s.legislators.photo_url
+                        ? <Image src={s.legislators.photo_url} alt={s.legislators.name} fill sizes="32px" className="object-cover object-top" />
+                        : <span className={`w-full h-full flex items-center justify-center text-white text-xs font-bold ${s.legislators.party === 'R' ? 'bg-red-500' : s.legislators.party === 'D' ? 'bg-blue-500' : 'bg-slate-400'}`}>
+                            {s.legislators.party}
+                          </span>
+                      }
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <p className="text-sm font-semibold text-slate-800 group-hover:text-amber-700 transition-colors truncate">
                         {s.legislators.name}
-                      </a>
+                      </p>
                       <p className="text-xs text-slate-400">{s.legislators.role} · {s.legislators.district}</p>
                     </div>
-                    {i === 0 && <span className="ml-auto text-xs text-slate-400 shrink-0">Primary</span>}
-                  </div>
+                    {i === 0 && <span className="text-xs text-slate-400 shrink-0">Primary</span>}
+                  </a>
                 ))}
               </div>
             </section>

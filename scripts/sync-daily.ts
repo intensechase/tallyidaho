@@ -17,6 +17,7 @@ import { PDFParse } from 'pdf-parse'
 import { extractPdfText } from './lib/pdf-extract'
 import { getMasterListRaw, getBill, getRollCall } from './lib/legiscan'
 import { isCloseVote, isPartyLineVote, getControversyReason } from './lib/controversy'
+import { parseSop, matchSponsorName } from '../lib/sop-sponsors'
 
 const LEGIS_BASE = 'https://legislature.idaho.gov/wp-content/uploads/sessioninfo'
 
@@ -41,39 +42,19 @@ async function fetchBillText(year: number, billNumber: string): Promise<string |
   }
 }
 
-async function fetchSOP(year: number, billNumber: string): Promise<string | null> {
+async function fetchRawSop(year: number, billNumber: string): Promise<string | null> {
   try {
     const num = billNumber.replace(/\s+/g, '').toUpperCase()
     const res = await fetch(`${LEGIS_BASE}/${year}/legislation/${num}SOP.pdf`)
     if (!res.ok) return null
     const buffer = Buffer.from(await res.arrayBuffer())
     const raw = await extractPdfText(buffer)
-    if (!raw || raw.length < 30) return null
-
-    const sopRegex = /STATEMENT\s+OF\s+PURPOSE[\s\S]*?\n([\s\S]*?)(?:FISCAL\s+NOTE|^\s*$)/im
-    const match = raw.match(sopRegex)
-    let text = match?.[1]?.trim() || raw
-
-    text = text
-      .split('\n')
-      .filter((line: string) => {
-        const t = line.trim()
-        if (!t) return false
-        if (/^RS\s*\d+/i.test(t)) return false
-        if (/^STATEMENT\s+OF\s+PURPOSE/i.test(t)) return false
-        if (/^FISCAL\s+NOTE/i.test(t)) return false
-        if (/^Page\s+\d+/i.test(t)) return false
-        return true
-      })
-      .join(' ')
-      .replace(/\s{2,}/g, ' ')
-      .trim()
-
-    return text.length >= 30 ? text.slice(0, 2000) : null
+    return raw && raw.length >= 30 ? raw : null
   } catch {
     return null
   }
 }
+
 
 const supabase = createClient(
   process.env.NEXT_PUBLIC_SUPABASE_URL!,
@@ -168,10 +149,12 @@ async function main() {
   // Build legislator people_id → UUID map
   const { data: legislators } = await supabase
     .from('legislators')
-    .select('id, legiscan_people_id')
+    .select('id, name, legiscan_people_id')
   const legMap = new Map<number, string>()
+  const legList: { id: string; name: string }[] = []
   for (const l of legislators || []) {
     if (l.legiscan_people_id) legMap.set(l.legiscan_people_id, l.id)
+    if (l.name && !l.name.includes('Committee')) legList.push({ id: l.id, name: l.name })
   }
 
   // Get existing roll_call IDs to avoid re-fetching
@@ -197,7 +180,10 @@ async function main() {
 
     // Only fetch SOP if not already in DB — preserves manual edits
     const hasSOP = existingMap.get(mb.bill_id)?.hasSOP ?? false
-    const sopText = hasSOP ? null : await fetchSOP(sessionRow.year_start, bill.bill_number)
+    const sopRaw = hasSOP ? null : await fetchRawSop(sessionRow.year_start, bill.bill_number)
+    const sop = sopRaw ? parseSop(sopRaw) : null
+    const sopText = sop?.bodyText ?? null
+    const sopSponsorNames = sop?.sponsorNames ?? []
 
     const billRow: Record<string, any> = {
       legiscan_bill_id: bill.bill_id,
@@ -219,8 +205,12 @@ async function main() {
       change_hash: bill.change_hash || null,
       bill_text: billText,
       updated_at: new Date().toISOString(),
-      // Only write plain_summary for bills that don't have one yet
+      // Only write SOP fields for bills that don't have one yet
       ...(sopText !== null && { plain_summary: sopText }),
+      ...(sop?.sponsorNames.length && { sop_sponsor_names: sop.sponsorNames }),
+      ...(sop?.rsNumber && { rs_number: sop.rsNumber }),
+      ...(sop?.fiscalNote && { fiscal_note: sop.fiscalNote }),
+      ...(sop?.revisedAt && { sop_revised_at: sop.revisedAt }),
     }
 
     let billUUID = mb.existingUUID as string | undefined
@@ -245,6 +235,24 @@ async function main() {
             sponsor_type: sponsor.sponsor_order === 1 ? 'primary' : 'cosponsor',
             committee_sponsor: false,
           }, { onConflict: 'bill_id,legislator_id' })
+        }
+      }
+
+      // Upsert sponsors from SOP (only if LegiScan has no individual sponsors)
+      const hasLegiscanIndividual = bill.sponsors?.some((s: any) => !s.committee_sponsor)
+      if (!hasLegiscanIndividual && sopSponsorNames.length > 0) {
+        let order = 1
+        for (const rawName of sopSponsorNames) {
+          const legUUID = matchSponsorName(rawName, legList)
+          if (!legUUID) continue
+          await supabase.from('bill_sponsors').upsert({
+            bill_id: billUUID,
+            legislator_id: legUUID,
+            sponsor_order: order,
+            sponsor_type: order === 1 ? 'primary' : 'cosponsor',
+            committee_sponsor: false,
+          }, { onConflict: 'bill_id,legislator_id' })
+          order++
         }
       }
     }

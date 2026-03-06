@@ -78,7 +78,25 @@ async function getCommitteeData(code: string, year: number) {
     .eq('committee_id', committee.id)
     .order('date', { ascending: false })
 
-  return { session, committee, bills, meetings: (meetings ?? []) as MeetingRow[] }
+  // Build RS number → bill_number map for agenda linking
+  // Extract all RS numbers from meeting agenda texts
+  const allAgendaText = (meetings ?? []).map(m => m.agenda_text ?? '').join('\n')
+  const rsMatches = [...allAgendaText.matchAll(/\bRS\s+(\d{4,6}[A-Z\d]*)\b/gi)]
+  const rsNumbers = [...new Set(rsMatches.map(m => `RS ${m[1].toUpperCase()}`))]
+
+  let rsToBill: Record<string, string> = {}
+  if (rsNumbers.length > 0) {
+    const { data: rsBills } = await supabase
+      .from('bills')
+      .select('rs_number, bill_number')
+      .in('rs_number', rsNumbers)
+      .eq('session_id', session.id)
+    for (const b of rsBills ?? []) {
+      if (b.rs_number && b.bill_number) rsToBill[b.rs_number] = b.bill_number
+    }
+  }
+
+  return { session, committee, bills, meetings: (meetings ?? []) as MeetingRow[], rsToBill }
 }
 
 export async function generateMetadata({ params, searchParams }: Props): Promise<Metadata> {
@@ -121,7 +139,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
   const data = await getCommitteeData(code, year)
   if (!data) notFound()
 
-  const { session, committee, bills, meetings } = data
+  const { session, committee, bills, meetings, rsToBill } = data
 
   // Sort members: Chair first, then Vice Chair, then Members
   const roleOrder: Record<string, number> = { Chair: 0, 'Vice Chair': 1, 'Co-Chair': 1 }
@@ -332,7 +350,7 @@ export default async function CommitteeDetailPage({ params, searchParams }: Prop
       {meetings.length > 0 && (
         <div className="mt-12">
           <h2 className="section-label mb-6">MEETING RECORD</h2>
-          <MeetingRecord meetings={meetings} year={year} />
+          <MeetingRecord meetings={meetings} year={year} rsToBill={rsToBill} />
         </div>
       )}
 

@@ -87,6 +87,10 @@ create table bills (
   description text,                     -- LegiScan description field
   plain_summary text,                   -- Statement of Purpose from Idaho Legislature site
   plain_summary_source text default 'idaho_legislature', -- where summary came from
+  sop_sponsor_names text[],             -- raw sponsor names extracted from SOP PDF (fallback for unmatched)
+  rs_number text,                       -- RS draft number, e.g. "RS 22456" (links agenda items to bills)
+  fiscal_note text,                     -- fiscal note body text from SOP PDF
+  sop_revised_at text,                  -- SOP revised/introduced date, e.g. "03/03/2026, 1:30 PM"
   -- Status
   status text,                          -- current status code
   status_date date,

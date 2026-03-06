@@ -77,18 +77,21 @@ async function getLegislator(slug: string) {
     })
   ).size
 
-  // Get 2026 session
-  const { data: session } = await supabase
+  // Get current (2026) and previous (2025) sessions
+  const { data: sessions } = await supabase
     .from('sessions')
     .select('id, name, year_start')
-    .eq('year_start', 2026)
-    .single()
+    .in('year_start', [2025, 2026])
+    .order('year_start', { ascending: false })
+
+  const session = sessions?.find((s: any) => s.year_start === 2026) ?? null
+  const prevSession = sessions?.find((s: any) => s.year_start === 2025) ?? null
 
   if (!session) {
-    return { leg, termsServed: termsServed ?? 0, bills: [], votes: [], keyVotes: [], session: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
+    return { leg, termsServed: termsServed ?? 0, bills: [], prevBills: [], votes: [], keyVotes: [], session: null, prevSession: null, voteStats: null, committees: [], partyLineTotal: 0, partyUnityPct: null }
   }
 
-  // Bills sponsored this session — session filter in SQL
+  // Bills sponsored this session
   const { data: sponsorships } = await supabase
     .from('bill_sponsors')
     .select('sponsor_order, sponsor_type, bills!inner(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
@@ -97,6 +100,19 @@ async function getLegislator(slug: string) {
     .order('sponsor_order')
 
   const bills = (sponsorships || [])
+    .map((s: any) => ({ ...s.bills, sponsor_order: s.sponsor_order, sponsor_type: s.sponsor_type }))
+    .filter(Boolean)
+    .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
+
+  // Bills sponsored previous session
+  const { data: prevSponsorships } = prevSession ? await supabase
+    .from('bill_sponsors')
+    .select('sponsor_order, sponsor_type, bills!inner(id, bill_number, title, status, is_controversial, controversy_reason, completed, last_action, session_id, roll_calls(yea_count, nay_count, passed))')
+    .eq('legislator_id', leg.id)
+    .eq('bills.session_id', prevSession.id)
+    .order('sponsor_order') : { data: [] }
+
+  const prevBills = (prevSponsorships || [])
     .map((s: any) => ({ ...s.bills, sponsor_order: s.sponsor_order, sponsor_type: s.sponsor_type }))
     .filter(Boolean)
     .sort((a: any, b: any) => a.sponsor_order - b.sponsor_order)
@@ -215,9 +231,11 @@ async function getLegislator(slug: string) {
     leg,
     termsServed: termsServed ?? 0,
     bills,
+    prevBills,
     votes: sessionVotes,
     keyVotes,
     session,
+    prevSession,
     voteStats: { yea: yeaCount, nay: nayCount, absent: absentCount, total: totalVotes },
     committees,
     partyLineTotal,
@@ -258,10 +276,11 @@ export default async function LegislatorPage({ params }: Props) {
 
   if (!data) notFound()
 
-  const { leg, termsServed, bills, votes, keyVotes, session, voteStats, committees, partyLineTotal, partyUnityPct, lastActiveDate } = data
+  const { leg, termsServed, bills, prevBills, votes, keyVotes, session, prevSession, voteStats, committees, partyLineTotal, partyUnityPct, lastActiveDate } = data
 
   const primaryBills = bills.filter((b: any) => b.sponsor_order === 1)
   const coBills = bills.filter((b: any) => b.sponsor_order > 1)
+  const prevPrimaryBills = (prevBills || []).filter((b: any) => b.sponsor_order === 1)
   const distNum = parseInt(leg.district?.replace(/\D/g, '') || '0')
   const geoArea = DISTRICT_AREAS[distNum] || ''
 
@@ -447,7 +466,21 @@ export default async function LegislatorPage({ params }: Props) {
           {primaryBills.length === 0 && coBills.length === 0 && (
             <section>
               <h2 className="section-label mb-3">BILLS SPONSORED</h2>
-              <p className="text-sm text-slate-400 italic">No bills sponsored in the 2026 session yet.</p>
+              <p className="text-sm text-slate-400 italic">No bills sponsored in the {session?.year_start || 2026} session yet.</p>
+            </section>
+          )}
+
+          {/* Previous session bills */}
+          {prevSession && prevBills.length > 0 && (
+            <section>
+              <h2 className="section-label mb-3">
+                {prevSession.year_start} SESSION ({prevBills.filter((b: any) => b.sponsor_order === 1).length} primary · {prevBills.filter((b: any) => b.sponsor_order > 1).length} co)
+              </h2>
+              <div className="space-y-2">
+                {prevBills.map((bill: any) => (
+                  <BillRow key={bill.id} bill={bill} year={prevSession.year_start} />
+                ))}
+              </div>
             </section>
           )}
 
