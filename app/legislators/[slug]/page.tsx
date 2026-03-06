@@ -473,14 +473,20 @@ export default async function LegislatorPage({ params }: Props) {
           {/* Previous session bills */}
           {prevSession && prevBills.length > 0 && (
             <section>
-              <h2 className="section-label mb-3">
-                {prevSession.year_start} SESSION ({prevBills.filter((b: any) => b.sponsor_order === 1).length} primary · {prevBills.filter((b: any) => b.sponsor_order > 1).length} co)
-              </h2>
-              <div className="space-y-2">
-                {prevBills.map((bill: any) => (
-                  <BillRow key={bill.id} bill={bill} year={prevSession.year_start} />
-                ))}
-              </div>
+              <details className="group">
+                <summary className="list-none marker:hidden [&::-webkit-details-marker]:hidden cursor-pointer mb-3">
+                  <h2 className="section-label inline-flex items-center gap-2">
+                    <span className="group-open:hidden">▶</span>
+                    <span className="hidden group-open:inline">▼</span>
+                    {prevSession.year_start} SESSION ({prevBills.filter((b: any) => b.sponsor_order === 1).length} primary · {prevBills.filter((b: any) => b.sponsor_order > 1).length} co)
+                  </h2>
+                </summary>
+                <div className="space-y-2">
+                  {prevBills.map((bill: any) => (
+                    <BillRow key={bill.id} bill={bill} year={prevSession.year_start} />
+                  ))}
+                </div>
+              </details>
             </section>
           )}
 
