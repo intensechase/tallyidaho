@@ -17,7 +17,7 @@ import { PDFParse } from 'pdf-parse'
 import { extractPdfText } from './lib/pdf-extract'
 import { getMasterListRaw, getBill, getRollCall } from './lib/legiscan'
 import { isCloseVote, isPartyLineVote, getControversyReason } from './lib/controversy'
-import { parseSop, matchSponsorName } from '../lib/sop-sponsors'
+import { parseSop, matchSponsorName, splitSponsorNames } from '../lib/sop-sponsors'
 
 const LEGIS_BASE = 'https://legislature.idaho.gov/wp-content/uploads/sessioninfo'
 
@@ -241,8 +241,9 @@ async function main() {
       // Upsert sponsors from SOP (only if LegiScan has no individual sponsors)
       const hasLegiscanIndividual = bill.sponsors?.some((s: any) => !s.committee_sponsor)
       if (!hasLegiscanIndividual && sopSponsorNames.length > 0) {
+        const expandedNames = sopSponsorNames.flatMap(n => splitSponsorNames(n))
         let order = 1
-        for (const rawName of sopSponsorNames) {
+        for (const rawName of expandedNames) {
           const legUUID = matchSponsorName(rawName, legList)
           if (!legUUID) continue
           await supabase.from('bill_sponsors').upsert({

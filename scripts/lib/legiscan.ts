@@ -6,6 +6,8 @@ const BASE_URL = 'https://api.legiscan.com/'
 
 // Small delay between API calls to be respectful of free tier
 const delay = (ms: number) => new Promise(resolve => setTimeout(resolve, ms))
+// LegiScan timing guideline: don't call the same endpoint more than once per ~15 min.
+// 1000ms between sequential calls is respectful and avoids cache-hit penalties.
 
 async function apiCall(params: Record<string, string>): Promise<any> {
   const url = new URL(BASE_URL)
@@ -21,7 +23,7 @@ async function apiCall(params: Record<string, string>): Promise<any> {
     throw new Error(`LegiScan API error: ${JSON.stringify(json)}`)
   }
 
-  await delay(500) // 500ms between calls — respectful of free tier
+  await delay(1000) // 1s between calls — per LegiScan timing guidelines
   return json
 }
 
